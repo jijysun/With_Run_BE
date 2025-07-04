@@ -72,21 +72,22 @@ public class MapController {
         return "핀 삭제 완료 (pinId=" + pinId + ")";
     }
 
-//    @Operation(summary = "산책 코스 생성", description = "산책 코스를 등록합니다.")
-//    @PostMapping("/courses")
-//    public ResponseEntity<CourseCreateResponseDto> createCourse(
-//            @RequestHeader("Authorization") String accessToken,
-//            @RequestBody @Valid CourseCreateRequestDto requestDto) {
-//
-//        Long courseId = courseService.createCourse(accessToken, requestDto);
-//
-//        return ResponseEntity.ok(
-//                CourseCreateResponseDto.builder()
-//                        .courseId(courseId)
-//                        .message("산책 코스가 성공적으로 등록되었어요!")
-//                        .build()
-//        );
-//    }
+    @Operation(summary = "산책 코스 생성", description = "산책 코스를 등록합니다.")
+    @PostMapping("/courses")
+    public ResponseEntity<CourseCreateResponseDto> createCourse(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestBody @Valid CourseCreateRequestDto requestDto) {
+
+        Long courseId = mapSearchService.createCourse(accessToken, requestDto);
+
+        return ResponseEntity.ok(
+                CourseCreateResponseDto.builder()
+                        .courseId(courseId)
+                        .message("산책 코스가 성공적으로 등록되었어요!")
+                        .build()
+        );
+    }
+
 
 
     @Operation(summary = "반려동물 시설 전체 조회", description = "모든 반려동물 시설 목록을 조회합니다.")

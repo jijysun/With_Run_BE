@@ -11,6 +11,6 @@ public interface MapSearchService {
     List<PlaceResponseDto> searchPlacesByCategory(String category);
     PlaceResponseDto getPlaceById(Long placeId);
     List<PetFacilityResponseDto> getAllPetFacilities();
-    //Long createCourse(String accessToken, CourseCreateRequestDto requestDto);
+    Long createCourse(String accessToken, CourseCreateRequestDto requestDto);
 }
 

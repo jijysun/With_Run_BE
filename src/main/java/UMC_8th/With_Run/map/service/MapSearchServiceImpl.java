@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.map.service;
 
+import UMC_8th.With_Run.map.dto.CourseCreateRequestDto;
 import UMC_8th.With_Run.map.dto.PetFacilityResponseDto;
 import UMC_8th.With_Run.map.dto.PlaceResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -134,6 +135,16 @@ public class MapSearchServiceImpl implements MapSearchService {
         return results;
     }
 
+    @Override
+    public Long createCourse(String accessToken, CourseCreateRequestDto dto) {
+        // 1. 토큰 검증 (JWT 토큰 검증 또는 유저 조회 등)
+        // 2. Course entity 저장
+        // 3. Pins와 매핑 저장
+        // 4. 지역, 키워드 등 저장
+
+        // 임시 courseId 반환
+        return 123L;
+    }
 
 }
 
