@@ -1,10 +1,8 @@
 package UMC_8th.With_Run.map.controller;
 
-import UMC_8th.With_Run.map.dto.CourseCreateRequestDto;
-import UMC_8th.With_Run.map.dto.CourseCreateResponseDto;
-import UMC_8th.With_Run.map.dto.PetFacilityResponseDto;
-import UMC_8th.With_Run.map.dto.PlaceResponseDto;
+import UMC_8th.With_Run.map.dto.*;
 import UMC_8th.With_Run.map.service.MapSearchService;
+import UMC_8th.With_Run.map.service.PinService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +20,8 @@ import java.util.List;
 public class MapController {
 
     private final MapSearchService mapSearchService;
+
+    private final PinService pinService;
 
     @Operation(summary = "키워드 검색", description = "키워드로 장소를 검색합니다.")
     @GetMapping("/search/keyword")
@@ -53,23 +53,23 @@ public class MapController {
         return ResponseEntity.ok(place);
     }
 
-
     @Operation(summary = "핀 생성")
     @PostMapping("/pins")
-    public String createPin() {
-        return "핀 생성 완료";
+    public PinResponseDto createPin(@RequestBody PinRequestDto requestDto) {
+        return pinService.createPin(requestDto);
     }
 
     @Operation(summary = "핀 수정")
     @PatchMapping("/pins/{pinId}")
-    public String updatePin(@PathVariable Long pinId) {
-        return "핀 수정 완료 (pinId=" + pinId + ")";
+    public PinResponseDto updatePin(@PathVariable Long pinId,
+                                    @RequestBody PinRequestDto requestDto) {
+        return pinService.updatePin(pinId, requestDto);
     }
 
     @Operation(summary = "핀 삭제")
     @DeleteMapping("/pins/{pinId}")
-    public String deletePin(@PathVariable Long pinId) {
-        return "핀 삭제 완료 (pinId=" + pinId + ")";
+    public PinResponseDto deletePin(@PathVariable Long pinId) {
+        return pinService.deletePin(pinId);
     }
 
     @Operation(summary = "산책 코스 생성", description = "산책 코스를 등록합니다.")
