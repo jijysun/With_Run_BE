@@ -7,7 +7,5 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    private final ChatRepository chatRepository;
-
-
+//    private final ChatRepository chatRepository;
 }
