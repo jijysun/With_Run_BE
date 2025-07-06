@@ -14,8 +14,6 @@ public class MemberRequestDto {
         @Email(message = "올바른 이메일 형식이어야 합니다.")
         private String email;
 
-        @NotBlank(message = "패스워드는 필수입니다.")
-        private String password;
     }
 
 
