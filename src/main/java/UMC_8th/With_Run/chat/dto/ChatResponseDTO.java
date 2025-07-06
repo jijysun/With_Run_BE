@@ -35,5 +35,9 @@ public class ChatResponseDTO {
         private ArrayList<Message> messages;
     }
 
-
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class TestDTO{
+        private String test;
+        private Integer testCode;
+    }
 }

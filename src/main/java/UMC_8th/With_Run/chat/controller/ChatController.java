@@ -5,6 +5,9 @@ import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.service.ChatService;
+import UMC_8th.With_Run.common.apiResponse.StndResponse;
+//import UMC_8th.With_Run.common.apiResponse.code.SuccessCode;
+import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -24,8 +27,24 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "채팅 API")
 public class ChatController {
+    
 
     private final ChatService chatService;
+    
+    @GetMapping("/test")
+    @Operation(summary = "응답 확인용 테스트 API", description = "T E S T")
+    @ApiResponses({
+            @ApiResponse(responseCode = "TestSuccessCode", description = "성공", content = @Content(schema = @Schema(implementation = ChatResponseDTO.TestDTO.class))),
+            @ApiResponse(responseCode = "TestSuccessCode", description = "실패",content = @Content(schema = @Schema(implementation = StndResponse.class)))
+    })
+    public StndResponse<ChatResponseDTO.TestDTO> test() {
+        ChatResponseDTO.TestDTO test = ChatResponseDTO.TestDTO.builder()
+                .test("asdf")
+                .testCode(1)
+                .build();
+//        return StndResponse.onSuccess(test, SuccessCode.REQUEST_SUCCESS);
+        return StndResponse.onSuccess(test, SuccessCode.INQUIRY_SUCCESS);
+    }
     
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
@@ -99,8 +118,9 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
-    public void getChatList (@PathVariable ("id") Integer userId) {
-//        chatService.getChatList (userId);
+    public StndResponse<ChatResponseDTO.getChatListDTO> getChatList (@PathVariable ("id") Integer userId) {
+        ChatResponseDTO.getChatListDTO dto = new ChatResponseDTO.getChatListDTO();
+        return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
 
 
