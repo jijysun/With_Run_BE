@@ -13,12 +13,9 @@ public class RegionsTown {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long cityId;
     private Long provinceId;
-
     private String name;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

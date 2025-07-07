@@ -14,11 +14,9 @@ public class Pin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long townId;
     private Long cityId;
     private Long provinceId;
-
     private String name;
     private String color;
     private String detail;

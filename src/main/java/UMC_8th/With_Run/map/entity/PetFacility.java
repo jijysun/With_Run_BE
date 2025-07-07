@@ -8,20 +8,17 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-public class gitPetFacility {
+public class PetFacility {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long townId;
     private Long cityId;
     private Long provinceId;
-
     private String name;
     private Integer runningTime;
     private Boolean parking;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
