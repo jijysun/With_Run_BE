@@ -16,3 +16,6 @@ public class PlaceResponseDto {
     private String openingHours;
     private Boolean parkingAvailable;
 }
+
+
+
