@@ -8,6 +8,10 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 public class WithRunApplication {
 
 	public static void main(String[] args) {
+		System.out.println("JDBC URL = " +
+				System.getenv("DB_HOST") + ":" +
+				System.getenv("DB_PORT") + "/" +
+				System.getenv("DB_NAME"));
 		SpringApplication.run(WithRunApplication.class, args);
 	}
 
