@@ -20,7 +20,6 @@ public class Pin {
     private String name;
     private String color;
     private String detail;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

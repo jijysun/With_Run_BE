@@ -5,19 +5,19 @@ import lombok.*;
 public class MapResponseDTO {
 
 
-    @Builder @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
         private String message;
     }
 
-    @Builder @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PinResponseDto {
         private Long pinId;
         private String message;
     }
 
-    @Builder @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PetFacilityResponseDto {
         private Long id;
         private String name;
@@ -26,7 +26,7 @@ public class MapResponseDTO {
         private Boolean hasParking;
     }
 
-    @Builder @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PlaceResponseDto {
         private Long id;
         private String name;
