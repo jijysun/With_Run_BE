@@ -1,8 +1,6 @@
 package UMC_8th.With_Run.map.service;
 
-import UMC_8th.With_Run.map.dto.CourseCreateRequestDto;
-import UMC_8th.With_Run.map.dto.PetFacilityResponseDto;
-import UMC_8th.With_Run.map.dto.PlaceResponseDto;
+import UMC_8th.With_Run.map.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +12,11 @@ import java.util.List;
 public class MapSearchServiceImpl implements MapSearchService {
 
     @Override
-    public List<PlaceResponseDto> searchPlacesByCategory(String category) {
-        List<PlaceResponseDto> results = new ArrayList<>();
+    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByCategory(String category) {
+        List<MapResponseDTO.PlaceResponseDto> results = new ArrayList<>();
 
         if (category.contains("약국")) {
-            results.add(PlaceResponseDto.builder()
+            results.add(MapResponseDTO.PlaceResponseDto.builder()
                     .id(1L)
                     .name("연남약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -30,7 +28,7 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .parkingAvailable(true)
                     .build());
 
-            results.add(PlaceResponseDto.builder()
+            results.add(MapResponseDTO.PlaceResponseDto.builder()
                     .id(2L)
                     .name("별빛약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -47,11 +45,11 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    public List<PlaceResponseDto> searchPlacesByKeyword(String keyword) {
-        List<PlaceResponseDto> results = new ArrayList<>();
+    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String keyword) {
+        List<MapResponseDTO.PlaceResponseDto> results = new ArrayList<>();
 
         if (keyword.contains("약국")) {
-            results.add(PlaceResponseDto.builder()
+            results.add(MapResponseDTO.PlaceResponseDto.builder()
                     .id(1L)
                     .name("연남약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -63,7 +61,7 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .parkingAvailable(true)
                     .build());
 
-            results.add(PlaceResponseDto.builder()
+            results.add(MapResponseDTO.PlaceResponseDto.builder()
                     .id(2L)
                     .name("별빛약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -80,10 +78,10 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    public PlaceResponseDto getPlaceById(Long placeId) {
+    public MapResponseDTO.PlaceResponseDto getPlaceById(Long placeId) {
         // 임시 하드코딩
         if (placeId == 1L) {
-            return PlaceResponseDto.builder()
+            return MapResponseDTO.PlaceResponseDto.builder()
                     .id(1L)
                     .name("연남약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -95,7 +93,7 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .parkingAvailable(true)
                     .build();
         } else if (placeId == 2L) {
-            return PlaceResponseDto.builder()
+            return MapResponseDTO.PlaceResponseDto.builder()
                     .id(2L)
                     .name("별빛약국")
                     .address("서울 마포구 연남로 11길 14")
@@ -113,10 +111,10 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    public List<PetFacilityResponseDto> getAllPetFacilities() {
-        List<PetFacilityResponseDto> results = new ArrayList<>();
+    public List<MapResponseDTO.PetFacilityResponseDto> getAllPetFacilities() {
+        List<MapResponseDTO.PetFacilityResponseDto> results = new ArrayList<>();
 
-        results.add(PetFacilityResponseDto.builder()
+        results.add(MapResponseDTO.PetFacilityResponseDto.builder()
                 .id(1L)
                 .name("카페 도그라운드")
                 .imageUrl("https://example.com/images/dogcafe.jpg")
@@ -124,7 +122,7 @@ public class MapSearchServiceImpl implements MapSearchService {
                 .hasParking(true)
                 .build());
 
-        results.add(PetFacilityResponseDto.builder()
+        results.add(MapResponseDTO.PetFacilityResponseDto.builder()
                 .id(2L)
                 .name("홍대 펫약국")
                 .imageUrl("https://example.com/images/petpharmacy.jpg")
@@ -136,7 +134,7 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    public Long createCourse(String accessToken, CourseCreateRequestDto dto) {
+    public Long createCourse(String accessToken, MapRequestDTO.CourseCreateRequestDto dto) {
         // 1. 토큰 검증 (JWT 토큰 검증 또는 유저 조회 등)
         // 2. Course entity 저장
         // 3. Pins와 매핑 저장

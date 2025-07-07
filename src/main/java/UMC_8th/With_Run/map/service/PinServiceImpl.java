@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.map.service;
 
-import UMC_8th.With_Run.map.dto.PinRequestDto;
-import UMC_8th.With_Run.map.dto.PinResponseDto;
+import UMC_8th.With_Run.map.dto.*;
 import UMC_8th.With_Run.map.entity.Pin;
 import UMC_8th.With_Run.map.repository.PinRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,7 @@ public class PinServiceImpl implements PinService {
     private final PinRepository pinRepository;
 
     @Override
-    public PinResponseDto createPin(PinRequestDto requestDto) {
+    public MapResponseDTO.PinResponseDto createPin(MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = new Pin();
         pin.setName(requestDto.getName());
         pin.setDetail(requestDto.getDetail());
@@ -24,11 +23,11 @@ public class PinServiceImpl implements PinService {
         pin.setCreatedAt(LocalDateTime.now());
 
         Pin saved = pinRepository.save(pin);
-        return new PinResponseDto(saved.getId(), "핀 생성 완료");
+        return new MapResponseDTO.PinResponseDto(saved.getId(), "핀 생성 완료");
     }
 
     @Override
-    public PinResponseDto updatePin(Long pinId, PinRequestDto requestDto) {
+    public MapResponseDTO.PinResponseDto updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
 
@@ -38,16 +37,16 @@ public class PinServiceImpl implements PinService {
         pin.setUpdatedAt(LocalDateTime.now());
 
         pinRepository.save(pin);
-        return new PinResponseDto(pin.getId(), "핀 수정 완료");
+        return new MapResponseDTO.PinResponseDto(pin.getId(), "핀 수정 완료");
     }
 
     @Override
-    public PinResponseDto deletePin(Long pinId) {
+    public MapResponseDTO.PinResponseDto deletePin(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
 
         pin.setDeletedAt(LocalDateTime.now());
         pinRepository.save(pin);
-        return new PinResponseDto(pin.getId(), "핀 삭제 완료");
+        return new MapResponseDTO.PinResponseDto(pin.getId(), "핀 삭제 완료");
     }
 }
