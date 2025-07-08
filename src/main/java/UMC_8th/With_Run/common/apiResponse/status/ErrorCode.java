@@ -30,7 +30,7 @@ public enum ErrorCode implements BaseErrorCode {
     WRONG_BREED(HttpStatus.BAD_REQUEST , "USER4005", "잘못된 견종 입니다."),
     WRONG_USER(HttpStatus.BAD_REQUEST , "USER4006", "잘못된 사용자 입니다."),
     INVALID_TOKEN (HttpStatus.BAD_REQUEST, "MEMBER4007", "만료된 토큰 입니다."),
-
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
 
     // Friend
     BANNED_USER(HttpStatus.BAD_REQUEST , "FRIEND4001", "차단된 사용자 입니다."),
