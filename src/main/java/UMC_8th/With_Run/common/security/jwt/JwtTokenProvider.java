@@ -1,6 +1,5 @@
 package UMC_8th.With_Run.common.security.jwt;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.config.properties.Constants;
 import UMC_8th.With_Run.common.config.properties.JwtProperties;
 import io.jsonwebtoken.*;

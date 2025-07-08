@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum ErrorStatus implements BaseErrorCode {
+public enum ErrorCode implements BaseErrorCode {
 
     // 400번대, Common
     BAD_REQUEST(HttpStatus.BAD_REQUEST , "COMMON4000", "잘못된 요청입니다"),
