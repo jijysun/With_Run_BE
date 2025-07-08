@@ -3,7 +3,6 @@ package UMC_8th.With_Run.common.security.jwt;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.config.properties.Constants;
 import UMC_8th.With_Run.common.config.properties.JwtProperties;
-import UMC_8th.With_Run.user.handler.UserHandler;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -77,7 +76,7 @@ public class JwtTokenProvider {
     public Authentication extractAuthentication(HttpServletRequest request){
         String accessToken = resolveToken(request);
         if(accessToken == null || !validateToken(accessToken)) {
-            throw new UserHandler(ErrorStatus.INVALID_TOKEN);
+            //throw new UserHandler(ErrorStatus.INVALID_TOKEN);
         }
         return getAuthentication(accessToken);
     }
