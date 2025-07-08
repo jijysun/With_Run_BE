@@ -85,4 +85,5 @@ public enum ErrorCode implements BaseErrorCode {
                 .message(message)
                 .build();
     }
+
 }
