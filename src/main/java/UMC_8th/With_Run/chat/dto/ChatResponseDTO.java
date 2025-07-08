@@ -14,7 +14,13 @@ public class ChatResponseDTO {
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class createChatDTO {
-        private Integer chatId;
+        private Long chatId;
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class renameChatDTO{
+        private Long chatId;
+        private String name;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor

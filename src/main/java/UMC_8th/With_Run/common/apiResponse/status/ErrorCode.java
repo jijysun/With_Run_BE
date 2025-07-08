@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum ErrorStatus implements BaseErrorCode {
+public enum ErrorCode implements BaseErrorCode {
 
     // 400번대, Common
     BAD_REQUEST(HttpStatus.BAD_REQUEST , "COMMON4000", "잘못된 요청입니다"),
@@ -19,7 +19,7 @@ public enum ErrorStatus implements BaseErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED , "COMMON4005", "지원되지 않는 HTTP 프로토콜입니다."),
 
     // INTERNAL_ERROR, 서버 오류
-    INTERNAL_ERROR (HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5000", "서버 오류입니다."),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5000", "서버 오류입니다."),
     NOT_IMPLEMENTED(HttpStatus.NOT_IMPLEMENTED, "COMMON5001", "구현되지 않았습니다"),
 
     // User
