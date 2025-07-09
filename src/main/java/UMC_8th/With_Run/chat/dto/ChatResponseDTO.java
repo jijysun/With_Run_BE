@@ -27,6 +27,8 @@ public class ChatResponseDTO {
     public static class getChatListDTO {
         private Long chatId;
 
+        private String chatName;
+
         private ArrayList<String> users; // 참여자 이름은 배열로
 
         private ArrayList<?> userProfiles; // 참여자 프로필, 최대 3개?

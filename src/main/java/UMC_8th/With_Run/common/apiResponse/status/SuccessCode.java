@@ -17,8 +17,8 @@ public enum SuccessCode implements BaseCode {
 
     // Common
     IN_PROCESSING(HttpStatus.ACCEPTED, "COMMON2005", "요청 처리 중에 있습니다."),
-    INQUIRY_SUCCESS (HttpStatus.OK, "COMMON200", "정보 조회에 성공했습니다."),
-    REQUEST_SUCCESS (HttpStatus.OK, "COMMIN200", "요청 처리가 성공했습니다");
+    INQUIRY_SUCCESS (HttpStatus.OK, "COMMON2006", "정보 조회에 성공했습니다."),
+    REQUEST_SUCCESS (HttpStatus.OK, "COMMON2007", "요청 처리가 성공했습니다");
 
 
     private final HttpStatus status;

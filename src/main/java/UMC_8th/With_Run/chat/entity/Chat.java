@@ -1,24 +1,48 @@
 package UMC_8th.With_Run.chat.entity;
 
 
-import java.time.LocalDate;
+import UMC_8th.With_Run.chat.entity.mapping.UserChat;
+import UMC_8th.With_Run.user.entity.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
-// @Entity @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Chat {
 
-    // @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private String name;
 
-    // @Column(nullable = false)
+    @Column(nullable = false)
     private Integer participants; // 참여자 수 입니다.
 
-    // @CreateDate
+    @CreatedDate
     private LocalDate createdAt;
 
-    // @LastModifiedDate
+    @LastModifiedDate
     private LocalDate updatedAt;
+
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
+    private List<UserChat> userChatList = new ArrayList<>();
+
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id")
+//    private User user;
 
 }

@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/chat")
@@ -118,8 +120,10 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
-    public StndResponse<ChatResponseDTO.getChatListDTO> getChatList (@PathVariable ("id") Integer userId) {
+    public StndResponse<ChatResponseDTO.getChatListDTO> getChatList (@PathVariable ("id") Long userId) {
         ChatResponseDTO.getChatListDTO dto = new ChatResponseDTO.getChatListDTO();
+        // Chat -> Dto
+        List<Chat> chatList = chatService.getChatList(userId);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
 
