@@ -1,7 +1,10 @@
 package UMC_8th.With_Run.user.controller;
 
+import UMC_8th.With_Run.common.apiResponse.StndResponse;
+import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
+import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +41,9 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = UserResponseDto.LoginResultDTO.class)))
     })
+    @Parameters({
+            @Parameter(name = "email", description = "사용자 이메일입니다.")
+    })
     public void login(){
         //userService.login();
     }
@@ -45,7 +51,7 @@ public class UserController {
     @PostMapping("/profile")
     @Operation(summary = "반려견 프로필 설정 API", description = "반려견의 프로필 정보를 설정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Profile.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -57,7 +63,7 @@ public class UserController {
     @PostMapping("/region")
     @Operation(summary = "동네 설정 API", description = "사용자의 동네 정보를 설정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Profile.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -69,7 +75,7 @@ public class UserController {
     @PostMapping("/alarm")
     @Operation(summary = "알람 끄기 API", description = "사용자의 알람을 끄는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -81,7 +87,7 @@ public class UserController {
     @PatchMapping("/")
     @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -93,7 +99,7 @@ public class UserController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = "로그아웃 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -177,7 +183,7 @@ public class UserController {
     @DeleteMapping("/followings/{following_id}")
     @Operation(summary = "팔로잉 취소 API", description = "사용자가 팔로우를 취소하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다."),
@@ -190,7 +196,7 @@ public class UserController {
     @DeleteMapping("/followings/{follower_id}")
     @Operation(summary = "팔로워 삭제 API", description = "사용자의 팔로워를 삭제하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다."),
@@ -203,7 +209,7 @@ public class UserController {
     @PatchMapping("/profile")
     @Operation(summary = "프로필 수정 API", description = "사용자의 프로필을 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Profile.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다.")
@@ -215,7 +221,7 @@ public class UserController {
     @PatchMapping("/courses/{course_id}")
     @Operation(summary = "코스 수정 API", description = "사용자의 코스를 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = User.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Course.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다."),
@@ -224,15 +230,5 @@ public class UserController {
     public void updateCourse(@PathVariable Long course_id, @RequestBody UserRequestDto.UpdateCourseDTO updateCourseDTO){
         //userService.updateCourse();
     }
-
-
-
-
-
-
-
-
-
-
 
 }
