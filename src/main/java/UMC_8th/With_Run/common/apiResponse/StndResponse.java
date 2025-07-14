@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.common.apiResponse;
 
+
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,4 +30,6 @@ public class StndResponse<T> {
     public static <T> StndResponse<T> onFailure(String code, String message, T data) {
         return new StndResponse<>(false, code, message, data);
     }
+
 }
+

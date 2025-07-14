@@ -25,6 +25,7 @@ public enum SuccessCode implements BaseCode {
     UPDATE_SUCCESS(HttpStatus.OK, "COMMON2007", "핀 수정에 성공했습니다."),
     DELETE_SUCCESS(HttpStatus.OK, "COMMON2008", "핀 삭제에 성공했습니다.");
 
+
     private final HttpStatus status;
     private final String code;
     private final String message;

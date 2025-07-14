@@ -1,0 +1,48 @@
+package UMC_8th.With_Run.user.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+
+public class UserRequestDto {
+
+    @Getter
+    @Setter
+    public static class LoginRequestDTO{
+        @NotBlank(message = "이메일은 필수입니다.")
+        @Email(message = "올바른 이메일 형식이어야 합니다.")
+        private String email;
+
+    }
+
+    @Getter
+    @Setter
+    public static class BreedProfileRequestDTO{
+
+
+    }
+
+    @Getter
+    @Setter
+    public static class RegionRequestDTO{
+
+
+    }
+
+    @Getter
+    @Setter
+    public static class UpdateProfileDTO{
+
+
+    }
+
+    @Getter
+    @Setter
+    public static class UpdateCourseDTO{
+
+
+    }
+
+
+}
