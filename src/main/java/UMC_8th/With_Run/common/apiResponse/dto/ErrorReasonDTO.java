@@ -16,4 +16,6 @@ public class ErrorReasonDTO {
     public boolean getIsSuccess() {
         return isSuccess;
     }
+
 }
+
