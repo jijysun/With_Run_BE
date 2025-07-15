@@ -24,3 +24,4 @@ jwt:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: ${JWT_ACCESS_EXPIRATION}
+      

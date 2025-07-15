@@ -1,6 +1,7 @@
 package UMC_8th.With_Run.chat.controller;
 
 
+import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
@@ -29,24 +30,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "채팅 API")
 public class ChatController {
-    
 
     private final ChatService chatService;
-    
-    @GetMapping("/test")
-    @Operation(summary = "응답 확인용 테스트 API", description = "T E S T")
-    @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", description = "성공", content = @Content(schema = @Schema(implementation = ChatResponseDTO.TestDTO.class))),
-            @ApiResponse(responseCode = "TestSuccessCode", description = "실패",content = @Content(schema = @Schema(implementation = StndResponse.class)))
-    })
-    public StndResponse<ChatResponseDTO.TestDTO> test() {
-        ChatResponseDTO.TestDTO test = ChatResponseDTO.TestDTO.builder()
-                .test("asdf")
-                .testCode(1)
-                .build();
-//        return StndResponse.onSuccess(test, SuccessCode.REQUEST_SUCCESS);
-        return StndResponse.onSuccess(test, SuccessCode.INQUIRY_SUCCESS);
-    }
+
+    // userId -> JWT
     
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
@@ -61,7 +48,7 @@ public class ChatController {
 //        chatService.createChat(ChatRequestDTO.CreateChatReqDTO createChatReqDTO);
     }
 
-    @PatchMapping("")
+    @PatchMapping("/{roomId}")
     @Operation (summary = "채팅방 이름 변경 API", description = "생성된 채팅방에 대한 이름 변경 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Chat.class))) // 성공 DTO Response 클래스
@@ -71,8 +58,9 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public void renameChat (@RequestBody ChatRequestDTO.RenameChatDTO renameChatDTO) {
+    public void renameChat (@PathVariable("roomId") Long roomId ,@RequestParam ("newName") String newName) {
 //        chatService.renameChat(renameChatDTO);
+        chatService.renameChat(roomId, newName);
     }
 
     @GetMapping ("/{id}")
@@ -80,11 +68,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.chatHistoryDTO.class)))
     })
-    @Parameters({
-            @Parameter(name = "chatId", description = "진입 채팅방 Id 입니다.")
-    })
-    public void enterChat (@PathVariable("id") Long chatId){
-//        chatService.enterChat(chatId);
+    public void enterChat (@PathVariable("id") Long roomId){
+//        chatService.enterChat(roomId);
     }
 
     // 채팅 유저 추가
@@ -96,7 +81,8 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
     })
-    public void inviteUser(@PathVariable ("id") Long userId){
+    public void inviteUser(@PathVariable ("id") Long roomId, @RequestBody List<Long> userIdList){
+//        chatService.inviteUser(roomId, userIdList);
 
     }
 
@@ -109,10 +95,10 @@ public class ChatController {
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
     public void leaveChat (@PathVariable ("id") Long chatId) {
-        // chatService.leaveChat (@PathVariable Long chatId)
+        chatService.leaveChat(chatId);
     }
 
-    @GetMapping("/list/{id}")
+    @GetMapping("")
     @Operation (summary = "채팅방 목록 조회 API", description = "대화를 생성하거나, 초대된 채팅방 리스트 조회 리스트입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.getChatListDTO.class))) // 성공 DTO Response 클래스
@@ -120,18 +106,17 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
-    public StndResponse<ChatResponseDTO.getChatListDTO> getChatList (@PathVariable ("id") Long userId) {
-        ChatResponseDTO.getChatListDTO dto = new ChatResponseDTO.getChatListDTO();
-        // Chat -> Dto
+    public StndResponse<List<ChatResponseDTO.getChatListDTO>> getChatList () {
+        Long userId = 1L;
         List<Chat> chatList = chatService.getChatList(userId);
-        return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
+        return StndResponse.onSuccess(ChatConverter.toGetChatListDTO(chatList), SuccessCode.INQUIRY_SUCCESS);
     }
 
 
     // 메세지 채팅
-    @MessageMapping("/msg")
+    @MessageMapping("/{id}/msg")
     @Operation(summary = "메세지 보내기", description = "실질적인 채팅 API 입니다.")
-    public void chatting (){
+    public void chatting (){ // id, msg
         
     }
 

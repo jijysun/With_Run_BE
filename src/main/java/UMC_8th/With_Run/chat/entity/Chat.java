@@ -45,4 +45,8 @@ public class Chat {
 //    @JoinColumn(name = "user_id")
 //    private User user;
 
+
+    public void renameChat (String newName){
+        this.name = newName;
+    }
 }

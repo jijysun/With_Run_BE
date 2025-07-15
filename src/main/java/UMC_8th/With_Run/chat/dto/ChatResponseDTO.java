@@ -35,6 +35,7 @@ public class ChatResponseDTO {
 
         private Integer participants;
 
+        // 마지막으로 받은 메세지, 그 시간을 어떻게...?
         private LocalDate lastMsgReceived;
     }
 
