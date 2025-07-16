@@ -32,8 +32,8 @@ public class ChatService {
                 .createdAt(LocalDate.now())
                 .build();
 //        User user = userRepository.findById(userId);
-//        List<UserChat> allByUserId = userChatRepository.findAllByUserId(userId);
-//        if (allByUserId.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
+        List<UserChat> userChats = userChatRepository.findAllByUserId(userId);
+        if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
 
         List<UserChat> allByUser = userChatRepository.findAllByUser(user);
 
@@ -62,25 +62,27 @@ public class ChatService {
         Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         // 받은 id에 대한 여러 user 조회
-        userRepository
+//        List<User> users = userRepository.findAllByIdIn(userIdList);
+        List<User> users = new ArrayList<>();
 
-        // userChat 여러 개 저장
+                // userChat 여러 개 저장
         List<UserChat> newUserList = new ArrayList<>();
-        for (Long id : userIdList) {
+        for (User user : users) {
             newUserList.add(UserChat.builder()
-                            .chat(chat)
-                            .
+                    .chat(chat)
+                    .user(user)
                     .build());
         }
         // chat : participants 증가 시키기
+        Integer participants = chat.getParticipants();
+        chat.updateParticipants(participants + users.size());
 
-
-
+        userChatRepository.saveAll(newUserList);
 
     }
 
     @Transactional
-    public void renameChat (Long roomId, String newName) {
+    public void renameChat(Long roomId, String newName) {
         Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         chat.renameChat(newName);
     }

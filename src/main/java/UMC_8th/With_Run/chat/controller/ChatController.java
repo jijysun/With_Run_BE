@@ -59,7 +59,6 @@ public class ChatController {
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
     public void renameChat (@PathVariable("roomId") Long roomId ,@RequestParam ("newName") String newName) {
-//        chatService.renameChat(renameChatDTO);
         chatService.renameChat(roomId, newName);
     }
 
@@ -82,8 +81,7 @@ public class ChatController {
             @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
     })
     public void inviteUser(@PathVariable ("id") Long roomId, @RequestBody List<Long> userIdList){
-//        chatService.inviteUser(roomId, userIdList);
-
+        chatService.inviteUser(roomId, userIdList);
     }
 
     @DeleteMapping("{id}")

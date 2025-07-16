@@ -49,4 +49,8 @@ public class Chat {
     public void renameChat (String newName){
         this.name = newName;
     }
+
+    public void updateParticipants (int participants){
+        this.participants = participants;
+    }
 }
