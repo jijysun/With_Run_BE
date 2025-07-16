@@ -30,4 +30,6 @@ public class StndResponse<T> {
     public static <T> StndResponse<T> onFailure(String code, String message, T data) {
         return new StndResponse<>(false, code, message, data);
     }
+
 }
+
