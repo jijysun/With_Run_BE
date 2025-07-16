@@ -28,17 +28,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto.LoginResultDTO login(LoginRequestDTO request) {
+
         // 이메일로 사용자 찾기
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseGet(() -> {
                     // 없으면 회원가입 (가입 처리)
                     User newUser = User.builder()
                             .email(request.getEmail())
-                            .naverId("default")
+                            .naverId(request.getNaverId())
                             .build();
                     return userRepository.save(newUser);
                 });
-
 
         // 일단 패스워드 없이 이메일로만 로그인
         /*
