@@ -2,9 +2,9 @@ package UMC_8th.With_Run.user.controller;
 
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
-import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateCourseDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
@@ -16,7 +16,6 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LoginResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ProfileResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
-import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,13 +48,10 @@ public class UserController {
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "로그인 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "email", description = "사용자 이메일입니다.")
-    })
-    public StndResponse<LoginResultDTO> login(){
-        UserResponseDto.LoginResultDTO dto = new UserResponseDto.LoginResultDTO();
+    public StndResponse<UserResponseDto.LoginResultDTO> login(@RequestBody LoginRequestDTO request) {
+        UserResponseDto.LoginResultDTO dto = userService.login(request);  // request 전달
         return StndResponse.onSuccess(dto, SuccessCode.LOGIN_SUCCESS);
     }
 
