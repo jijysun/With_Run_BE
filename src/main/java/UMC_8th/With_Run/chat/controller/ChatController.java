@@ -2,12 +2,11 @@ package UMC_8th.With_Run.chat.controller;
 
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
-import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
+import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
-//import UMC_8th.With_Run.common.apiResponse.code.SuccessCode;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,7 +51,7 @@ public class ChatController {
     @PostMapping("/{id}")
     @Operation(summary = "채팅방 초대 API", description = "채팅방 초대 API 입니다. 딱히 반환할 게 없어 성공 코드만 반활할 예정입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = Chat.class)))
+            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
     @Parameters({
             @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
@@ -81,8 +80,9 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.chatHistoryDTO.class)))
     })
-    public void enterChat (@PathVariable("id") Long roomId){
-//        chatService.enterChat(roomId);
+    public StndResponse<List<Message>> enterChat (@PathVariable("id") Long roomId){
+        List<Message> messages = chatService.enterChat(roomId);
+        return StndResponse.onSuccess(messages, SuccessCode.INQUIRY_SUCCESS);
     }
 
     @DeleteMapping("{id}")

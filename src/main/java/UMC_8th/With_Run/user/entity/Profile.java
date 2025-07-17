@@ -61,4 +61,8 @@ public class Profile {
 
     @Column(name = "deleted_at", columnDefinition = "datetime")
     private LocalDateTime deletedAt;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
