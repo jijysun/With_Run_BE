@@ -11,14 +11,14 @@ public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CreateChatReqDTO {
-        private Integer userId;
-        private Integer targetUserId;
+        private Long userId;
+        private Long targetUserId;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class RenameChatDTO {
-        private Integer userId;
-        private Integer chatId;
+        private Long userId;
+        private Long chatId;
         private String newName;
     }
 }

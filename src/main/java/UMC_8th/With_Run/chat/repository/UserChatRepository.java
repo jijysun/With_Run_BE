@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.chat.repository;
 
+import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,8 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     List<UserChat> findAllByUserIn(Collection<User> users);
 
     List<UserChat> findAllByIdIn(Collection<Long> ids);
+
+    UserChat findByUserAndChat(User user, Chat chat);
+
+    void deleteUserChatByUserAndChat(User user, Chat chat);
 }

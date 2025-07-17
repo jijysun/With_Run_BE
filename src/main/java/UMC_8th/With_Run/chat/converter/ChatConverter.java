@@ -19,4 +19,9 @@ public class ChatConverter {
 
         return chatListDTOs;
     }
+
+    public static Chat toNewChatConverter ( ){
+        return Chat.builder()
+                .build();
+    }
 }

@@ -41,11 +41,25 @@ public class ChatController {
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.createChatDTO.class)))
     })
     @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다, 현 기준 사용자의 id 입니다."),
-            @Parameter(name="targetUserId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
+            @Parameter(name="targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
     })
-    public void createChat (@RequestBody ChatRequestDTO.CreateChatReqDTO createChatReqDTO) {
-//        chatService.createChat(ChatRequestDTO.CreateChatReqDTO createChatReqDTO);
+    public void createChat (@RequestParam Long targetId) {
+        // userId = Jwt로 해결이 되니,
+        chatService.createChat(targetId);
+    }
+
+    // 채팅 유저 추가
+    @PostMapping("/{id}")
+    @Operation(summary = "채팅방 초대 API", description = "채팅방 초대 API 입니다. 딱히 반환할 게 없어 성공 코드만 반활할 예정입니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = Chat.class)))
+    })
+    @Parameters({
+            @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
+    })
+    public StndResponse<Object> inviteUser(@PathVariable ("id") Long roomId, @RequestBody List<Long> userIdList){
+        chatService.inviteUser(roomId, userIdList);
+        return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS); // 초대 성공 코드 만들기
     }
 
     @PatchMapping("/{roomId}")
@@ -71,19 +85,6 @@ public class ChatController {
 //        chatService.enterChat(roomId);
     }
 
-    // 채팅 유저 추가
-    @PostMapping("/{id}")
-    @Operation(summary = "채팅방 초대 API", description = "채팅방 초대 API 입니다. 딱히 반환할 게 없어 성공 코드만 반활할 예정입니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = Chat.class)))
-    })
-    @Parameters({
-            @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
-    })
-    public void inviteUser(@PathVariable ("id") Long roomId, @RequestBody List<Long> userIdList){
-        chatService.inviteUser(roomId, userIdList);
-    }
-
     @DeleteMapping("{id}")
     @Operation (summary = "채팅방 떠나기 API", description = "참여 채팅방 떠나기 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
@@ -92,8 +93,9 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
-    public void leaveChat (@PathVariable ("id") Long chatId) {
+    public StndResponse<Object> leaveChat (@PathVariable ("id") Long chatId) {
         chatService.leaveChat(chatId);
+        return StndResponse.onSuccess(null, SuccessCode.INQUIRY_SUCCESS); // 채팅방 나가기 성공 코드 만들기
     }
 
     @GetMapping("")

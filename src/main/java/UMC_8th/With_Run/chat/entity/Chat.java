@@ -41,10 +41,8 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<UserChat> userChatList = new ArrayList<>();
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id")
-//    private User user;
-
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
+    private List<Message> messageList = new ArrayList<>();
 
     public void renameChat (String newName){
         this.name = newName;
@@ -53,4 +51,10 @@ public class Chat {
     public void updateParticipants (int participants){
         this.participants = participants;
     }
+
+    public void addUserChat (UserChat userChat){
+        this.getUserChatList().add(userChat);
+    }
 }
+
+
