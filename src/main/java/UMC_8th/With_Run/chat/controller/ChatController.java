@@ -112,7 +112,6 @@ public class ChatController {
         return StndResponse.onSuccess(ChatConverter.toGetChatListDTO(chatList), SuccessCode.INQUIRY_SUCCESS);
     }
 
-
     // 메세지 채팅
     @MessageMapping("/{id}/msg")
     @Operation(summary = "메세지 보내기", description = "실질적인 채팅 API 입니다.")
