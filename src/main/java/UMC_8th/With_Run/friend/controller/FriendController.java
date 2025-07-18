@@ -1,30 +1,54 @@
 package UMC_8th.With_Run.friend.controller;
 
+import UMC_8th.With_Run.friend.dto.FriendsResponse;
+import UMC_8th.With_Run.friend.dto.FriendDetailResponse;
+import UMC_8th.With_Run.friend.service.AllFriendsService;
+import UMC_8th.With_Run.friend.service.FriendDetailService;
+import UMC_8th.With_Run.friend.service.RecommendedFriendsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "친구 API", description = "친구 추천, 상세 조회, 팔로우, 차단, 검색 등 친구 관련 기능 제공")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/friends")
 public class FriendController {
 
+    private final AllFriendsService allFriendsService;
+    private final FriendDetailService friendDetailService;
+    private final RecommendedFriendsService recommendedFriendsService;
+
     @Operation(summary = "추천 친구 조회", description = "사용자에게 맞는 추천 친구들의 간단한 프로필 정보를 조회합니다.")
     @GetMapping("/recommendation")
-    public String getRecommendedFriends() {
-        return "추천 친구 목록";
+    public List<FriendsResponse> getRecommendedFriends(
+            @RequestParam(required = true) Long provinceId,
+            @RequestParam(required = false) Long cityId,
+            @RequestParam(required = false) Long townId) {
+        Long userId = 1L; // 하드코딩 유저
+
+        return recommendedFriendsService.recommendedFriends(provinceId, cityId, townId, userId);
     }
 
     @Operation(summary = "사용자 세부 정보 조회", description = "특정 친구의 상세 정보를 조회합니다.")
     @GetMapping("/detail")
-    public String getUserDetail(@RequestParam Long userId) {
-        return "친구 상세 정보 (userId=" + userId + ")";
+    public FriendDetailResponse getUserDetail(@RequestParam Long userId) {
+        return friendDetailService.getFriendDetail(userId);
     }
 
     @Operation(summary = "동네 친구 전체 목록 조회", description = "동네의 모든 친구 목록을 조회합니다.")
     @GetMapping("/all")
-    public String getAllFriends() {
-        return "전체 친구 목록";
+    public List<FriendsResponse> getFriendsByRegion(
+            @RequestParam(value = "provinceId", required = true) Long provinceId,
+            @RequestParam(value = "cityId", required = false) Long cityId,
+            @RequestParam(value = "townId", required = false) Long townId
+    )
+    {
+        Long userId = 1L; // 🔧 하드코딩된 유저 ID
+        return allFriendsService.findUsersByRegion(provinceId, cityId, townId, userId);
     }
 
     @Operation(summary = "팔로우", description = "특정 사용자를 팔로우합니다.")
