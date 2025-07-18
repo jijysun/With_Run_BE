@@ -1,5 +1,9 @@
 package UMC_8th.With_Run.user.dto;
 
+import UMC_8th.With_Run.course.entity.Course;
+import UMC_8th.With_Run.user.entity.Likes;
+import UMC_8th.With_Run.user.entity.Scraps;
+import java.util.ArrayList;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,9 +46,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ScrapListResultDTO {
-        private Long id;
-        private Long userId;
-        private Long courseId;
+        private ArrayList<Scraps> scraps;
     }
 
     @Builder
@@ -52,10 +54,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LikeListResultDTO {
-        private Long id;
-        private Long userId;
-        private Long courseId;
-        private Integer count;
+        private ArrayList<Likes> likes;
     }
 
     @Builder
@@ -63,12 +62,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CourseListResultDTO {
-        private Long id;
-        private String name;
-        private String keyword;
-        private String time;
-        private String location;
-        private String description;
+        private ArrayList<Course> courses;
     }
 
     @Builder
@@ -76,9 +70,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowerListResultDTO {
-        private Long id;
-        private Long userId;
-        private Long targetUserId;
+        private ArrayList<?> followers;
     }
 
     @Builder
@@ -86,8 +78,6 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowingListResultDTO {
-        private Long id;
-        private Long userId;
-        private Long targetUserId;
+        private ArrayList<?> followings;
     }
 }
