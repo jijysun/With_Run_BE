@@ -1,9 +1,20 @@
 package UMC_8th.With_Run.map.service;
 
-import UMC_8th.With_Run.map.dto.*;
+import UMC_8th.With_Run.map.dto.MapRequestDTO;
+import UMC_8th.With_Run.map.dto.MapResponseDTO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,104 +22,192 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MapSearchServiceImpl implements MapSearchService {
 
+    @Value("${naver.client-id}")
+    private String clientId;
+
+    @Value("${naver.secret}")
+    private String clientSecret;
+
+    private String removeHtmlTags(String input) {
+        return input.replaceAll("<[^>]*>", "");
+    }
+
+    private Double parseOrNull(String value) {
+        try {
+            return Double.parseDouble(value) / 1e7;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
     @Override
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByCategory(String category) {
         List<MapResponseDTO.PlaceResponseDto> results = new ArrayList<>();
 
-        if (category.contains("약국")) {
-            results.add(MapResponseDTO.PlaceResponseDto.builder()
-                    .id(1L)
-                    .name("연남약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("10:00~21:00")
-                    .parkingAvailable(true)
-                    .build());
+        try {
+            ByteBuffer buffer = StandardCharsets.UTF_8.encode(category);
+            String encodedCategory = StandardCharsets.UTF_8.decode(buffer).toString();
 
-            results.add(MapResponseDTO.PlaceResponseDto.builder()
-                    .id(2L)
-                    .name("별빛약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("9:00~20:30")
-                    .parkingAvailable(true)
-                    .build());
+            URI uri = UriComponentsBuilder
+                    .fromUriString("https://openapi.naver.com")
+                    .path("/v1/search/local.json")
+                    .queryParam("query", encodedCategory)
+                    .queryParam("display", 10)
+                    .queryParam("start", 1)
+                    .queryParam("sort", "random")
+                    .encode()
+                    .build()
+                    .toUri();
+
+
+            RequestEntity<Void> request = RequestEntity.get(uri)
+                    .header("X-Naver-Client-Id", clientId.trim())
+                    .header("X-Naver-Client-Secret", clientSecret.trim())
+                    .build();
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode items = mapper.readTree(response.getBody()).path("items");
+
+            for (JsonNode item : items) {
+                MapResponseDTO.PlaceResponseDto dto = MapResponseDTO.PlaceResponseDto.builder()
+                        .id(null)
+                        .name(removeHtmlTags(item.path("title").asText()))
+                        .address(item.path("address").asText())
+                        .latitude(parseOrNull(item.path("mapy").asText()))
+                        .longitude(parseOrNull(item.path("mapx").asText()))
+                        .imageUrl(null)
+                        .openStatus(null)
+                        .openingHours(null)
+                        .parkingAvailable(null)
+                        .build();
+
+                results.add(dto);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return results;
     }
 
     @Override
-    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String keyword) {
-        List<MapResponseDTO.PlaceResponseDto> results = new ArrayList<>();
+    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String query) {
+        List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
 
-        if (keyword.contains("약국")) {
-            results.add(MapResponseDTO.PlaceResponseDto.builder()
-                    .id(1L)
-                    .name("연남약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("10:00~21:00")
-                    .parkingAvailable(true)
-                    .build());
+        try {
+            ByteBuffer buffer = StandardCharsets.UTF_8.encode(query);
+            String encodedQuery = StandardCharsets.UTF_8.decode(buffer).toString();
 
-            results.add(MapResponseDTO.PlaceResponseDto.builder()
-                    .id(2L)
-                    .name("별빛약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("9:00~20:30")
-                    .parkingAvailable(true)
-                    .build());
+            URI uri = UriComponentsBuilder
+                    .fromUriString("https://openapi.naver.com")
+                    .path("/v1/search/local.json")
+                    .queryParam("query", encodedQuery)
+                    .queryParam("display", 10)
+                    .queryParam("start", 1)
+                    .queryParam("sort", "random")
+                    .encode()
+                    .build()
+                    .toUri();
+
+
+            RequestEntity<Void> request = RequestEntity.get(uri)
+                    .header("X-Naver-Client-Id", clientId.trim())
+                    .header("X-Naver-Client-Secret", clientSecret.trim())
+                    .build();
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode items = mapper.readTree(response.getBody()).path("items");
+
+            for (JsonNode item : items) {
+                MapResponseDTO.PlaceResponseDto dto = MapResponseDTO.PlaceResponseDto.builder()
+                        .id(null)
+                        .name(removeHtmlTags(item.path("title").asText()))
+                        .address(item.path("address").asText())
+                        .latitude(parseOrNull(item.path("mapy").asText()))
+                        .longitude(parseOrNull(item.path("mapx").asText()))
+                        .imageUrl(null)
+                        .openStatus(null)
+                        .openingHours(null)
+                        .parkingAvailable(null)
+                        .build();
+
+                resultList.add(dto);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return results;
+        return resultList;
     }
+
 
     @Override
-    public MapResponseDTO.PlaceResponseDto getPlaceById(Long placeId) {
-        // 임시 하드코딩
-        if (placeId == 1L) {
-            return MapResponseDTO.PlaceResponseDto.builder()
-                    .id(1L)
-                    .name("연남약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("10:00~21:00")
-                    .parkingAvailable(true)
-                    .build();
-        } else if (placeId == 2L) {
-            return MapResponseDTO.PlaceResponseDto.builder()
-                    .id(2L)
-                    .name("별빛약국")
-                    .address("서울 마포구 연남로 11길 14")
-                    .latitude(37.562541)
-                    .longitude(126.925011)
-                    .imageUrl("https://example.com/images/dogcafe.jpg")
-                    .openStatus("영업중")
-                    .openingHours("9:00~20:30")
-                    .parkingAvailable(true)
-                    .build();
-        }
+    public MapResponseDTO.PlaceResponseDto getPlaceDetailByName(String placeName) {
+        try {
+            URI uri = UriComponentsBuilder
+                    .fromUriString("https://openapi.naver.com")
+                    .path("/v1/search/local.json")
+                    .queryParam("query", placeName)  // 인코딩은 UriComponentsBuilder에 맡김
+                    .queryParam("display", 1)
+                    .queryParam("start", 1)
+                    .encode()
+                    .build()
+                    .toUri();
 
-        // 예외 처리 (임시)
-        throw new IllegalArgumentException("존재하지 않는 placeId: " + placeId);
+            System.out.println("▶ 요청 URI: " + uri);
+
+            RequestEntity<Void> request = RequestEntity.get(uri)
+                    .header("X-Naver-Client-Id", clientId.trim())
+                    .header("X-Naver-Client-Secret", clientSecret.trim())
+                    .build();
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+
+            System.out.println("▶ 네이버 API 응답: " + response.getBody());
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.getBody());
+            JsonNode items = root.path("items");
+
+            if (items.isEmpty()) {
+                System.out.println("items 배열이 비어있음");
+                return null;
+            }
+
+            JsonNode item = items.get(0);
+            if (item == null) {
+                System.out.println("첫 번째 아이템이 null임");
+                return null;
+            }
+
+            return MapResponseDTO.PlaceResponseDto.builder()
+                    .id(null)
+                    .name(removeHtmlTags(item.path("title").asText()))
+                    .address(item.path("address").asText())
+                    .latitude(parseOrNull(item.path("mapy").asText()))
+                    .longitude(parseOrNull(item.path("mapx").asText()))
+                    .imageUrl(null)
+                    .openStatus("영업중")  // 계산코드추가하기
+                    .openingHours("09:00 ~ 18:00")
+                    .parkingAvailable(null)
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
+
 
     @Override
     public List<MapResponseDTO.PetFacilityResponseDto> getAllPetFacilities() {
@@ -135,15 +234,6 @@ public class MapSearchServiceImpl implements MapSearchService {
 
     @Override
     public Long createCourse(String accessToken, MapRequestDTO.CourseCreateRequestDto dto) {
-        // 1. 토큰 검증 (JWT 토큰 검증 또는 유저 조회 등)
-        // 2. Course entity 저장
-        // 3. Pins와 매핑 저장
-        // 4. 지역, 키워드 등 저장
-
-        // 임시 courseId 반환
         return 123L;
     }
-
 }
-
-

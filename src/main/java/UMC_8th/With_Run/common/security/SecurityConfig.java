@@ -31,6 +31,7 @@ public class SecurityConfig {
                         (requests) -> requests
                                 .requestMatchers("/", "api/users/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/friends/*").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/", "/api/users/login", "/api/places/**", "/swagger-ui/**", "/v3/api-docs/**","/api/maps/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable
