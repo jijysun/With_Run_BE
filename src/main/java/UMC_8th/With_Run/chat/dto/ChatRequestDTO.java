@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.chat.dto;
 
 
-import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +14,12 @@ public class ChatRequestDTO {
     public static class CreateChatReqDTO {
         private Long userId;
         private Long targetUserId;
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class ShareReqDTO {
+        private List<Long> userIdList;
+        private Long courseId;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

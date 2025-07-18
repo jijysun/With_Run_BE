@@ -21,11 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,11 +38,9 @@ public class ChatService {
     @Transactional
     public void createChat(Long targetId) {
         User user = userRepository.findById(1L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // jwt
-        /*User user =  User.builder().build();*/
         Profile userProfile = profileRepository.findByUser(user);
 
         User targetUser = userRepository.findById(3L).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
-//        User targetUser = User.builder().build();
         Profile targetProfile = profileRepository.findByUser(targetUser);
 
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
@@ -59,6 +54,12 @@ public class ChatService {
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
+    }
+
+    public void getInviteUser(Long chatId) {
+
+        // 사용자와 친구 관계이며, 채팅방에 참여하고 있지 않은 사용자 반환
+
     }
 
     @Transactional
@@ -98,7 +99,6 @@ public class ChatService {
     @Transactional
     public void leaveChat(Long chatId) {
         User user = userRepository.findById(3L).orElseThrow(()-> new ChatHandler(ErrorCode.WRONG_USER)); // jwt
-//        User user = User.builder().build();
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         userChatRepository.deleteUserChatByUserAndChat(user, chat);
@@ -108,12 +108,6 @@ public class ChatService {
 
 
     public List<Chat> getChatList(Long userId) {
-
-        /*User user = User.builder()
-                .email("testEmail")
-                .naverId("testNaverId")
-                .createdAt(LocalDate.now())
-                .build();*/
         User user = userRepository.findById(1L).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // jwt
         List<UserChat> userChats = userChatRepository.findAllByUser(user);
 
@@ -124,5 +118,11 @@ public class ChatService {
         log.info("allByUserChatListIn: " + allByUserChatListIn.size());
         return allByUserChatListIn;
     }
+
+
+    public void shareCourse (){
+
+    }
+
 
 }
