@@ -28,6 +28,7 @@ public class MapController {
     private final MapSearchService mapSearchService;
     private final PinService pinService;
 
+
     @Operation(
         summary = "키워드 검색",
         description = "키워드로 장소를 검색합니다.",
@@ -42,6 +43,7 @@ public class MapController {
         List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByKeyword(query);
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
+
 
 
     @Operation(
@@ -60,19 +62,6 @@ public class MapController {
     }
 
 
-    /*@Operation(
-        summary = "특정 시설 클릭 (상세 정보)",
-        description = "선택한 장소의 상세 정보를 반환합니다.",
-        parameters = {
-            @Parameter(name = "placeId", description = "장소 ID", required = true, example = "1")
-        }
-    )
-    @GetMapping("/places/{placeId}")
-    public StndResponse<MapResponseDTO.PlaceResponseDto> getPlaceDetail(
-            @PathVariable Long placeId) {
-        MapResponseDTO.PlaceResponseDto place = mapSearchService.getPlaceById(placeId);
-        return StndResponse.onSuccess(place, SuccessCode.INQUIRY_SUCCESS);
-    }*/
 
     @Operation(
             summary = "특정 시설 클릭 (상세 정보)",
@@ -115,6 +104,7 @@ public class MapController {
     }
 
 
+
     @Operation(
         summary = "핀 수정",
         description = "기존 핀 정보를 수정합니다.",
@@ -134,6 +124,8 @@ public class MapController {
         return StndResponse.onSuccess(updated, SuccessCode.UPDATE_SUCCESS);
     }
 
+
+
     @Operation(
         summary = "핀 삭제",
         description = "핀을 삭제합니다.",
@@ -146,6 +138,8 @@ public class MapController {
         MapResponseDTO.PinResponseDto deleted = pinService.deletePin(pinId);
         return StndResponse.onSuccess(deleted, SuccessCode.DELETE_SUCCESS);
     }
+
+
 
     @Operation(
         summary = "산책 코스 생성",
@@ -169,6 +163,7 @@ public class MapController {
                 .build();
         return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
     }
+
 
 
     @Operation(

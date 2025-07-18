@@ -1,12 +1,9 @@
 package UMC_8th.With_Run.map.service;
 
-
 import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.dto.MapResponseDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
@@ -16,9 +13,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-
-import java.net.URLEncoder;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -46,11 +40,6 @@ public class MapSearchServiceImpl implements MapSearchService {
         }
     }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("▶ clientId: " + clientId);
-        System.out.println("▶ clientSecret: " + clientSecret);
-    }
 
     @Override
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByCategory(String category) {
@@ -71,9 +60,6 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .build()
                     .toUri();
 
-            // 🔍 로그 확인용 추가
-            System.out.println("▶ headers = X-Naver-Client-Id: " + clientId.trim() + ", X-Naver-Client-Secret: " + clientSecret.trim());
-            System.out.println("▶ uri = " + uri.toString());
 
             RequestEntity<Void> request = RequestEntity.get(uri)
                     .header("X-Naver-Client-Id", clientId.trim())
@@ -109,10 +95,6 @@ public class MapSearchServiceImpl implements MapSearchService {
         return results;
     }
 
-
-    /**
-     * 키워드 검색 (동적/정적 통합)
-     */
     @Override
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String query) {
         List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
@@ -132,9 +114,6 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .build()
                     .toUri();
 
-            // 🔍 로그 확인용 추가
-            System.out.println("▶ headers = X-Naver-Client-Id: " + clientId.trim() + ", X-Naver-Client-Secret: " + clientSecret.trim());
-            System.out.println("▶ uri = " + uri.toString());
 
             RequestEntity<Void> request = RequestEntity.get(uri)
                     .header("X-Naver-Client-Id", clientId.trim())
@@ -154,17 +133,14 @@ public class MapSearchServiceImpl implements MapSearchService {
                         .address(item.path("address").asText())
                         .latitude(parseOrNull(item.path("mapy").asText()))
                         .longitude(parseOrNull(item.path("mapx").asText()))
-
                         .imageUrl(null)
                         .openStatus(null)
                         .openingHours(null)
                         .parkingAvailable(null)
                         .build();
 
-
                 resultList.add(dto);
             }
-
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,20 +153,17 @@ public class MapSearchServiceImpl implements MapSearchService {
     @Override
     public MapResponseDTO.PlaceResponseDto getPlaceDetailByName(String placeName) {
         try {
-            String encoded = URLEncoder.encode(placeName, StandardCharsets.UTF_8);
             URI uri = UriComponentsBuilder
                     .fromUriString("https://openapi.naver.com")
                     .path("/v1/search/local.json")
-                    .queryParam("query", encoded)
+                    .queryParam("query", placeName)  // 인코딩은 UriComponentsBuilder에 맡김
                     .queryParam("display", 1)
                     .queryParam("start", 1)
                     .encode()
                     .build()
                     .toUri();
 
-            // 🔍 로그 확인용 추가
-            System.out.println("▶ headers = X-Naver-Client-Id: " + clientId.trim() + ", X-Naver-Client-Secret: " + clientSecret.trim());
-            System.out.println("▶ uri = " + uri.toString());
+            System.out.println("▶ 요청 URI: " + uri);
 
             RequestEntity<Void> request = RequestEntity.get(uri)
                     .header("X-Naver-Client-Id", clientId.trim())
@@ -200,10 +173,22 @@ public class MapSearchServiceImpl implements MapSearchService {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode item = mapper.readTree(response.getBody()).path("items").get(0);
+            System.out.println("▶ 네이버 API 응답: " + response.getBody());
 
-            if (item == null) return null;
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.getBody());
+            JsonNode items = root.path("items");
+
+            if (items.isEmpty()) {
+                System.out.println("items 배열이 비어있음");
+                return null;
+            }
+
+            JsonNode item = items.get(0);
+            if (item == null) {
+                System.out.println("첫 번째 아이템이 null임");
+                return null;
+            }
 
             return MapResponseDTO.PlaceResponseDto.builder()
                     .id(null)
@@ -212,7 +197,7 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .latitude(parseOrNull(item.path("mapy").asText()))
                     .longitude(parseOrNull(item.path("mapx").asText()))
                     .imageUrl(null)
-                    .openStatus("영업중")
+                    .openStatus("영업중")  // 계산코드추가하기
                     .openingHours("09:00 ~ 18:00")
                     .parkingAvailable(null)
                     .build();
