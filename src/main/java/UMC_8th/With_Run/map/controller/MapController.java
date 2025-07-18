@@ -2,14 +2,19 @@ package UMC_8th.With_Run.map.controller;
 
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
-import UMC_8th.With_Run.map.dto.*;
+import UMC_8th.With_Run.map.dto.MapRequestDTO;
+import UMC_8th.With_Run.map.dto.MapResponseDTO;
 import UMC_8th.With_Run.map.service.MapSearchService;
 import UMC_8th.With_Run.map.service.PinService;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -74,13 +79,25 @@ public class MapController {
             description = "선택한 장소의 상세 정보를 반환합니다.",
             parameters = {
                     @Parameter(name = "placeName", description = "장소 이름", required = true, example = "연남약국")
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정보 조회에 성공했습니다.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MapResponseDTO.PlaceResponseDto.class))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+                    @ApiResponse(responseCode = "404", description = "장소를 찾을 수 없음"),
+                    @ApiResponse(responseCode = "500", description = "서버 오류")
             }
     )
     @GetMapping("/places/detail")
-    public StndResponse<MapResponseDTO.PlaceResponseDto> getPlaceDetailByName(@RequestParam String placeName) {
-        MapResponseDTO.PlaceResponseDto result = mapSearchService.getPlaceDetailByName(placeName);
-        return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
+    public ResponseEntity<MapResponseDTO.PlaceResponseDto> getPlaceDetail(@RequestParam String placeName) {
+        MapResponseDTO.PlaceResponseDto detail = mapSearchService.getPlaceDetailByName(placeName);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
     }
+
 
 
     @Operation(
