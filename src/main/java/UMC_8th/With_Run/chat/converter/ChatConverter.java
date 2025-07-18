@@ -8,19 +8,18 @@ import UMC_8th.With_Run.user.entity.User;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChatConverter {
 
-    public static List<ChatResponseDTO.getChatListDTO> toGetChatListDTO (List<Chat> chatList){
-        List<ChatResponseDTO.getChatListDTO> chatListDTOs = new ArrayList<>();
-        chatList.stream().map(chat ->
-                chatListDTOs.add(ChatResponseDTO.getChatListDTO.builder()
+    public static List<ChatResponseDTO.getChatListDTO> toGetChatListDTO(List<Chat> chatList) {
+        return chatList.stream()
+                .map(chat -> ChatResponseDTO.getChatListDTO.builder()
                         .chatId(chat.getId())
                         .chatName(chat.getName())
                         .participants(chat.getParticipants())
-                        .build()));
-
-        return chatListDTOs;
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public static Chat toNewChatConverter (Profile profile, Profile targetProfile) {

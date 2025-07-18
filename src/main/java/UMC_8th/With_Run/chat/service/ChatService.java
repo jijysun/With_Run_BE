@@ -2,6 +2,7 @@ package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
+import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
@@ -10,19 +11,23 @@ import UMC_8th.With_Run.chat.repository.MessageRepository;
 import UMC_8th.With_Run.chat.repository.UserChatRepository;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -35,12 +40,12 @@ public class ChatService {
 
     @Transactional
     public void createChat(Long targetId) {
-//        User user = userRepository.findById(userId); // jwt
-        User user =  User.builder().build();
+        User user = userRepository.findById(1L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // jwt
+        /*User user =  User.builder().build();*/
         Profile userProfile = profileRepository.findByUser(user);
 
-//        User targetUser = userRepository.findById (targetId); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
-        User targetUser = User.builder().build();
+        User targetUser = userRepository.findById(3L).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
+//        User targetUser = User.builder().build();
         Profile targetProfile = profileRepository.findByUser(targetUser);
 
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
@@ -57,11 +62,13 @@ public class ChatService {
     }
 
     @Transactional
-    public void inviteUser(Long roomId, List<Long> userIdList) {
+    public void inviteUser(Long roomId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
 //        List<User> users = userRepository.findAllByIdIn(userIdList); // 받은 id에 대한 여러 user 조회, JWT
         List<User> users = new ArrayList<>();
 
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        users.add(userRepository.findById(3L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)));
+
+        Chat chat = chatRepository.findById(1L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         // userChat 여러 개 저장
         List<UserChat> newUserList = new ArrayList<>();
@@ -72,9 +79,8 @@ public class ChatService {
                     .build());
         }
 
-        // chat : participants 증가 시키기
+        // chat : participants 증가 시키기, 이름 변경
         chat.updateParticipants(chat.getParticipants() + users.size());
-
         userChatRepository.saveAll(newUserList);
     }
 
@@ -91,8 +97,8 @@ public class ChatService {
 
     @Transactional
     public void leaveChat(Long chatId) {
-//        User user = userRepository.findById(userId); // jwt
-        User user = User.builder().build();
+        User user = userRepository.findById(3L).orElseThrow(()-> new ChatHandler(ErrorCode.WRONG_USER)); // jwt
+//        User user = User.builder().build();
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         userChatRepository.deleteUserChatByUserAndChat(user, chat);
@@ -103,23 +109,20 @@ public class ChatService {
 
     public List<Chat> getChatList(Long userId) {
 
-        User user = User.builder()
+        /*User user = User.builder()
                 .email("testEmail")
                 .naverId("testNaverId")
                 .createdAt(LocalDate.now())
-                .build();
-//        User user = userRepository.findById(userId); // jwt
-        List<UserChat> userChats = userChatRepository.findAllByUserId(userId);
+                .build();*/
+        User user = userRepository.findById(1L).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // jwt
+        List<UserChat> userChats = userChatRepository.findAllByUser(user);
+
+        log.info("userchat: " + userChats.size());
         if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
 
-        List<UserChat> allByUser = userChatRepository.findAllByUser(user);
-
-        List<Long> chatIds = allByUser.stream()
-                .map(userChat -> userChat.getId()).collect(Collectors.toList());
-
-        List<Chat> allChats = chatRepository.findAllById(chatIds);
-
-        return allChats;
+        List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
+        log.info("allByUserChatListIn: " + allByUserChatListIn.size());
+        return allByUserChatListIn;
     }
 
 }

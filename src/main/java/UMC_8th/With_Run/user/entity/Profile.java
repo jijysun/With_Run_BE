@@ -17,8 +17,8 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    /*@Column(name = "user_id", nullable = false)
+    private Long userId;*/
 
     @Column(name = "town_id")
     private Long townId;

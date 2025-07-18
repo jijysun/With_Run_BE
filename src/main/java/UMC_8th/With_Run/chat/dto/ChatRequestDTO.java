@@ -7,12 +7,19 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CreateChatReqDTO {
         private Long userId;
         private Long targetUserId;
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class InviteUserReqDTO {
+        private List<Long> userIds;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

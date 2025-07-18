@@ -2,6 +2,7 @@ package UMC_8th.With_Run.chat.entity.mapping;
 
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,12 +25,14 @@ public class UserChat {
     @Column(nullable = false, columnDefinition = "BIGINT")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id")
+    @JsonIgnore
     private Chat chat;
 
     @CreatedDate

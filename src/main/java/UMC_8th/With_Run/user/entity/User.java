@@ -1,9 +1,12 @@
 package UMC_8th.With_Run.user.entity;
 
+import UMC_8th.With_Run.chat.entity.Message;
+import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -44,6 +47,14 @@ public class User {
     private User followee;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "profile_id")
     private Profile profile;
+
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserChat> userChatList = new ArrayList<>();
+
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Message> messageList = new ArrayList<>();
+
+
 }

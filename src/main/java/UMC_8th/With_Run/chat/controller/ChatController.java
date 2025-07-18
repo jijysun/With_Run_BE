@@ -2,6 +2,7 @@ package UMC_8th.With_Run.chat.controller;
 
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
+import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.Message;
@@ -42,7 +43,7 @@ public class ChatController {
     @Parameters({
             @Parameter(name="targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
     })
-    public void createChat (@RequestParam Long targetId) {
+    public void createChat (@RequestParam ("id") Long targetId) {
         // userId = Jwt로 해결이 되니,
         chatService.createChat(targetId);
     }
@@ -56,8 +57,8 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
     })
-    public StndResponse<Object> inviteUser(@PathVariable ("id") Long roomId, @RequestBody List<Long> userIdList){
-        chatService.inviteUser(roomId, userIdList);
+    public StndResponse<Object> inviteUser(@PathVariable ("id") Long roomId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO){
+        chatService.inviteUser(roomId, reqDTO);
         return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS); // 초대 성공 코드 만들기
     }
 
@@ -109,7 +110,8 @@ public class ChatController {
     public StndResponse<List<ChatResponseDTO.getChatListDTO>> getChatList () {
         Long userId = 1L;
         List<Chat> chatList = chatService.getChatList(userId);
-        return StndResponse.onSuccess(ChatConverter.toGetChatListDTO(chatList), SuccessCode.INQUIRY_SUCCESS);
+        List<ChatResponseDTO.getChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
+        return StndResponse.onSuccess(getChatListDTO, SuccessCode.INQUIRY_SUCCESS);
     }
 
     // 메세지 채팅
@@ -119,5 +121,9 @@ public class ChatController {
         
     }
 
+
+    /*// 산책 코스 공유
+    @PostMapping("")
+*/
 
 }
