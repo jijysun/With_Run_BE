@@ -4,7 +4,13 @@ import lombok.*;
 
 public class MapResponseDTO {
 
-
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class PlacePreviewDto {
+        private String title;
+        private String address;
+        private Double latitude;
+        private Double longitude;
+    }
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;

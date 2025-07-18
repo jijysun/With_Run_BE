@@ -55,7 +55,7 @@ public class MapController {
     }
 
 
-    @Operation(
+    /*@Operation(
         summary = "특정 시설 클릭 (상세 정보)",
         description = "선택한 장소의 상세 정보를 반환합니다.",
         parameters = {
@@ -67,6 +67,19 @@ public class MapController {
             @PathVariable Long placeId) {
         MapResponseDTO.PlaceResponseDto place = mapSearchService.getPlaceById(placeId);
         return StndResponse.onSuccess(place, SuccessCode.INQUIRY_SUCCESS);
+    }*/
+
+    @Operation(
+            summary = "특정 시설 클릭 (상세 정보)",
+            description = "선택한 장소의 상세 정보를 반환합니다.",
+            parameters = {
+                    @Parameter(name = "placeName", description = "장소 이름", required = true, example = "연남약국")
+            }
+    )
+    @GetMapping("/places/detail")
+    public StndResponse<MapResponseDTO.PlaceResponseDto> getPlaceDetailByName(@RequestParam String placeName) {
+        MapResponseDTO.PlaceResponseDto result = mapSearchService.getPlaceDetailByName(placeName);
+        return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
 
 
