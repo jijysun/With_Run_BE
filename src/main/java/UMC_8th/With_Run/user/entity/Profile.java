@@ -1,8 +1,12 @@
 package UMC_8th.With_Run.user.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "profile")
@@ -16,9 +20,6 @@ public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
 
     @Column(name = "town_id")
     private Long townId;
@@ -53,6 +54,9 @@ public class Profile {
     @Column(name = "style", columnDefinition = "json")
     private String style;
 
+    @Column(name = "introduction", length = 255)
+    private String introduction;
+
     @Column(name = "created_at", columnDefinition = "datetime")
     private LocalDateTime createdAt;
 
@@ -61,4 +65,8 @@ public class Profile {
 
     @Column(name = "deleted_at", columnDefinition = "datetime")
     private LocalDateTime deletedAt;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
