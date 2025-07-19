@@ -37,6 +37,7 @@ public class UserServiceImpl implements UserService {
                             .email(request.getEmail())
                             .naverId(request.getNaverId())
                             .build();
+
                     return userRepository.save(newUser);
                 });
 
