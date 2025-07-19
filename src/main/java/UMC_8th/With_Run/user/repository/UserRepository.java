@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.user.repository;
 
+import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.user.entity.User;
 
 import java.util.Collection;
@@ -14,4 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 
     List<User> findAllByIdIn(Collection<Long> ids);
+
+
+    List<User> findAllByFollowerAndUserChatListNotIn(User follower, List<UserChat> userChatLists);
+
+    List<User> findAllByFollowerAndUserChatListNotInOrderById(User follower, Collection<List<UserChat>> userChatLists);
+
+    List<User> findAllByFollowerAndUserChatListNotInOrderById(User user, List<UserChat> allByChatId);
 }

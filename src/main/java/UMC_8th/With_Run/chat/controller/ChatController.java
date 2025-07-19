@@ -57,8 +57,9 @@ public class ChatController {
             @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
             @Parameter(name = "userId", description = "초대할 사용자들의 ID 입니다"),
     })
-    public void getInviteUser(@PathVariable ("id") Long chatId) {
-        chatService.getInviteUser(chatId);
+    public StndResponse<List<ChatResponseDTO.getInviteUser>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
+        List<ChatResponseDTO.getInviteUser> canInviteUserList = chatService.getInviteUser(chatId, request);
+        return StndResponse.onSuccess(canInviteUserList, SuccessCode.INQUIRY_SUCCESS);
     }
 
     // 채팅 유저 추가

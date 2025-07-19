@@ -3,6 +3,7 @@ package UMC_8th.With_Run.chat.service;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
+import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
@@ -62,9 +63,24 @@ public class ChatService {
         userChatRepository.saveAll(userChats);
     }
 
-    public void getInviteUser(Long chatId) {
+    public List<ChatResponseDTO.getInviteUser> getInviteUser(Long chatId, HttpServletRequest request) {
 
+        Chat chat = chatRepository.findById(2L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+
+        // 이미 채팅방이 자신 포함 4명이라면 초대 거절
+        if (chat.getParticipants() >= 4 ){
+            throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
+        }
+
+        User user = getUserByJWT(request);
+        List<UserChat> allByChatId = userChatRepository.findAllByChat_Id(2L).stream().toList();
         // 사용자와 친구 관계이며, 채팅방에 참여하고 있지 않은 사용자 반환
+        List<User> canInviteUser = userRepository.findAllByFollowerAndUserChatListNotInOrderById(user, allByChatId);
+        List<Profile> canInviteUsersProfile = profileRepository.findAllByUserInOrderByUser_Id(canInviteUser);
+
+        log.info("user: {}, Profile: {}", canInviteUser.size(), canInviteUsersProfile.size());
+
+        return ChatConverter.toGetInviteUserDTO(canInviteUser, canInviteUsersProfile);
     }
 
     @Transactional

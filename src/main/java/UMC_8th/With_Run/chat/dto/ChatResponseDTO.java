@@ -24,6 +24,16 @@ public class ChatResponseDTO {
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class getInviteUser{
+        private Long userId;
+
+        private String name;
+
+        private String profileImage;
+    }
+
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class getChatListDTO {
         private Long chatId;
 

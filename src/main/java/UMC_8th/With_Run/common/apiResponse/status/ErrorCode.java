@@ -42,6 +42,7 @@ public enum ErrorCode implements BaseErrorCode {
     ALREADY_INVITED(HttpStatus.BAD_REQUEST , "CHAT4001", "이미 초대한 사용자 입니다."),
     WRONG_CHAT_NAME(HttpStatus.BAD_REQUEST , "CHAT4002", "잘못된 채팅방 이름 입니다."),
     EMPTY_CHAT_LIST(HttpStatus.BAD_REQUEST, "CHAT4003", "참여하고 있는 채팅방이 없습니다."),
+    CHAT_IS_FULL(HttpStatus.BAD_REQUEST, "CHAT4004", "해당 채탕방은 꽉 찼습니다."),
 
 
     // Course

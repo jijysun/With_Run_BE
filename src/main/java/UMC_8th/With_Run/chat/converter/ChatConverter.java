@@ -32,4 +32,18 @@ public class ChatConverter {
                 .updatedAt(LocalDate.now())
                 .build();
     }
+
+    public static List<ChatResponseDTO.getInviteUser> toGetInviteUserDTO(List<User> userList, List<Profile> profileList) {
+        List<ChatResponseDTO.getInviteUser> dtoList = new ArrayList<>();
+
+        for (int i = 0; i < userList.size(); i++) {
+            dtoList.add(ChatResponseDTO.getInviteUser.builder()
+                    .userId(userList.get(0).getId())
+                    .name(profileList.get(0).getName())
+                    .profileImage(profileList.get(0).getProfileImage())
+                    .build());
+        }
+
+        return dtoList;
+    }
 }
