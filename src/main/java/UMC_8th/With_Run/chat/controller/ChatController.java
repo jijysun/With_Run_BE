@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -43,9 +44,9 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
     })
-    public void createChat(@RequestParam("id") Long targetId) {
+    public void createChat(@RequestParam("id") Long targetId, HttpServletRequest request) {
         // userId = Jwt로 해결이 되니,
-        chatService.createChat(targetId);
+        chatService.createChat(targetId, request);
     }
 
     // 초대할 친구 목록 불러오기
@@ -106,8 +107,8 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
-    public StndResponse<Object> leaveChat(@PathVariable("id") Long chatId) {
-        chatService.leaveChat(chatId);
+    public StndResponse<Object> leaveChat(@PathVariable("id") Long chatId, HttpServletRequest request) {
+        chatService.leaveChat(chatId, request);
         return StndResponse.onSuccess(null, SuccessCode.INQUIRY_SUCCESS); // 채팅방 나가기 성공 코드 만들기
     }
 
@@ -119,9 +120,8 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
-    public StndResponse<List<ChatResponseDTO.getChatListDTO>> getChatList() {
-        Long userId = 1L;
-        List<Chat> chatList = chatService.getChatList(userId);
+    public StndResponse<List<ChatResponseDTO.getChatListDTO>> getChatList(HttpServletRequest request) {
+        List<Chat> chatList = chatService.getChatList(request);
         List<ChatResponseDTO.getChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
         return StndResponse.onSuccess(getChatListDTO, SuccessCode.INQUIRY_SUCCESS);
     }
