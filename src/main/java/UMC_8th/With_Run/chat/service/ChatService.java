@@ -60,6 +60,7 @@ public class ChatService {
 
         // 사용자와 친구 관계이며, 채팅방에 참여하고 있지 않은 사용자 반환
 
+
     }
 
     @Transactional

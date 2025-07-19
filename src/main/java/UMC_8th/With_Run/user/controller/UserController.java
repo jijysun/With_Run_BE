@@ -2,9 +2,9 @@ package UMC_8th.With_Run.user.controller;
 
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
-import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateCourseDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
@@ -16,7 +16,8 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LoginResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ProfileResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
-import UMC_8th.With_Run.user.entity.Profile;
+import UMC_8th.With_Run.user.service.ProfileService;
+import UMC_8th.With_Run.user.service.ProfileServiceImpl;
 import UMC_8th.With_Run.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,17 +47,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final ProfileService profileService;
 
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "로그인 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "email", description = "사용자 이메일입니다.")
-    })
-    public StndResponse<LoginResultDTO> login(){
-        UserResponseDto.LoginResultDTO dto = new UserResponseDto.LoginResultDTO();
+    public StndResponse<UserResponseDto.LoginResultDTO> login(@RequestBody LoginRequestDTO request) {
+        UserResponseDto.LoginResultDTO dto = userService.login(request);  // request 전달
         return StndResponse.onSuccess(dto, SuccessCode.LOGIN_SUCCESS);
     }
 
@@ -124,13 +124,10 @@ public class UserController {
     @GetMapping("/profile")
     @Operation(summary = "프로필 조회 API", description = "사용자의 기본 프로필을 조회하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "성공")
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<ProfileResultDTO> getProfile(){
-        UserResponseDto.ProfileResultDTO dto = new UserResponseDto.ProfileResultDTO();
+    public StndResponse<ProfileResultDTO> getProfile(HttpServletRequest request){
+        UserResponseDto.ProfileResultDTO dto = profileService.getProfileByCurrentUser(request);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
 

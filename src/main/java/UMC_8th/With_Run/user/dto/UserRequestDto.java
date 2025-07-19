@@ -4,6 +4,7 @@ import UMC_8th.With_Run.course.entity.Course;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,10 +13,13 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class LoginRequestDTO{
-        //추후 로그인 Request 형식은 바뀔 수 있음
+
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "올바른 이메일 형식이어야 합니다.")
         private String email;
+
+        @NotBlank(message = "네이버 ID는 필수입니다.")
+        private String naverId;
 
     }
 

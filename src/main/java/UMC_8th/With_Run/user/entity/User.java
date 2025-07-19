@@ -6,17 +6,18 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -38,6 +39,9 @@ public class User {
     @LastModifiedDate
     private LocalDate updatedAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Profile profile; // ✅ Profile과 연관관계
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User follower;
@@ -46,15 +50,9 @@ public class User {
     @JoinColumn(name = "target_user_id")
     private User followee;
 
-    @OneToOne
-    @JoinColumn(name = "profile_id")
-    private Profile profile;
-
     @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserChat> userChatList = new ArrayList<>();
 
     @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
     private List<Message> messageList = new ArrayList<>();
-
-
 }
