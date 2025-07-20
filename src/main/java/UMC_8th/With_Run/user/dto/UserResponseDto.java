@@ -6,6 +6,7 @@ import UMC_8th.With_Run.user.entity.Scraps;
 import java.util.ArrayList;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -80,4 +81,12 @@ public class UserResponseDto {
     public static class FollowingListResultDTO {
         private ArrayList<?> followings;
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SimpleUserResultDTO {
+        private String message;
+    }
+
 }
