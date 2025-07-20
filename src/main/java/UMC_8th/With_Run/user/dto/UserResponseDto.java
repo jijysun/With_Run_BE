@@ -44,12 +44,21 @@ public class UserResponseDto {
         private String style;         // 스타일 (JSON -> String or Map<String, Object>)
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ScrapItemDTO {
+        private Long courseId;
+        private LocalDateTime scrapedAt;
+    }
+
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ScrapListResultDTO {
-        private ArrayList<Scraps> scraps;
+        private List<ScrapItemDTO> scrapList;
     }
 
     @Getter
