@@ -47,4 +47,16 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_user_id")
     private User followee;
+
+    @Column(name = "deleted_at")
+    private LocalDate deletedAt;
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDate.now();
+    }
+
 }

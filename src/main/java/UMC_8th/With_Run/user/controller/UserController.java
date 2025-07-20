@@ -2,6 +2,7 @@ package UMC_8th.With_Run.user.controller;
 
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
+import UMC_8th.With_Run.user.dto.SimpleUserResultDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
@@ -98,15 +99,16 @@ public class UserController {
     }
 
     @PatchMapping("/")
-    @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴 API입니다.")
+    @Operation(summary = "회원 탈퇴 API", description = "JWT 토큰을 바탕으로 본인의 계정을 탈퇴합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "탈퇴 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public SuccessCode cancelMembership(){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> cancelMembership(HttpServletRequest request) {
+        userService.cancelMembership(request);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("탈퇴가 완료되었습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
 
     @PostMapping("/logout")
