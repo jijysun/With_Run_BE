@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class ChatResponseDTO {
@@ -15,12 +16,6 @@ public class ChatResponseDTO {
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class createChatDTO {
         private Long chatId;
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class renameChatDTO{
-        private Long chatId;
-        private String name;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
@@ -52,5 +47,20 @@ public class ChatResponseDTO {
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class chatHistoryDTO {
         private ArrayList<Message> messages;
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class BroadcastMsgDTO {
+        private Long userId;
+
+        private String userName;
+
+        private String userProfileImage;
+
+        private String msg;
+
+        private boolean isCourse;
+
+        private LocalDateTime createdAt;
     }
 }

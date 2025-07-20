@@ -7,8 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder @Getter
@@ -29,9 +32,15 @@ public class Message {
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
-    private Boolean isCourse;
+    private Boolean isCourse; // Enum Type 으로 변경해도 될 듯?
+
+    @Column(columnDefinition = "TEXT")
     private String msg;
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
 }

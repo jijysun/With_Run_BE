@@ -15,13 +15,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 통신 담당 엔드포인트 지정
+        // front 측에서 Back 과 연결하고 싶은 경우 이로 요청을
         registry.addEndpoint("api/ws").setAllowedOrigins("*").withSockJS();
     }
 
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/sub"); // 해당 토픽을 구독한 클라이언트에게 Broadcast
+
+        // MessageMapping 으로 온 URL 앞에 /sub을 붙힘! + MessageBrocker 가 이를 가로채 처리
+        // 이후 해당 토픽을 구독한 클라이언트에게 Broadcast
+        registry.enableSimpleBroker("/sub");
         registry.setApplicationDestinationPrefixes("/pub");
 
     }

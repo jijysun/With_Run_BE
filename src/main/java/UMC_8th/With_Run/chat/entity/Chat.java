@@ -13,6 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,10 +35,10 @@ public class Chat {
     private Integer participants; // 참여자 수 입니다.
 
     @CreatedDate
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL)
     private List<UserChat> userChatList = new ArrayList<>();

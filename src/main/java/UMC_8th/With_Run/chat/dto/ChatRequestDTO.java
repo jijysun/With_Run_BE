@@ -33,4 +33,10 @@ public class ChatRequestDTO {
         private Long chatId;
         private String newName;
     }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class ChattingReqDTO {
+        private String message;
+        private Boolean isCourse;
+    }
 }

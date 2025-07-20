@@ -130,7 +130,8 @@ public class ChatController {
     // 메세지 채팅
     @MessageMapping("/{id}/msg")
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
-    public void chatting() { // id, msg
+    public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO, HttpServletRequest request) { // id, msg
+        chatService.chatting(request, chatId, reqDTO);
 
     }
 
@@ -144,6 +145,14 @@ public class ChatController {
             @Parameter(name = "courseId",description = "공유할 산책 코스 ID 입니다")
     })
     public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
+
+        /*
+        * 팔로잉하고 있는 친구에게 코스 공유
+        * 보낼 친구 이름 검색
+        * 채팅하고 있는 친구 우선 -> 이후 팔로잉 친구들
+        * */
+
+        chatService.shareCourse(reqDTO);
 
     }
 

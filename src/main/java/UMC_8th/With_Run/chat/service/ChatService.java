@@ -1,6 +1,7 @@
 package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
+import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
@@ -23,10 +24,12 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +44,7 @@ public class ChatService {
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final SimpMessagingTemplate template;
 
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
@@ -142,12 +146,35 @@ public class ChatService {
         return allByUserChatListIn;
     }
 
-    public void chatting (){
+    public void chatting (HttpServletRequest request, Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+        User user = getUserByJWT(request);
+        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Message msg = Message.builder()
+                .user(user)
+                .chat(chat)
+                .isCourse(reqDTO.getIsCourse())
+                .msg(reqDTO.getMessage())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
+        // 메세지 저장, Redis...?
+        messageRepository.save(msg);
+
+        ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
+
+        // 메세지 BroadCast
+        template.convertAndSend("/sub/chat/" + chat.getId() + "/msg", broadCastMsgDTO);
     }
 
 
-    public void shareCourse (){
+    public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
+        /// 여려 명 공유 시 채팅방 공유 로직
+        // 카카오톡 공유 화면 참고!
+
+        Long courseId = reqDTO.getCourseId();
+        List<Long> userIdList = reqDTO.getUserIdList();
 
     }
 
