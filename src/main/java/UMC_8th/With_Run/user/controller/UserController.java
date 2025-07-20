@@ -16,6 +16,7 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ProfileResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.SimpleUserResultDTO;
+import UMC_8th.With_Run.user.service.LikesService;
 import UMC_8th.With_Run.user.service.ProfileService;
 import UMC_8th.With_Run.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,7 @@ public class UserController {
 
     private final UserService userService;
     private final ProfileService profileService;
+    private final LikesService likesService;
 
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "로그인 API입니다.")
@@ -145,17 +147,15 @@ public class UserController {
     }
 
     @GetMapping("/likes")
-    @Operation(summary = "좋아요 목록 조회 API", description = "사용자의 좋아요 목록을 조회하는 API입니다.")
+    @Operation(summary = "좋아요 목록 조회 API", description = "JWT 기반으로 사용자의 좋아요한 코스 목록을 조회합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<LikeListResultDTO> getLikeList(){
-        UserResponseDto.LikeListResultDTO dto = new UserResponseDto.LikeListResultDTO();
+    public StndResponse<LikeListResultDTO> getLikeList(HttpServletRequest request) {
+        LikeListResultDTO dto = likesService.getLikesByCurrentUser(request);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
+
 
     @GetMapping("/courses")
     @Operation(summary = "내코스 목록 조회 API", description = "사용자의 코스를 조회하는 API입니다.")

@@ -3,7 +3,9 @@ package UMC_8th.With_Run.user.dto;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.entity.Likes;
 import UMC_8th.With_Run.user.entity.Scraps;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,12 +52,22 @@ public class UserResponseDto {
         private ArrayList<Scraps> scraps;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LikeItemDTO {
+        private Long courseId;
+        private Long count;
+        private LocalDateTime likedAt;
+    }
+
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LikeListResultDTO {
-        private ArrayList<Likes> likes;
+        private List<LikeItemDTO> likeList;
     }
 
     @Builder
