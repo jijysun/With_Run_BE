@@ -84,13 +84,14 @@ public class ChatService {
     }
 
     @Transactional
-    public void inviteUser(Long roomId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
+    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+
+        if (chat.getParticipants() + reqDTO.getUserIds().size() > 4){
+            throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
+        }
+
         List<User> users = userRepository.findAllByIdIn(reqDTO.getUserIds()); // 받은 id에 대한 여러 user 조회, JWT
-
-//        users.add(userRepository.findById(3L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER))); // test code
-
-//        Chat chat = chatRepository.findById(1L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST)); // test
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         // userChat 여러 개 저장
         List<UserChat> newUserList = new ArrayList<>();

@@ -71,12 +71,12 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
     })
-    public StndResponse<Object> inviteUser(@PathVariable("id") Long roomId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
-        chatService.inviteUser(roomId, reqDTO);
+    public StndResponse<Object> inviteUser(@PathVariable("id") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
+        chatService.inviteUser(chatId, reqDTO);
         return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS); // 초대 성공 코드 만들기
     }
 
-    @PatchMapping("/{roomId}")
+    @PatchMapping("/{chatId}")
     @Operation(summary = "채팅방 이름 변경 API", description = "생성된 채팅방에 대한 이름 변경 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Chat.class))) // 성공 DTO Response 클래스
@@ -86,8 +86,8 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public void renameChat(@PathVariable("roomId") Long roomId, @RequestParam("newName") String newName) {
-        chatService.renameChat(roomId, newName);
+    public void renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName) {
+        chatService.renameChat(chatId, newName);
     }
 
     @GetMapping("/{id}")
@@ -95,8 +95,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.chatHistoryDTO.class)))
     })
-    public StndResponse<List<Message>> enterChat(@PathVariable("id") Long roomId) {
-        List<Message> messages = chatService.enterChat(roomId);
+    public StndResponse<List<Message>> enterChat(@PathVariable("id") Long chatId) {
+        List<Message> messages = chatService.enterChat(chatId);
         return StndResponse.onSuccess(messages, SuccessCode.INQUIRY_SUCCESS);
     }
 
@@ -133,7 +133,6 @@ public class ChatController {
     public void chatting() { // id, msg
 
     }
-
 
     // 산책 코스 공유
     @PostMapping("/share")
