@@ -16,6 +16,7 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ProfileResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.SimpleUserResultDTO;
+import UMC_8th.With_Run.user.service.FollowService;
 import UMC_8th.With_Run.user.service.LikesService;
 import UMC_8th.With_Run.user.service.ProfileService;
 import UMC_8th.With_Run.user.service.ScrapService;
@@ -51,6 +52,7 @@ public class UserController {
     private final ProfileService profileService;
     private final LikesService likesService;
     private final ScrapService scrapService;
+    private final FollowService followService;
 
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "로그인 API입니다.")
@@ -136,7 +138,7 @@ public class UserController {
     }
 
     @GetMapping("/scraps")
-    @Operation(summary = "스크랩 목록 조회 API", description = "JWT 기반으로 사용자의 스크랩 목록을 조회합니다.")
+    @Operation(summary = "스크랩 목록 조회 API", description = "사용자의 스크랩 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
@@ -146,7 +148,7 @@ public class UserController {
     }
 
     @GetMapping("/likes")
-    @Operation(summary = "좋아요 목록 조회 API", description = "JWT 기반으로 사용자의 좋아요한 코스 목록을 조회합니다.")
+    @Operation(summary = "좋아요 목록 조회 API", description = "사용자의 좋아요한 코스 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
@@ -170,30 +172,25 @@ public class UserController {
     }
 
     @GetMapping("/followers")
-    @Operation(summary = "팔로워 조회 API", description = "사용자의 팔로워를 조회하는 API입니다.")
+    @Operation(summary = "팔로워 목록 조회 API", description = "나를 팔로우한 사용자 목록(팔로워 리스트)을 반환합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<FollowerListResultDTO> getFollowerList(){
-        UserResponseDto.FollowerListResultDTO dto = new UserResponseDto.FollowerListResultDTO();
+    public StndResponse<FollowerListResultDTO> getFollowerList(HttpServletRequest request) {
+        FollowerListResultDTO dto = followService.getFollowerList(request);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
 
     @GetMapping("/followings")
-    @Operation(summary = "팔로잉 조회 API", description = "사용자의 팔로우를 조회하는 API입니다.")
+    @Operation(summary = "팔로우 목록 조회 API", description = "현재 사용자의 팔로잉 목록을 조회합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<FollowingListResultDTO> getFollowingList(){
-        UserResponseDto.FollowingListResultDTO dto = new UserResponseDto.FollowingListResultDTO();
+    public StndResponse<FollowingListResultDTO> getFollowingList(HttpServletRequest request) {
+        FollowingListResultDTO dto = followService.getFollowingList(request);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
+
 
     @DeleteMapping("/followings/{following_id}")
     @Operation(summary = "팔로잉 취소 API", description = "사용자가 팔로우를 취소하는 API입니다.")

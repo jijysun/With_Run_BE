@@ -53,6 +53,23 @@ public class UserResponseDto {
         private LocalDateTime scrapedAt;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FollowItemDTO {
+        private Long targetUserId;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FollowerItemDTO {
+        private Long userId;
+    }
+
+
     @Builder
     @Getter
     @NoArgsConstructor
@@ -92,7 +109,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowerListResultDTO {
-        private ArrayList<?> followers;
+        private List<FollowerItemDTO> followers;
     }
 
     @Builder
@@ -100,7 +117,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowingListResultDTO {
-        private ArrayList<?> followings;
+        private List<FollowItemDTO> followings;
     }
 
     @Data
