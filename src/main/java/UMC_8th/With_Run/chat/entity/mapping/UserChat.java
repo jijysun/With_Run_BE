@@ -1,5 +1,6 @@
-package UMC_8th.With_Run.chat.entity;
+package UMC_8th.With_Run.chat.entity.mapping;
 
+import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -10,41 +11,33 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Builder @Getter
-@NoArgsConstructor @AllArgsConstructor
-public class Message {
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserChat {
 
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, columnDefinition = "BIGINT")
+    private Long id;
 
-    @ManyToOne
-    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
-    @ManyToOne
-    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id")
+    @JsonIgnore
     private Chat chat;
-
-    private Boolean isCourse; // Enum Type 으로 변경해도 될 듯?
-
-    @Column(columnDefinition = "TEXT")
-    private String msg;
-
-    private Long courseId;
-
-    private String courseImage;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
 }

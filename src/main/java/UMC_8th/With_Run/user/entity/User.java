@@ -1,5 +1,7 @@
 package UMC_8th.With_Run.user.entity;
 
+import UMC_8th.With_Run.chat.entity.Message;
+import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -59,4 +61,10 @@ public class User {
         this.deletedAt = LocalDate.now();
     }
 
+
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserChat> userChatList = new ArrayList<>();
+
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Message> messageList = new ArrayList<>();
 }
