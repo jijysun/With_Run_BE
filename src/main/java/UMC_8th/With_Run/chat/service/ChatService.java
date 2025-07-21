@@ -19,6 +19,7 @@ import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
+import UMC_8th.With_Run.user.repository.FollowRepository;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,6 +47,10 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final SimpMessagingTemplate template;
+    private final FollowRepository followRepository;
+
+    /// followee = 내가 팔로우
+    /// follower = 나를 팔로우!
 
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
@@ -169,6 +175,19 @@ public class ChatService {
     }
 
 
+    public void getShareCourseList(HttpServletRequest request) {
+        User user = getUserByJWT(request);
+
+        // 사용자가 참여하고 있는 채팅방 list 조회
+        List<UserChat> userChatList = userChatRepository.findAllByUser(user);
+//        List<Chat> chatList = userChatList.stream().map(UserChat::getChat).toList();
+        List<Chat> chatList = chatRepository.findAllByUserChatListIn(userChatList);
+
+        // 사용자와 친구 list 조회, followee 기준
+
+
+    }
+
     public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
         /// 여려 명 공유 시 채팅방 공유 로직
         // 카카오톡 공유 화면 참고!
@@ -184,6 +203,7 @@ public class ChatService {
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
     }
+
 
 
 }

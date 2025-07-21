@@ -34,6 +34,9 @@ public class ChatController {
 
     private final ChatService chatService;
 
+    /// followee = 내가 팔로우
+    /// follower = 나를 팔로우!
+
     // userId -> JWT
 
     @PostMapping("/hello")
@@ -135,6 +138,12 @@ public class ChatController {
 
     }
 
+    // 산책 코스 공유 목록 불러오기
+    public void getShareCourseList (HttpServletRequest request){
+        chatService.getShareCourseList(request);
+
+    }
+
     // 산책 코스 공유
     @PostMapping("/share")
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
@@ -152,6 +161,7 @@ public class ChatController {
         * 채팅하고 있는 친구 우선 -> 이후 팔로잉 친구들
         * */
 
+        // 채팅방 1개 or 친구 1명
         chatService.shareCourse(reqDTO);
 
     }
