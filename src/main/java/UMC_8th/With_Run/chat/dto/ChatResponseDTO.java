@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ChatResponseDTO {
 
@@ -60,6 +61,27 @@ public class ChatResponseDTO {
         private String msg;
 
         private boolean isCourse;
+
+        private LocalDateTime createdAt;
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class BroadcastCourseDTO {
+        private Long userId;
+
+        private String userName;
+
+        private String userProfileImage;
+
+        private String msg;
+
+        private boolean isCourse;
+
+        private Long courseId;
+
+        private String courseImage;
+
+        private List<String> courseTag;
 
         private LocalDateTime createdAt;
     }
