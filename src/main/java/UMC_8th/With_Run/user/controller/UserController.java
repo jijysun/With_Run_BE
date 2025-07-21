@@ -196,17 +196,21 @@ public class UserController {
     @DeleteMapping("/followings/{following_id}")
     @Operation(summary = "팔로잉 취소 API", description = "사용자가 팔로우를 취소하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "요청 성공")
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "followingId", description = "팔로잉 id 입니다.")
-    })
-    public SuccessCode cancelFollowing(@PathVariable("following_id") Long following_id){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> cancelFollowing(
+            @PathVariable("following_id") Long followingId,
+            HttpServletRequest request
+    ) {
+        followService.cancelFollowing(followingId, request);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("id " + followingId + "의 팔로우를 취소하였습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
 
-    @DeleteMapping("/followings/{follower_id}")
+
+    @DeleteMapping("/followers/{follower_id}")
     @Operation(summary = "팔로워 삭제 API", description = "사용자의 팔로워를 삭제하는 API입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
