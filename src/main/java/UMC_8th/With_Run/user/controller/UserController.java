@@ -67,15 +67,16 @@ public class UserController {
     @PostMapping("/profile")
     @Operation(summary = "반려견 프로필 설정 API", description = "반려견의 프로필 정보를 설정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "프로필 생성 성공", content = @Content(schema = @Schema(implementation = StndResponse.class))),
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<BreedProfileRequestDTO>  createBreedProfile(@RequestBody UserRequestDto.BreedProfileRequestDTO breedProfileRequestDTO){
-        UserRequestDto.BreedProfileRequestDTO dto = new UserRequestDto.BreedProfileRequestDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<BreedProfileRequestDTO> createBreedProfile(
+            @RequestBody BreedProfileRequestDTO requestDTO,
+            HttpServletRequest request
+    ) {
+        BreedProfileRequestDTO result = profileService.createBreedProfile(requestDTO, request);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
     }
+
 
     @PostMapping("/region")
     @Operation(summary = "동네 설정 API", description = "사용자의 동네 정보를 설정하는 API입니다.")
