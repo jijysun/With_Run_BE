@@ -1,6 +1,5 @@
 package UMC_8th.With_Run.chat.dto;
 
-import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,12 +14,12 @@ import java.util.List;
 public class ChatResponseDTO {
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class createChatDTO {
+    public static class CreateChatDTO {
         private Long chatId;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class getInviteUser{
+    public static class GetInviteUserDTO {
         private Long userId;
 
         private String name;
@@ -28,9 +27,18 @@ public class ChatResponseDTO {
         private String profileImage;
     }
 
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class GetInviteChatDTO {
+        private Long chatId;
+
+        private String name;
+
+        private ArrayList<String> userProfileList;
+    }
+
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class getChatListDTO {
+    public static class GetChatListDTO {
         private Long chatId;
 
         private String chatName;
@@ -46,7 +54,7 @@ public class ChatResponseDTO {
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class chatHistoryDTO {
+    public static class ChatHistoryDTO {
         private ArrayList<Message> messages;
     }
 
@@ -63,6 +71,13 @@ public class ChatResponseDTO {
         private boolean isCourse;
 
         private LocalDateTime createdAt;
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class getShareCourseListDTO {
+        private List<GetInviteUserDTO> userList;
+
+        private List<GetInviteChatDTO> chatList;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor

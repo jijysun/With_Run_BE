@@ -17,6 +17,8 @@ import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.course.entity.Course;
+import UMC_8th.With_Run.user.entity.Follow;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.FollowRepository;
@@ -33,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -73,7 +77,7 @@ public class ChatService {
         userChatRepository.saveAll(userChats);
     }
 
-    public List<ChatResponseDTO.getInviteUser> getInviteUser(Long chatId, HttpServletRequest request) {
+    public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request) {
 
         Chat chat = chatRepository.findById(2L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
@@ -156,14 +160,7 @@ public class ChatService {
         User user = getUserByJWT(request);
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = Message.builder()
-                .user(user)
-                .chat(chat)
-                .isCourse(reqDTO.getIsCourse())
-                .msg(reqDTO.getMessage())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
 
         // 메세지 저장, Redis...?
         messageRepository.save(msg);
@@ -174,27 +171,41 @@ public class ChatService {
         template.convertAndSend("/sub/chat/" + chat.getId() + "/msg", broadCastMsgDTO);
     }
 
-
-    public void getShareCourseList(HttpServletRequest request) {
-        User user = getUserByJWT(request);
-
-        // 사용자가 참여하고 있는 채팅방 list 조회
-        List<UserChat> userChatList = userChatRepository.findAllByUser(user);
-//        List<Chat> chatList = userChatList.stream().map(UserChat::getChat).toList();
-        List<Chat> chatList = chatRepository.findAllByUserChatListIn(userChatList);
-
-        // 사용자와 친구 list 조회, followee 기준
-
-
-    }
-
-    public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
+    public void shareCourse (HttpServletRequest request, ChatRequestDTO.ShareReqDTO reqDTO){
         /// 여려 명 공유 시 채팅방 공유 로직
         // 카카오톡 공유 화면 참고!
+        User user = getUserByJWT(request);
+        Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Course course = courseRepository.findById(reqDTO.getCourseId());
+        Message courseMsg;
 
-        Long courseId = reqDTO.getCourseId();
-        List<Long> userIdList = reqDTO.getUserIdList();
+        if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
+            courseMsg= MessageConverter.toShareMessage(user, chat, reqDTO, course);
 
+            // Save And Broadcast
+
+            messageRepository.save(courseMsg);
+
+            ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
+
+            // 메세지 BroadCast
+            template.convertAndSend("/sub/chat/" + chat.getId() + "/msg", broadCastMsgDTO);
+        }
+        else{
+            // 친구를 통한 공유, 채팅이 없는 경우 추가
+            Chat newChat;
+            Optional<Chat> privateChat = userChatRepository.findPrivateChat(user.getId(), reqDTO.getUserId());
+
+            newChat = privateChat.orElseGet(() -> ChatConverter.toNewChatConverter(user.getProfile(), profileRepository.findById(reqDTO.getUserId()).get()));
+            courseMsg= MessageConverter.toShareMessage(user, newChat, reqDTO, course);
+
+            // Save And Broadcast
+            messageRepository.save(courseMsg);
+            ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), null, courseMsg);
+
+            // 메세지 BroadCast
+            template.convertAndSend("/sub/chat/" + newChat.getId() + "/msg", broadCastMsgDTO);
+        }
     }
 
 

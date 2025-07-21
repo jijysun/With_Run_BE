@@ -18,7 +18,9 @@ public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ShareReqDTO {
-        private List<Long> userIdList;
+        private Boolean isChat;
+        private Long userId;
+        private Long chatId;
         private Long courseId;
     }
 

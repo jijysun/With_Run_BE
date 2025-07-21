@@ -5,7 +5,6 @@ import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +12,9 @@ import java.util.stream.Collectors;
 
 public class ChatConverter {
 
-    public static List<ChatResponseDTO.getChatListDTO> toGetChatListDTO(List<Chat> chatList) {
+    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTO(List<Chat> chatList) {
         return chatList.stream()
-                .map(chat -> ChatResponseDTO.getChatListDTO.builder()
+                .map(chat -> ChatResponseDTO.GetChatListDTO.builder()
                         .chatId(chat.getId())
                         .chatName(chat.getName())
                         .participants(chat.getParticipants())
@@ -34,11 +33,11 @@ public class ChatConverter {
                 .build();
     }
 
-    public static List<ChatResponseDTO.getInviteUser> toGetInviteUserDTO(List<User> userList, List<Profile> profileList) {
-        List<ChatResponseDTO.getInviteUser> dtoList = new ArrayList<>();
+    public static List<ChatResponseDTO.GetInviteUserDTO> toGetInviteUserDTO(List<User> userList, List<Profile> profileList) {
+        List<ChatResponseDTO.GetInviteUserDTO> dtoList = new ArrayList<>();
 
         for (int i = 0; i < userList.size(); i++) {
-            dtoList.add(ChatResponseDTO.getInviteUser.builder()
+            dtoList.add(ChatResponseDTO.GetInviteUserDTO.builder()
                     .userId(userList.get(0).getId())
                     .name(profileList.get(0).getName())
                     .profileImage(profileList.get(0).getProfileImage())

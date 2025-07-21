@@ -42,7 +42,7 @@ public class ChatController {
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.createChatDTO.class)))
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.CreateChatDTO.class)))
     })
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
@@ -60,8 +60,8 @@ public class ChatController {
             @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
             @Parameter(name = "userId", description = "초대할 사용자들의 ID 입니다"),
     })
-    public StndResponse<List<ChatResponseDTO.getInviteUser>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
-        List<ChatResponseDTO.getInviteUser> canInviteUserList = chatService.getInviteUser(chatId, request);
+    public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
+        List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, request);
         return StndResponse.onSuccess(canInviteUserList, SuccessCode.INQUIRY_SUCCESS);
     }
 
@@ -96,7 +96,7 @@ public class ChatController {
     @GetMapping("/{id}")
     @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 내역 확인 API 입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.chatHistoryDTO.class)))
+            @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.ChatHistoryDTO.class)))
     })
     public StndResponse<List<Message>> enterChat(@PathVariable("id") Long chatId) {
         List<Message> messages = chatService.enterChat(chatId);
@@ -119,14 +119,14 @@ public class ChatController {
     @GetMapping("")
     @Operation(summary = "채팅방 목록 조회 API", description = "대화를 생성하거나, 초대된 채팅방 리스트 조회 리스트입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.getChatListDTO.class))) // 성공 DTO Response 클래스
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.GetChatListDTO.class))) // 성공 DTO Response 클래스
     })
     @Parameters({
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
-    public StndResponse<List<ChatResponseDTO.getChatListDTO>> getChatList(HttpServletRequest request) {
+    public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
         List<Chat> chatList = chatService.getChatList(request);
-        List<ChatResponseDTO.getChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
+        List<ChatResponseDTO.GetChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
         return StndResponse.onSuccess(getChatListDTO, SuccessCode.INQUIRY_SUCCESS);
     }
 
@@ -138,32 +138,20 @@ public class ChatController {
 
     }
 
-    // 산책 코스 공유 목록 불러오기
-    public void getShareCourseList (HttpServletRequest request){
-        chatService.getShareCourseList(request);
 
-    }
-
-    // 산책 코스 공유
     @PostMapping("/share")
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     @Parameters({
-            @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
-            @Parameter(name = "userId", description = "공유할 사용자들의 ID 입니다"),
+            @Parameter(name = "isChat", description = "채팅방 공유인 지, 친구 공유인지 구별하는 Bollean 값 입니다, True:채팅, False:친구 입니다 "),
+            @Parameter(name = "userId", description = "공유할 사용자의 ID 입니다"),
+            @Parameter(name = "chatId", description = "채팅방 id 입니다"),
             @Parameter(name = "courseId",description = "공유할 산책 코스 ID 입니다")
     })
-    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
-
-        /*
-        * 팔로잉하고 있는 친구에게 코스 공유
-        * 보낼 친구 이름 검색
-        * 채팅하고 있는 친구 우선 -> 이후 팔로잉 친구들
-        * */
-
+    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO, HttpServletRequest request) {
         // 채팅방 1개 or 친구 1명
-        chatService.shareCourse(reqDTO);
-
+        chatService.shareCourse(request, reqDTO);
     }
 
+    // 산책 코스 공유
 }

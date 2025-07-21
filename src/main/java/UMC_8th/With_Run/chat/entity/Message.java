@@ -37,6 +37,10 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String msg;
 
+    private Long courseId;
+
+    private String courseImage;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
