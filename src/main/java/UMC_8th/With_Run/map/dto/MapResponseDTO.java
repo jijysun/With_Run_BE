@@ -32,9 +32,12 @@ public class MapResponseDTO {
         private Boolean hasParking;
     }
 
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PlaceResponseDto {
-        private Long id;
+        private Long id; // 실제 DB ID가 아니라면 placeId 해시로도 가능
         private String name;
         private String address;
         private Double latitude;
@@ -44,6 +47,7 @@ public class MapResponseDTO {
         private String openingHours;
         private Boolean parkingAvailable;
     }
+
 
 
 }

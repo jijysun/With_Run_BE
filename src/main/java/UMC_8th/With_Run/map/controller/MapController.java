@@ -30,15 +30,16 @@ public class MapController {
 
 
     @Operation(
-        summary = "키워드 검색",
-        description = "키워드로 장소를 검색합니다.",
-        parameters = {
-            @Parameter(name = "query", description = "검색 키워드", required = true, example = "약국")
-        }
+            summary = "키워드 검색",
+            description = "키워드로 장소를 검색합니다.",
+            parameters = {
+                    @Parameter(name = "query", description = "검색 키워드", required = true, example = "약국")
+            }
     )
     @GetMapping("/search/keyword")
     public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByKeyword(
             @RequestParam String query) {
+
 
         List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByKeyword(query);
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
@@ -47,15 +48,16 @@ public class MapController {
 
 
     @Operation(
-        summary = "카테고리 검색",
-        description = "카테고리로 장소를 검색합니다.",
-        parameters = {
-            @Parameter(name = "type", description = "카테고리 타입 (예: 약국, 병원)", required = true, example = "약국")
-        }
+            summary = "카테고리 검색",
+            description = "카테고리로 장소를 검색합니다.",
+            parameters = {
+                    @Parameter(name = "type", description = "카테고리 타입 (예: 약국, 병원)", required = true, example = "약국")
+            }
     )
     @GetMapping("/search/categories")
     public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByCategory(
             @RequestParam String type) {
+
 
         List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByCategory(type);
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
@@ -80,6 +82,8 @@ public class MapController {
     )
     @GetMapping("/places/detail")
     public ResponseEntity<MapResponseDTO.PlaceResponseDto> getPlaceDetail(@RequestParam String placeName) {
+        // ⭐ MapSearchService 인터페이스에 getPlaceDetailByName(String) 메서드가 추가되었고,
+        // ⭐ MapSearchServiceImpl에 해당 구현이 되었으므로 이 호출은 이제 올바릅니다. ⭐
         MapResponseDTO.PlaceResponseDto detail = mapSearchService.getPlaceDetailByName(placeName);
         if (detail == null) {
             return ResponseEntity.notFound().build();
@@ -90,12 +94,12 @@ public class MapController {
 
 
     @Operation(
-        summary = "핀 생성",
-        description = "새로운 핀을 생성합니다.",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "핀 생성 요청 DTO",
-            required = true
-        )
+            summary = "핀 생성",
+            description = "새로운 핀을 생성합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "핀 생성 요청 DTO",
+                    required = true
+            )
     )
     @PostMapping("/pins")
     public StndResponse<MapResponseDTO.PinResponseDto> createPin(@RequestBody MapRequestDTO.PinRequestDto requestDto) {
@@ -106,15 +110,15 @@ public class MapController {
 
 
     @Operation(
-        summary = "핀 수정",
-        description = "기존 핀 정보를 수정합니다.",
-        parameters = {
-            @Parameter(name = "pinId", description = "수정할 핀의 ID", required = true, example = "1")
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "핀 수정 요청 DTO",
-            required = true
-        )
+            summary = "핀 수정",
+            description = "기존 핀 정보를 수정합니다.",
+            parameters = {
+                    @Parameter(name = "pinId", description = "수정할 핀의 ID", required = true, example = "1")
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "핀 수정 요청 DTO",
+                    required = true
+            )
     )
     @PatchMapping("/pins/{pinId}")
     public StndResponse<MapResponseDTO.PinResponseDto> updatePin(
@@ -127,11 +131,11 @@ public class MapController {
 
 
     @Operation(
-        summary = "핀 삭제",
-        description = "핀을 삭제합니다.",
-        parameters = {
-            @Parameter(name = "pinId", description = "삭제할 핀의 ID", required = true, example = "1")
-        }
+            summary = "핀 삭제",
+            description = "핀을 삭제합니다.",
+            parameters = {
+                    @Parameter(name = "pinId", description = "삭제할 핀의 ID", required = true, example = "1")
+            }
     )
     @DeleteMapping("/pins/{pinId}")
     public StndResponse<MapResponseDTO.PinResponseDto> deletePin(@PathVariable Long pinId) {
@@ -142,15 +146,15 @@ public class MapController {
 
 
     @Operation(
-        summary = "산책 코스 생성",
-        description = "산책 코스를 등록합니다.",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "산책 코스 생성 요청 DTO",
-            required = true
-        ),
-        parameters = {
-            @Parameter(name = "Authorization", description = "액세스 토큰 (Bearer {token})", required = true, example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-        }
+            summary = "산책 코스 생성",
+            description = "산책 코스를 등록합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "산책 코스 생성 요청 DTO",
+                    required = true
+            ),
+            parameters = {
+                    @Parameter(name = "Authorization", description = "액세스 토큰 (Bearer {token})", required = true, example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+            }
     )
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
@@ -167,8 +171,8 @@ public class MapController {
 
 
     @Operation(
-        summary = "반려동물 시설 전체 조회",
-        description = "모든 반려동물 시설 목록을 조회합니다."
+            summary = "반려동물 시설 전체 조회",
+            description = "모든 반려동물 시설 목록을 조회합니다."
     )
     @GetMapping("/pet-facilities")
     public StndResponse<List<MapResponseDTO.PetFacilityResponseDto>> getAllPetFacilities() {
