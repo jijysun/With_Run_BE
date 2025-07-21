@@ -30,8 +30,8 @@ public class MessageConverter {
                 .chat(chat)
                 .isCourse(true)
                 .msg("산책 코스를 공유하였습니다")
-                .courseId(course.getId())
-                .courseImage(course.getCourseImage())
+                /*.courseId(course.getId())
+                .courseImage(course.getCourseImage())*/
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -48,16 +48,14 @@ public class MessageConverter {
                 .build();
     }
 
-    public static ChatResponseDTO.BroadcastCourseDTO toBroadCastCourseDTO (Long userId, Profile profile, Course course) {
+    public static ChatResponseDTO.BroadcastCourseDTO toBroadCastCourseDTO (Long userId, Course course) {
         return ChatResponseDTO.BroadcastCourseDTO.builder()
                 .userId(userId)
-                .userName(profile.getName())
-                .userProfileImage(profile.getProfileImage())
                 .msg("산책 코스를 공유하였습니다")
                 .isCourse(true)
-                .courseId(course.getId())
+                /*.courseId(course.getId())
                 .courseImage(course.getCourseImage())
-                .courseTag(course.getCourseTag())
+                .courseTag(course.getCourseTag())*/
                 .createdAt(LocalDateTime.now())
                 .build();
     }

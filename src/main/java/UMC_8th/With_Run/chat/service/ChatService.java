@@ -176,7 +176,8 @@ public class ChatService {
         // 카카오톡 공유 화면 참고!
         User user = getUserByJWT(request);
         Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Course course = courseRepository.findById(reqDTO.getCourseId());
+//        Course course = courseRepository.findById(reqDTO.getCourseId());
+        Course course = new Course();
         Message courseMsg;
 
         if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
@@ -186,10 +187,10 @@ public class ChatService {
 
             messageRepository.save(courseMsg);
 
-            ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
+            ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
 
             // 메세지 BroadCast
-            template.convertAndSend("/sub/chat/" + chat.getId() + "/msg", broadCastMsgDTO);
+            template.convertAndSend("/sub/chat/" + chat.getId() + "/msg", courseDTO);
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
@@ -201,10 +202,10 @@ public class ChatService {
 
             // Save And Broadcast
             messageRepository.save(courseMsg);
-            ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), null, courseMsg);
+            ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
 
             // 메세지 BroadCast
-            template.convertAndSend("/sub/chat/" + newChat.getId() + "/msg", broadCastMsgDTO);
+            template.convertAndSend("/sub/chat/" + newChat.getId() + "/msg", courseDTO);
         }
     }
 

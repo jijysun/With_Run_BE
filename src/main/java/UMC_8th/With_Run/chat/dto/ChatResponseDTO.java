@@ -74,19 +74,8 @@ public class ChatResponseDTO {
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class getShareCourseListDTO {
-        private List<GetInviteUserDTO> userList;
-
-        private List<GetInviteChatDTO> chatList;
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class BroadcastCourseDTO {
         private Long userId;
-
-        private String userName;
-
-        private String userProfileImage;
 
         private String msg;
 
