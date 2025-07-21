@@ -38,6 +38,23 @@ public class UserRequestDto {
         private String introduction;
     }
 
+    @Getter
+    @Setter
+    public static class UpdateProfileDTO {
+        private Long townId;
+        private Long cityId;
+        private Long provinceId;
+        private String name;
+        private String gender;
+        private String birth;
+        private String breed;
+        private String size;
+        private String profileImage;
+        private List<String> characters;
+        private List<String> style;
+        private String introduction;
+    }
+
 
     @Getter
     @Setter
@@ -45,12 +62,6 @@ public class UserRequestDto {
         private Long townId;
         private Long cityId;
         private Long provinceId;
-    }
-
-    @Getter
-    @Setter
-    public static class UpdateProfileDTO{
-        private String profileImage;
     }
 
     @Getter

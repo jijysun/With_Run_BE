@@ -4,6 +4,7 @@ import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
@@ -85,6 +86,37 @@ public class ProfileServiceImpl implements ProfileService {
         profileRepository.save(profile);
         return requestDTO;
     }
+
+    @Override
+    public UpdateProfileDTO updateProfile(UpdateProfileDTO dto, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        Profile profile = profileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        // 업데이트
+        profile.setTownId(dto.getTownId());
+        profile.setCityId(dto.getCityId());
+        profile.setProvinceId(dto.getProvinceId());
+        profile.setName(dto.getName());
+        profile.setGender(dto.getGender());
+        profile.setBirth(dto.getBirth());
+        profile.setBreed(dto.getBreed());
+        profile.setSize(dto.getSize());
+        profile.setProfileImage(dto.getProfileImage());
+        profile.setCharacters(convertToJson(dto.getCharacters()));
+        profile.setStyle(convertToJson(dto.getStyle()));
+        profile.setIntroduction(dto.getIntroduction());
+        profile.setUpdatedAt(LocalDateTime.now());
+
+        profileRepository.save(profile);
+        return dto;
+    }
+
 
     private String convertToJson(List<String> list) {
         try {

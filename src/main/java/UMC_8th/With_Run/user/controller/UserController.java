@@ -222,15 +222,16 @@ public class UserController {
     @PatchMapping("/profile")
     @Operation(summary = "프로필 수정 API", description = "사용자의 프로필을 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<UpdateProfileDTO> updateProfile(@RequestBody UpdateProfileDTO updateProfileDTO){
-        UserRequestDto.UpdateProfileDTO dto = new UserRequestDto.UpdateProfileDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<UpdateProfileDTO> updateProfile(
+            @RequestBody UpdateProfileDTO updateProfileDTO,
+            HttpServletRequest request
+    ) {
+        UpdateProfileDTO result = profileService.updateProfile(updateProfileDTO, request);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
     }
+
 
     @PatchMapping("/courses/{course_id}")
     @Operation(summary = "코스 수정 API", description = "사용자의 코스를 수정하는 API입니다.")
