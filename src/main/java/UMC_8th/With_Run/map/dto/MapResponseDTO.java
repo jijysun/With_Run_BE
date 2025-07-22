@@ -4,10 +4,7 @@ import lombok.*;
 
 public class MapResponseDTO {
 
-    @Builder
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PlaceResponseDto {
         private Long id; // 실제 DB ID가 아니라면 placeId 해시로도 가능
         private String name;
@@ -23,9 +20,12 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PinResponseDto {
         private Long pinId;
+        private Long userId;
         private String name;
         private String detail;
         private String color;
+        private Double latitude;
+        private Double longitude;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

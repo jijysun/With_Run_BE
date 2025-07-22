@@ -16,35 +16,33 @@ public class PinServiceImpl implements PinService {
 
     @Override
     public MapResponseDTO.PinResponseDto createPin(MapRequestDTO.PinRequestDto requestDto) {
-        Pin pin = new Pin();
-        pin.setName(requestDto.getName());
-        pin.setDetail(requestDto.getDetail());
-        pin.setColor(requestDto.getColor());
-        pin.setCreatedAt(LocalDateTime.now());
-        Pin saved = pinRepository.save(pin);
-        return MapResponseDTO.PinResponseDto.builder()
-                .pinId(saved.getId())
-                .name(saved.getName())
-                .detail(saved.getDetail())
-                .color(saved.getColor())
+        Pin pin = Pin.builder()
+                .userId(requestDto.getUserId())
+                .name(requestDto.getName())
+                .detail(requestDto.getDetail())
+                .color(requestDto.getColor())
+                .latitude(requestDto.getLatitude())
+                .longitude(requestDto.getLongitude())
+                .createdAt(LocalDateTime.now())
                 .build();
+
+        Pin saved = pinRepository.save(pin);
+        return fromEntity(saved);
     }
 
     @Override
     public MapResponseDTO.PinResponseDto updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
+        pin.setUserId(requestDto.getUserId());
         pin.setName(requestDto.getName());
         pin.setDetail(requestDto.getDetail());
         pin.setColor(requestDto.getColor());
+        pin.setLatitude(requestDto.getLatitude());
+        pin.setLongitude(requestDto.getLongitude());
         pin.setUpdatedAt(LocalDateTime.now());
         Pin updated = pinRepository.save(pin);
-        return MapResponseDTO.PinResponseDto.builder()
-                .pinId(updated.getId())
-                .name(updated.getName())
-                .detail(updated.getDetail())
-                .color(updated.getColor())
-                .build();
+        return fromEntity(updated);
     }
 
     @Override
@@ -53,5 +51,17 @@ public class PinServiceImpl implements PinService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
         pin.setDeletedAt(LocalDateTime.now());
         pinRepository.save(pin);
+    }
+
+    public static MapResponseDTO.PinResponseDto fromEntity(Pin pin) {
+        return MapResponseDTO.PinResponseDto.builder()
+                .pinId(pin.getId())
+                .userId(pin.getUserId())
+                .name(pin.getName())
+                .detail(pin.getDetail())
+                .color(pin.getColor())
+                .latitude(pin.getLatitude())
+                .longitude(pin.getLongitude())
+                .build();
     }
 }
