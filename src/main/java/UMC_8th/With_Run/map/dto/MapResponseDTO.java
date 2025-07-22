@@ -12,9 +12,12 @@ public class MapResponseDTO {
         private Double latitude;
         private Double longitude;
         private String imageUrl;
-        private String openStatus;
+
+        private String currentOperatingStatus;
+
         private String openingHours;
         private Boolean parkingAvailable;
+
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

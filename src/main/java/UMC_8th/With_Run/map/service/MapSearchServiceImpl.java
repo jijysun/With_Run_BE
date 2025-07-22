@@ -29,7 +29,6 @@ public class MapSearchServiceImpl implements MapSearchService {
         return input.replaceAll("<[^>]*>", "");
     }
 
-    // getDetailedPlaceInfo는 place_id로 상세 정보를 가져오므로 변경 없음
     private MapResponseDTO.PlaceResponseDto getDetailedPlaceInfo(String placeId) {
         try {
             URI uri = UriComponentsBuilder
@@ -56,23 +55,35 @@ public class MapSearchServiceImpl implements MapSearchService {
             double lat = result.path("geometry").path("location").path("lat").asDouble();
             double lng = result.path("geometry").path("location").path("lng").asDouble();
 
-            String status = result.path("business_status").asText();
-            String openStatus = switch (status) {
+            // ⭐ 'business_status'를 이용한 일반 영업 상태 ⭐
+            String businessStatus = result.path("business_status").asText();
+            String openStatusText = switch (businessStatus) {
                 case "OPERATIONAL" -> "영업중";
                 case "CLOSED_TEMPORARILY" -> "임시휴업";
                 case "CLOSED_PERMANENTLY" -> "폐업";
                 default -> "정보 없음";
             };
 
-            JsonNode hoursNode = result.path("opening_hours").path("weekday_text");
-            String openingHours = null;
-            if (hoursNode.isArray() && hoursNode.size() > 0) {
-                openingHours = StreamSupport.stream(hoursNode.spliterator(), false)
-                        .map(JsonNode::asText)
-                        .collect(Collectors.joining(", "));
-            } else {
-                openingHours = "정보 없음";
+            String openingHours = "정보 없음"; // 주간 영업 시간 텍스트
+            String currentOperatingStatus = "정보 없음"; // ⭐ 현재 시각 기준 영업 상태 ⭐
+
+            JsonNode openingHoursNode = result.path("opening_hours");
+            if (!openingHoursNode.isMissingNode()) {
+                // 주간 영업 시간 텍스트 추출
+                JsonNode weekdayTextNode = openingHoursNode.path("weekday_text");
+                if (weekdayTextNode.isArray() && weekdayTextNode.size() > 0) {
+                    openingHours = StreamSupport.stream(weekdayTextNode.spliterator(), false)
+                            .map(JsonNode::asText)
+                            .collect(Collectors.joining(", "));
+                }
+
+                // ⭐ 'open_now' 필드 값 확인 및 currentOperatingStatus 설정 ⭐
+                // open_now 필드가 true이면 "영업중", false이면 "영업 종료"
+                boolean isOpenNowBool = openingHoursNode.path("open_now").asBoolean(false);
+                currentOperatingStatus = isOpenNowBool ? "영업중" : "영업 종료";
+
             }
+
 
             String photoRef = null;
             JsonNode photosNode = result.path("photos");
@@ -103,9 +114,9 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .latitude(lat)
                     .longitude(lng)
                     .imageUrl(imageUrl)
-                    .openStatus(openStatus)
-                    .openingHours(openingHours)
+                    .openingHours(openingHours) // 주간 영업 시간
                     .parkingAvailable(hasParking)
+                    .currentOperatingStatus(currentOperatingStatus) // ⭐ 현재 시각 기준 영업 상태 ⭐
                     .build();
 
         } catch (Exception e) {
@@ -116,18 +127,13 @@ public class MapSearchServiceImpl implements MapSearchService {
 
 
     @Override
-    // ⭐ lat, lng 파라미터 제거 ⭐
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByCategory(String category) {
         List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
 
         try {
-            // Google Places Text Search API 사용
-            // location, radius 파라미터 제거 (현 위치 기반 검색이 아닌 일반 텍스트 검색)
             URI uri = UriComponentsBuilder
                     .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
                     .queryParam("query", category)
-                    // .queryParam("location", lat + "," + lng) // ⭐ 이 줄 제거 ⭐
-                    // .queryParam("radius", 5000) // ⭐ 이 줄 제거 ⭐
                     .queryParam("key", apiKey)
                     .encode()
                     .build()
@@ -155,18 +161,13 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    // ⭐ lat, lng 파라미터 제거 ⭐
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String query) {
         List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
 
         try {
-            // Google Places Text Search API 사용
-            // location, radius 파라미터 제거 (현 위치 기반 검색이 아닌 일반 텍스트 검색)
             URI uri = UriComponentsBuilder
                     .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
                     .queryParam("query", query)
-                    // .queryParam("location", lat + "," + lng) // ⭐ 이 줄 제거 ⭐
-                    // .queryParam("radius", 5000) // ⭐ 이 줄 제거 ⭐
                     .queryParam("key", apiKey)
                     .encode()
                     .build()
@@ -195,16 +196,12 @@ public class MapSearchServiceImpl implements MapSearchService {
 
     @Override
     public MapResponseDTO.PlaceResponseDto getPlaceDetailByPlaceId(String placeId) {
-        // 이 공용 메서드는 내부 헬퍼 메서드를 호출하여 상세 정보를 반환합니다.
         return getDetailedPlaceInfo(placeId);
     }
 
-    // ⭐ MapController에서 getPlaceDetailByName을 호출하므로, 이 메서드를 재구현해야 합니다. ⭐
     @Override
     public MapResponseDTO.PlaceResponseDto getPlaceDetailByName(String placeName) {
         try {
-            // Google Places API는 이름으로 상세 조회를 직접 지원하지 않으므로,
-            // 먼저 Text Search를 통해 placeId를 얻은 후, 해당 placeId로 상세 정보를 다시 요청해야 합니다.
             URI searchUri = UriComponentsBuilder
                     .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
                     .queryParam("query", placeName)
@@ -221,12 +218,12 @@ public class MapSearchServiceImpl implements MapSearchService {
 
             if (searchResults.isArray() && searchResults.size() > 0) {
                 String placeId = searchResults.get(0).path("place_id").asText();
-                return getDetailedPlaceInfo(placeId); // 첫 번째 결과의 상세 정보 반환
+                return getDetailedPlaceInfo(placeId);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; // 결과를 찾지 못했거나 오류 발생
+        return null;
     }
 
 
