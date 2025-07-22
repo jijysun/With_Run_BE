@@ -15,7 +15,7 @@ public class PinServiceImpl implements PinService {
     private final PinRepository pinRepository;
 
     @Override
-    public MapResponseDTO.PinResponseDto createPin(MapRequestDTO.PinRequestDto requestDto) {
+    public void createPin(MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = Pin.builder()
                 .userId(requestDto.getUserId())
                 .name(requestDto.getName())
@@ -26,12 +26,11 @@ public class PinServiceImpl implements PinService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        Pin saved = pinRepository.save(pin);
-        return fromEntity(saved);
+        pinRepository.save(pin);
     }
 
     @Override
-    public MapResponseDTO.PinResponseDto updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
+    public void updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
         pin.setUserId(requestDto.getUserId());
@@ -41,8 +40,8 @@ public class PinServiceImpl implements PinService {
         pin.setLatitude(requestDto.getLatitude());
         pin.setLongitude(requestDto.getLongitude());
         pin.setUpdatedAt(LocalDateTime.now());
-        Pin updated = pinRepository.save(pin);
-        return fromEntity(updated);
+
+        pinRepository.save(pin);
     }
 
     @Override
@@ -51,6 +50,13 @@ public class PinServiceImpl implements PinService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
         pin.setDeletedAt(LocalDateTime.now());
         pinRepository.save(pin);
+    }
+
+    @Override
+    public MapResponseDTO.PinResponseDto getPinById(Long pinId) {
+        Pin pin = pinRepository.findById(pinId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
+        return fromEntity(pin);
     }
 
     public static MapResponseDTO.PinResponseDto fromEntity(Pin pin) {
@@ -65,3 +71,4 @@ public class PinServiceImpl implements PinService {
                 .build();
     }
 }
+
