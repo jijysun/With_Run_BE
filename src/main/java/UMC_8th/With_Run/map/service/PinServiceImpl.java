@@ -21,32 +21,37 @@ public class PinServiceImpl implements PinService {
         pin.setDetail(requestDto.getDetail());
         pin.setColor(requestDto.getColor());
         pin.setCreatedAt(LocalDateTime.now());
-
         Pin saved = pinRepository.save(pin);
-        return new MapResponseDTO.PinResponseDto(saved.getId(), "핀 생성 완료");
+        return MapResponseDTO.PinResponseDto.builder()
+                .pinId(saved.getId())
+                .name(saved.getName())
+                .detail(saved.getDetail())
+                .color(saved.getColor())
+                .build();
     }
 
     @Override
     public MapResponseDTO.PinResponseDto updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
-
         pin.setName(requestDto.getName());
         pin.setDetail(requestDto.getDetail());
         pin.setColor(requestDto.getColor());
         pin.setUpdatedAt(LocalDateTime.now());
-
-        pinRepository.save(pin);
-        return new MapResponseDTO.PinResponseDto(pin.getId(), "핀 수정 완료");
+        Pin updated = pinRepository.save(pin);
+        return MapResponseDTO.PinResponseDto.builder()
+                .pinId(updated.getId())
+                .name(updated.getName())
+                .detail(updated.getDetail())
+                .color(updated.getColor())
+                .build();
     }
 
     @Override
-    public MapResponseDTO.PinResponseDto deletePin(Long pinId) {
+    public void deletePin(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
-
         pin.setDeletedAt(LocalDateTime.now());
         pinRepository.save(pin);
-        return new MapResponseDTO.PinResponseDto(pin.getId(), "핀 삭제 완료");
     }
 }

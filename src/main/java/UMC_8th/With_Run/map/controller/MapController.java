@@ -82,8 +82,6 @@ public class MapController {
     )
     @GetMapping("/places/detail")
     public ResponseEntity<MapResponseDTO.PlaceResponseDto> getPlaceDetail(@RequestParam String placeName) {
-        // ⭐ MapSearchService 인터페이스에 getPlaceDetailByName(String) 메서드가 추가되었고,
-        // ⭐ MapSearchServiceImpl에 해당 구현이 되었으므로 이 호출은 이제 올바릅니다. ⭐
         MapResponseDTO.PlaceResponseDto detail = mapSearchService.getPlaceDetailByName(placeName);
         if (detail == null) {
             return ResponseEntity.notFound().build();
@@ -138,9 +136,9 @@ public class MapController {
             }
     )
     @DeleteMapping("/pins/{pinId}")
-    public StndResponse<MapResponseDTO.PinResponseDto> deletePin(@PathVariable Long pinId) {
-        MapResponseDTO.PinResponseDto deleted = pinService.deletePin(pinId);
-        return StndResponse.onSuccess(deleted, SuccessCode.DELETE_SUCCESS);
+    public StndResponse<String> deletePin(@PathVariable Long pinId) {
+        pinService.deletePin(pinId);
+        return StndResponse.onSuccess(null, SuccessCode.DELETE_SUCCESS);
     }
 
 
