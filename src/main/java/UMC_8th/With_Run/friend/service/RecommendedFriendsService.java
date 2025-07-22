@@ -1,7 +1,9 @@
 package UMC_8th.With_Run.friend.service;
 
 import UMC_8th.With_Run.friend.dto.FriendsResponse;
+import UMC_8th.With_Run.friend.repository.BlockFriendRepository;
 import UMC_8th.With_Run.friend.repository.FriendsRepository;
+import UMC_8th.With_Run.user.entity.Block;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
@@ -20,12 +22,22 @@ public class RecommendedFriendsService {
 
     private final FriendsRepository friendsRepository;
     private final UserRepository userRepository;
+    private final BlockFriendRepository blockFriendRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<FriendsResponse> recommendedFriends(Long provinceId, Long cityId, Long townId, Long userId) {
         User me = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Profile myProfile = me.getProfile();
+
+        // 차단한 사용자와 나를 차단한 사용자 ID 조회
+        List<Long> blockedUserIds = blockFriendRepository.findByUserIdAndDeletedAtIsNull(userId).stream()
+                .map(Block::getBlockTargetUserId)
+                .toList();
+
+        List<Long> blockedMeUserIds = blockFriendRepository.findByBlockTargetUserIdAndDeletedAtIsNull(userId).stream()
+                .map(Block::getUserId)
+                .toList();
 
         List<User> nearbyUsers = friendsRepository.findUsersByRegion(
                 provinceId, cityId, townId, userId
@@ -37,6 +49,12 @@ public class RecommendedFriendsService {
         List<FriendsResponse> result = new ArrayList<>();
 
         for (User user : nearbyUsers) {
+            // 1. 내 자신 제외
+            if (user.getId().equals(userId)) continue;
+
+            // 2. 차단 관계 제외
+            if (blockedUserIds.contains(user.getId()) || blockedMeUserIds.contains(user.getId())) continue;
+
             Profile otherProfile = user.getProfile();
             if (otherProfile == null) continue;
 
@@ -96,5 +114,4 @@ public class RecommendedFriendsService {
 
         return common;
     }
-
 }

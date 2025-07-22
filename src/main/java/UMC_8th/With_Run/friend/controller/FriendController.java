@@ -1,15 +1,19 @@
 package UMC_8th.With_Run.friend.controller;
 
+import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
+import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.friend.dto.FriendsResponse;
 import UMC_8th.With_Run.friend.dto.FriendDetailResponse;
-import UMC_8th.With_Run.friend.service.AllFriendsService;
-import UMC_8th.With_Run.friend.service.FriendDetailService;
-import UMC_8th.With_Run.friend.service.RecommendedFriendsService;
-import UMC_8th.With_Run.friend.service.SearchFriendsService;
+import UMC_8th.With_Run.friend.service.*;
+import UMC_8th.With_Run.user.entity.User;
+import UMC_8th.With_Run.user.repository.UserRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,14 +28,25 @@ public class FriendController {
     private final FriendDetailService friendDetailService;
     private final RecommendedFriendsService recommendedFriendsService;
     private final SearchFriendsService searchFriendsService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final FollowFriendService followFriendService;
+    private final BlockFriendService blockFriendService;
 
     @Operation(summary = "추천 친구 조회", description = "사용자에게 맞는 추천 친구들의 간단한 프로필 정보를 조회합니다.")
     @GetMapping("/recommendation")
     public List<FriendsResponse> getRecommendedFriends(
             @RequestParam(required = true) Long provinceId,
             @RequestParam(required = false) Long cityId,
-            @RequestParam(required = false) Long townId) {
-        Long userId = 1L; // 하드코딩 유저
+            @RequestParam(required = false) Long townId,
+            HttpServletRequest request) {
+
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+        Long userId = user.getId();
 
         return recommendedFriendsService.recommendedFriends(provinceId, cityId, townId, userId);
     }
@@ -47,23 +62,47 @@ public class FriendController {
     public List<FriendsResponse> getFriendsByRegion(
             @RequestParam(value = "provinceId", required = true) Long provinceId,
             @RequestParam(value = "cityId", required = false) Long cityId,
-            @RequestParam(value = "townId", required = false) Long townId
+            @RequestParam(value = "townId", required = false) Long townId,
+            HttpServletRequest request
     )
     {
-        Long userId = 1L; // 🔧 하드코딩된 유저 ID
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+        Long userId = user.getId();
+
         return allFriendsService.findUsersByRegion(provinceId, cityId, townId, userId);
     }
 
     @Operation(summary = "팔로우", description = "특정 사용자를 팔로우합니다.")
     @PostMapping("/follow")
-    public String followUser(@RequestParam Long userId) {
-        return "팔로우 완료 (userId=" + userId + ")";
+    public ResponseEntity<String> followUser(@RequestParam Long userId, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        followFriendService.followUser(currentUser.getId(), userId);
+
+        return ResponseEntity.ok("팔로우 완료 (userId=" + userId + ")");
     }
 
-    @Operation(summary = "차단", description = "특정 사용자를 차단합니다.")
+
+    @Operation(summary = "사용자 차단", description = "특정 사용자를 차단합니다.")
     @PostMapping("/block")
-    public String blockUser(@RequestParam Long userId) {
-        return "차단 완료 (userId=" + userId + ")";
+    public ResponseEntity<String> blockUser(@RequestParam Long userId, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        blockFriendService.blockUser(currentUser.getId(), userId);
+
+        return ResponseEntity.ok("차단 완료 (userId=" + userId + ")");
     }
 
     @Operation(summary = "신고", description = "특정 사용자를 신고합니다.")
@@ -78,10 +117,15 @@ public class FriendController {
             @RequestParam(value = "provinceId") Long provinceId,
             @RequestParam(value = "cityId", required = false) Long cityId,
             @RequestParam(value = "townId", required = false) Long townId,
-            @RequestParam String keyword
+            @RequestParam String keyword,
+            HttpServletRequest request
     ) {
-        // 현재 로그인된 유저 id (임시로 1L 하드코딩)
-        Long userId = 1L;
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+        Long userId = user.getId();
 
         return searchFriendsService.searchFriends(provinceId, cityId, townId, userId, keyword);
     }
