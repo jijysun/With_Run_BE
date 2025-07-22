@@ -5,9 +5,11 @@ import UMC_8th.With_Run.friend.dto.FriendDetailResponse;
 import UMC_8th.With_Run.friend.service.AllFriendsService;
 import UMC_8th.With_Run.friend.service.FriendDetailService;
 import UMC_8th.With_Run.friend.service.RecommendedFriendsService;
+import UMC_8th.With_Run.friend.service.SearchFriendsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +23,7 @@ public class FriendController {
     private final AllFriendsService allFriendsService;
     private final FriendDetailService friendDetailService;
     private final RecommendedFriendsService recommendedFriendsService;
+    private final SearchFriendsService searchFriendsService;
 
     @Operation(summary = "추천 친구 조회", description = "사용자에게 맞는 추천 친구들의 간단한 프로필 정보를 조회합니다.")
     @GetMapping("/recommendation")
@@ -69,9 +72,18 @@ public class FriendController {
         return "신고 완료 (userId=" + userId + ", reason=" + reason + ")";
     }
 
-    @Operation(summary = "친구 검색", description = "이름 또는 ID 등으로 친구를 검색합니다.")
-    @PostMapping("/search")
-    public String searchFriend(@RequestParam String keyword) {
-        return "검색 결과 (keyword=" + keyword + ")";
+    @Operation(summary = "친구 검색", description = "키워드로 친구를 검색합니다.")
+    @GetMapping("/search")
+    public List<FriendsResponse> searchFriends(
+            @RequestParam(value = "provinceId") Long provinceId,
+            @RequestParam(value = "cityId", required = false) Long cityId,
+            @RequestParam(value = "townId", required = false) Long townId,
+            @RequestParam String keyword
+    ) {
+        // 현재 로그인된 유저 id (임시로 1L 하드코딩)
+        Long userId = 1L;
+
+        return searchFriendsService.searchFriends(provinceId, cityId, townId, userId, keyword);
     }
+
 }

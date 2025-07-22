@@ -1,7 +1,7 @@
 package UMC_8th.With_Run.friend.service;
 
 import UMC_8th.With_Run.friend.dto.FriendsResponse;
-import UMC_8th.With_Run.friend.repository.AllFriendsRepository;
+import UMC_8th.With_Run.friend.repository.FriendsRepository;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecommendedFriendsService {
 
-    private final AllFriendsRepository allFriendsRepository;
+    private final FriendsRepository friendsRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -27,7 +27,7 @@ public class RecommendedFriendsService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Profile myProfile = me.getProfile();
 
-        List<User> nearbyUsers = allFriendsRepository.findUsersByRegion(
+        List<User> nearbyUsers = friendsRepository.findUsersByRegion(
                 provinceId, cityId, townId, userId
         );
 
