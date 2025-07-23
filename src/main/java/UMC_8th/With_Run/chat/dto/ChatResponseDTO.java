@@ -85,7 +85,7 @@ public class ChatResponseDTO {
 
         private String courseImage;
 
-        private List<String> courseTag;
+        private String keyword;
 
         private LocalDateTime createdAt;
     }

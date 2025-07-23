@@ -29,9 +29,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         (requests) -> requests
-                                .requestMatchers("/", "api/users/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/friends/*").permitAll()
+                                .requestMatchers("/", "api/users/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/friends/*", "/api/chat/**", "/api/ws/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/", "/api/users/login", "/api/places/**", "/swagger-ui/**", "/v3/api-docs/**","/api/maps/**", "api/chat/**").permitAll()
+                                .requestMatchers("/", "/api/users/login", "/api/places/**", "/swagger-ui/**", "/v3/api-docs/**","/api/maps/**", "api/chat/**", "/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable
