@@ -23,6 +23,9 @@ jobs:
           java-version: '17' # 사용 중인 자바 버전으로 변경
           distribution: 'temurin'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
@@ -38,7 +41,7 @@ jobs:
       - name: Run JAR on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # 기존 프로세스 종료 (PID 기반 또는 pkill 등)
+            # 기존 프로세스 종료
             pkill -f 'java -jar' || true
 
             # 새로 실행
