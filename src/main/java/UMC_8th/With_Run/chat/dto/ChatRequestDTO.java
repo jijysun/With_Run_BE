@@ -20,6 +20,7 @@ public class ChatRequestDTO {
     public static class ShareReqDTO {
         private Boolean isChat;
         private Long userId;
+        private Long targetUserId;
         private Long chatId;
         private Long courseId;
     }
@@ -38,6 +39,7 @@ public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ChattingReqDTO {
+        private Long userId;
         private String message;
         private Boolean isCourse;
     }
