@@ -1,59 +1,179 @@
 package UMC_8th.With_Run.map.controller;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
+import UMC_8th.With_Run.common.apiResponse.StndResponse;
+import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
+import UMC_8th.With_Run.map.dto.MapRequestDTO;
+import UMC_8th.With_Run.map.dto.MapResponseDTO;
+import UMC_8th.With_Run.map.service.MapSearchService;
+import UMC_8th.With_Run.map.service.PinService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "지도 API", description = "Swagger 테스트용 지도 관련 API")
 @RestController
 @RequestMapping("/api/maps")
+@RequiredArgsConstructor
 public class MapController {
 
-    @Operation(summary = "카테고리 검색")
-    @GetMapping("/categories")
-    public String getCategories(@RequestParam String type) {
-        return "카테고리 검색 (type=" + type + ")";
+    private final MapSearchService mapSearchService;
+    private final PinService pinService;
+
+
+    //검색 관련 API
+    @Operation(
+            summary = "키워드 검색",
+            description = "키워드로 장소를 검색합니다.",
+            parameters = {
+                    @Parameter(name = "query", description = "검색 키워드", required = true, example = "약국")
+            }
+    )
+    @GetMapping("/search/keyword")
+    public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByKeyword(
+            @RequestParam String query) {
+
+
+        List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByKeyword(query);
+        return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
 
-    @Operation(summary = "특정 시설 클릭 (상세 정보)")
-    @GetMapping("/pet-facilities/{id}")
-    public String getFacilityById(@PathVariable Long id) {
-        return "시설 상세정보 (id=" + id + ")";
+
+
+    @Operation(
+            summary = "카테고리 검색",
+            description = "카테고리로 장소를 검색합니다.",
+            parameters = {
+                    @Parameter(name = "type", description = "카테고리 타입 (예: 약국, 병원)", required = true, example = "약국")
+            }
+    )
+    @GetMapping("/search/categories")
+    public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByCategory(
+            @RequestParam String type) {
+
+
+        List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByCategory(type);
+        return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
 
-    @Operation(summary = "검색")
-    @GetMapping("/search")
-    public String search(@RequestParam String keyword) {
-        return "검색 결과 (keyword=" + keyword + ")";
+
+
+    @Operation(
+            summary = "특정 시설 클릭 (상세 정보)",
+            description = "선택한 장소의 상세 정보를 반환합니다.",
+            parameters = {
+                    @Parameter(name = "placeName", description = "장소 이름", required = true, example = "연남약국")
+            }
+    )
+    @GetMapping("/places/detail")
+    public ResponseEntity<MapResponseDTO.PlaceResponseDto> getPlaceDetail(@RequestParam String placeName) {
+        MapResponseDTO.PlaceResponseDto detail = mapSearchService.getPlaceDetailByName(placeName);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
     }
 
-    @Operation(summary = "핀 생성")
-    @PostMapping("/pins")
-    public String createPin() {
-        return "핀 생성 완료";
+
+
+    //핀 관련 API
+    @Operation(
+            summary = "핀 생성",
+            description = "새로운 핀을 생성합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "핀 생성 요청 DTO", required = true)
+    )
+    @PostMapping("/pin")
+    public StndResponse<String> createPin(@RequestBody MapRequestDTO.PinRequestDto requestDto) {
+        pinService.createPin(requestDto);
+        return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS);
     }
 
-    @Operation(summary = "핀 수정")
-    @PatchMapping("/pins/{pinId}")
-    public String updatePin(@PathVariable Long pinId) {
-        return "핀 수정 완료 (pinId=" + pinId + ")";
+
+    //추후 코스 별 핀 리스트 조회로 변경할 예정
+    @Operation(
+            summary = "핀 단건 조회",
+            description = "핀 ID로 특정 핀 정보를 조회합니다.",
+            parameters = {
+                    @Parameter(name = "pinId", description = "조회할 핀의 ID", required = true, example = "1")
+            }
+    )
+    @GetMapping("/pin/{pinId}")
+    public StndResponse<MapResponseDTO.PinResponseDto> getPinById(@PathVariable Long pinId) {
+        MapResponseDTO.PinResponseDto pin = pinService.getPinById(pinId);
+        return StndResponse.onSuccess(pin, SuccessCode.INQUIRY_SUCCESS);
     }
 
-    @Operation(summary = "핀 삭제")
-    @DeleteMapping("/pins/{pinId}")
-    public String deletePin(@PathVariable Long pinId) {
-        return "핀 삭제 완료 (pinId=" + pinId + ")";
+
+
+
+    @Operation(
+            summary = "핀 수정",
+            description = "기존 핀 정보를 수정합니다.",
+            parameters = {
+                    @Parameter(name = "pinId", description = "수정할 핀의 ID", required = true, example = "1")
+            }
+    )
+    @PatchMapping("/pin/{pinId}")
+    public StndResponse<String> updatePin(
+            @PathVariable Long pinId,
+            @RequestBody MapRequestDTO.PinRequestDto requestDto) {
+        pinService.updatePin(pinId, requestDto);
+        return StndResponse.onSuccess(null, SuccessCode.UPDATE_SUCCESS);
     }
 
-    @Operation(summary = "코스 생성")
+
+
+    @Operation(
+            summary = "핀 삭제",
+            description = "핀을 삭제합니다.",
+            parameters = {
+                    @Parameter(name = "pinId", description = "삭제할 핀의 ID", required = true, example = "1")
+            }
+    )
+    @DeleteMapping("/pin/{pinId}")
+    public StndResponse<String> deletePin(@PathVariable Long pinId) {
+        pinService.deletePin(pinId);
+        return StndResponse.onSuccess(null, SuccessCode.DELETE_SUCCESS);
+    }
+
+
+
+    //코스 관련 API
+    @Operation(
+            summary = "산책 코스 생성",
+            description = "산책 코스를 등록합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "산책 코스 생성 요청 DTO", required = true)
+    )
     @PostMapping("/courses")
-    public String createCourse() {
-        return "코스 생성 완료";
+    public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
+        Long courseId = mapSearchService.createCourse(accessToken, requestDto);
+        MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
+                .courseId(courseId)
+                .message("산책 코스가 성공적으로 등록되었어요!")
+                .build();
+        return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
     }
 
-    @Operation(summary = "반려동물시설 전체 조회")
+
+
+    //반려동물 시설 관련 API
+    @Operation(
+            summary = "반려동물 시설 전체 조회",
+            description = "모든 반려동물 시설 목록을 조회합니다."
+    )
     @GetMapping("/pet-facilities")
-    public String getAllPetFacilities() {
-        return "전체 반려동물시설 목록";
+    public StndResponse<List<MapResponseDTO.PetFacilityResponseDto>> getAllPetFacilities() {
+        List<MapResponseDTO.PetFacilityResponseDto> facilities = mapSearchService.getAllPetFacilities();
+        return StndResponse.onSuccess(facilities, SuccessCode.INQUIRY_SUCCESS);
     }
 }
