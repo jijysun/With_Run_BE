@@ -213,15 +213,19 @@ public class UserController {
     @DeleteMapping("/followers/{follower_id}")
     @Operation(summary = "팔로워 삭제 API", description = "사용자의 팔로워를 삭제하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "삭제 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "followerId", description = "팔로워 id 입니다.")
-    })
-    public SuccessCode deleteFollower(@PathVariable Long follower_id){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> deleteFollower(
+            @PathVariable("follower_id") Long followerId,
+            HttpServletRequest request
+    ) {
+        followService.deleteFollower(followerId, request);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("id " + followerId + " 팔로워를 삭제하였습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
+
 
     @PatchMapping("/profile")
     @Operation(summary = "프로필 수정 API", description = "사용자의 프로필을 수정하는 API입니다.")

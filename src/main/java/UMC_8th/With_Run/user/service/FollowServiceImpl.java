@@ -86,5 +86,25 @@ public class FollowServiceImpl implements FollowService {
 
         followRepository.delete(follow);
     }
+
+    @Override
+    public void deleteFollower(Long followerId, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String myEmail = authentication.getName();
+
+        User me = userRepository.findByEmail(myEmail)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        Follow follow = followRepository.findByUserIdAndTargetUserId(follower.getId(), me.getId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        followRepository.delete(follow);
+    }
+
+
+
 }
 
