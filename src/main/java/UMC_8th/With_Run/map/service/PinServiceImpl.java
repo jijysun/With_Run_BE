@@ -17,7 +17,7 @@ public class PinServiceImpl implements PinService {
     @Override
     public void createPin(MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = Pin.builder()
-                .userId(requestDto.getUserId())
+                .courseId(requestDto.getCourseId())
                 .name(requestDto.getName())
                 .detail(requestDto.getDetail())
                 .color(requestDto.getColor())
@@ -33,7 +33,7 @@ public class PinServiceImpl implements PinService {
     public void updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
-        pin.setUserId(requestDto.getUserId());
+        pin.setCourseId(requestDto.getCourseId());
         pin.setName(requestDto.getName());
         pin.setDetail(requestDto.getDetail());
         pin.setColor(requestDto.getColor());
@@ -62,7 +62,7 @@ public class PinServiceImpl implements PinService {
     public static MapResponseDTO.PinResponseDto fromEntity(Pin pin) {
         return MapResponseDTO.PinResponseDto.builder()
                 .pinId(pin.getId())
-                .userId(pin.getUserId())
+                .courseId(pin.getCourseId())
                 .name(pin.getName())
                 .detail(pin.getDetail())
                 .color(pin.getColor())

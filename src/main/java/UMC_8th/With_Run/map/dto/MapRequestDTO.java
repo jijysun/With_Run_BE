@@ -8,7 +8,7 @@ public class MapRequestDTO {
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class PinRequestDto {
-        private Long userId;
+        private Long courseId;
         private String name;
         private String detail;
         private String color;

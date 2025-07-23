@@ -97,7 +97,7 @@ public class MapController {
     }
 
 
-
+    //추후 코스 별 핀 리스트 조회로 변경할 예정
     @Operation(
             summary = "핀 단건 조회",
             description = "핀 ID로 특정 핀 정보를 조회합니다.",
