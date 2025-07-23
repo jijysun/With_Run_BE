@@ -12,18 +12,15 @@ public class MapResponseDTO {
         private Double latitude;
         private Double longitude;
         private String imageUrl;
-
         private String currentOperatingStatus;
-
         private String openingHours;
         private Boolean parkingAvailable;
-
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PinResponseDto {
         private Long pinId;
-        private Long userId;
+        private Long courseId;
         private String name;
         private String detail;
         private String color;
@@ -45,9 +42,5 @@ public class MapResponseDTO {
         private String openingHours;
         private Boolean hasParking;
     }
-
-
-
-
 
 }

@@ -15,7 +15,7 @@ public class Pin {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+    private Long courseId;
     private String name;
     private String color;
     private String detail;
