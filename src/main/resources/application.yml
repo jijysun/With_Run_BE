@@ -30,3 +30,7 @@ jwt:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: ${JWT_ACCESS_EXPIRATION}
+
+
+  server:
+    address: 0.0.0.0  # 모든 IP에서 접근 가능하게 설정
