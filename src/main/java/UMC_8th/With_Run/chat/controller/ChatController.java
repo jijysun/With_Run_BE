@@ -141,11 +141,6 @@ public class ChatController {
     public void chatting(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
         ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
         template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
-
-        /*logging:
-        level:
-        org.springframework.web.socket: DEBUG
-        org.springframework.messaging.simp: DEBUG*/
     }
 
 
@@ -154,12 +149,13 @@ public class ChatController {
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     @Parameters({
             @Parameter(name = "isChat", description = "채팅방 공유인 지, 친구 공유인지 구별하는 Boolean 값 입니다, True:채팅, False:친구 입니다 "),
-            @Parameter(name = "userId", description = "공유할 사용자의 ID 입니다"),
+            @Parameter(name = "userId", description = "공유하는 사용자의 ID 입니다"),
+            @Parameter(name = "targetUserId", description = "공유할 사용자의 ID 입니다"),
             @Parameter(name = "chatId", description = "채팅방 id 입니다"),
             @Parameter(name = "courseId",description = "공유할 산책 코스 ID 입니다")
     })
-    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO, HttpServletRequest request) {
-        chatService.shareCourse(request, reqDTO);
+    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
+        chatService.shareCourse(reqDTO);
     }
 
 }

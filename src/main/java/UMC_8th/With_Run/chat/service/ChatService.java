@@ -20,7 +20,6 @@ import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
-import UMC_8th.With_Run.user.entity.Follow;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.FollowRepository;
@@ -34,12 +33,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -70,8 +65,8 @@ public class ChatService {
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
 
         List<UserChat> userChats = new  ArrayList<>();
-        userChats.add(UserChatConverter.toUserChat(user, chat));
-        userChats.add(UserChatConverter.toUserChat(targetUser, chat));
+        userChats.add(UserChatConverter.toNewUserChat(user, chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -184,17 +179,18 @@ public class ChatService {
         return MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
     }
 
-    public void shareCourse (HttpServletRequest request, ChatRequestDTO.ShareReqDTO reqDTO){
+    public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
         /// 여려 명 공유 시 채팅방 공유 로직
         // 카카오톡 공유 화면 참고!
-//        User user = getUserByJWT(request);
+
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Chat chat = chatRepository.findById(1L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Course course = courseRepository.findById(1L).orElseThrow(() -> new CourseHandler(ErrorCode.EMPTY_CHAT_LIST)); // 에러 코드 바꾸기
+        Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.EMPTY_CHAT_LIST)); // 에러 코드 바꾸기
+        Chat chat;
         Message courseMsg;
 
         if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
+            chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
             courseMsg= MessageConverter.toShareMessage(user, chat, course);
 
             messageRepository.save(courseMsg);
@@ -207,20 +203,38 @@ public class ChatService {
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
             Chat newChat;
-            Optional<Chat> privateChat = userChatRepository.findPrivateChat(user.getId(), targetUser.getId());
+            Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
+            if (privateChat == null){
+                log.info("privateChat is Null!");
+                newChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
-            newChat = privateChat.orElseGet(() -> ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile()));
+                List<UserChat> ucList = new ArrayList<>();
+                ucList.add(UserChatConverter.toNewUserChat(user, newChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, newChat));
 
-            chatRepository.save(newChat);
+                Chat saveChat = chatRepository.save(newChat);
+                userChatRepository.saveAll(ucList);
 
-            courseMsg= MessageConverter.toShareMessage(user, newChat, course);
+                courseMsg= MessageConverter.toShareMessage(user, saveChat, course);
 
-            // Save And Broadcast
-            messageRepository.save(courseMsg);
-            ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
+                // Save And Broadcast
+                messageRepository.save(courseMsg);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
 
-            // 메세지 BroadCast
-            template.convertAndSend("/sub/" + newChat.getId() + "/msg", courseDTO);
+                // 메세지 BroadCast
+                template.convertAndSend("/sub/" + saveChat.getId() + "/msg", courseDTO);
+            }
+            else{
+                log.info("privateChat is Not Null! id = {}", privateChat.getId());
+                courseMsg= MessageConverter.toShareMessage(user, privateChat, course);
+
+                // Save And Broadcast
+                messageRepository.save(courseMsg);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
+
+                // 메세지 BroadCast
+                template.convertAndSend("/sub/" + privateChat.getId() + "/msg", courseDTO);
+            }
         }
     }
 
