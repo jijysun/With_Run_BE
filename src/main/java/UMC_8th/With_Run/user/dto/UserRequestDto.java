@@ -34,7 +34,6 @@ public class UserRequestDto {
         private String birth;
         private String breed;
         private String size;
-        private String profileImage;
         private List<String> characters;
         private List<String> style;
         private String introduction;
@@ -51,7 +50,6 @@ public class UserRequestDto {
         private String birth;
         private String breed;
         private String size;
-        private String profileImage;
         private List<String> characters;
         private List<String> style;
         private String introduction;

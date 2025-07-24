@@ -79,7 +79,6 @@ public class ProfileServiceImpl implements ProfileService {
                 .birth(requestDTO.getBirth())
                 .breed(requestDTO.getBreed())
                 .size(requestDTO.getSize())
-                .profileImage(requestDTO.getProfileImage())
                 .characters(charactersJson)
                 .style(styleJson)
                 .introduction(requestDTO.getIntroduction())
@@ -111,7 +110,6 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setBirth(dto.getBirth());
         profile.setBreed(dto.getBreed());
         profile.setSize(dto.getSize());
-        profile.setProfileImage(dto.getProfileImage());
         profile.setCharacters(convertToJson(dto.getCharacters()));
         profile.setStyle(convertToJson(dto.getStyle()));
         profile.setIntroduction(dto.getIntroduction());
