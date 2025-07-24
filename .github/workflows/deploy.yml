@@ -40,5 +40,5 @@ jobs:
 
       - name: Run JAR on EC2 (inline SSH, disown)
         run: |
-          ssh -t -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+          ssh -tt -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "pkill -f 'java -jar' || true && nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 & disown"
