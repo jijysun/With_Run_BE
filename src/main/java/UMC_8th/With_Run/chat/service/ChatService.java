@@ -77,9 +77,9 @@ public class ChatService {
 
     public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request) {
 
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        // 이미 채팅방이 자신 포함 4명이라면 초대 거절
+        // 이미 채팅방이 자신 포함 4명이라면 초대 목록 조회도 거절
         if (chat.getParticipants() >= 4 ){
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
@@ -110,7 +110,7 @@ public class ChatService {
 
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         if (chat.getParticipants() + reqDTO.getUserIds().size() > 4){
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
@@ -134,19 +134,19 @@ public class ChatService {
 
     @Transactional
     public void renameChat(Long roomId, String newName) {
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         chat.renameChat(newName);
     }
 
     public List<Message> enterChat (Long roomId) {
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         return messageRepository.findByChat(chat);
     }
 
     @Transactional
     public void leaveChat(Long chatId, HttpServletRequest request) {
         User user = getUserByJWT(request);
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         userChatRepository.deleteUserChatByUserAndChat(user, chat);
 
@@ -168,14 +168,13 @@ public class ChatService {
     }
 
     public ChatResponseDTO.BroadcastMsgDTO chatting (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
-        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.EMPTY_CHAT_LIST));
+        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
 
         // 메세지 저장, Redis...?
         messageRepository.save(msg);
-
         return MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
     }
 
@@ -185,12 +184,12 @@ public class ChatService {
 
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.EMPTY_CHAT_LIST)); // 에러 코드 바꾸기
+        Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
         Chat chat;
         Message courseMsg;
 
         if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
-            chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+            chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
             courseMsg= MessageConverter.toShareMessage(user, chat, course);
 
             messageRepository.save(courseMsg);
@@ -244,7 +243,4 @@ public class ChatService {
         String email = authentication.getName();
         return userRepository.findByEmail(email).orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
     }
-
-
-
 }
