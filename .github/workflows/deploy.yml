@@ -38,12 +38,7 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i with_run_key.pem build/libs/*.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
 
-      - name: Run JAR on EC2
+      - name: Run JAR on EC2 (inline SSH, disown)
         run: |
-          ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # 기존 프로세스 종료
-            pkill -f 'java -jar' || true
-
-            # 새로 실행
-            nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 & disown
-          EOF
+          ssh -t -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "pkill -f 'java -jar' || true && nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 & disown"
