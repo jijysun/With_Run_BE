@@ -19,7 +19,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 @Entity
 @Table(name = "follow")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -67,5 +67,44 @@ public class FollowServiceImpl implements FollowService {
                 .followers(result)
                 .build();
     }
+
+    @Override
+    public void cancelFollowing(Long targetUserId, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        // 본인이 자기 자신을 unfollow 시도하는 경우 방지
+        if (user.getId().equals(targetUserId)) {
+            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+        }
+
+        Follow follow = followRepository.findByUserIdAndTargetUserId(user.getId(), targetUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        followRepository.delete(follow);
+    }
+
+    @Override
+    public void deleteFollower(Long followerId, HttpServletRequest request) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String myEmail = authentication.getName();
+
+        User me = userRepository.findByEmail(myEmail)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        Follow follow = followRepository.findByUserIdAndTargetUserId(follower.getId(), me.getId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        followRepository.delete(follow);
+    }
+
+
+
 }
 

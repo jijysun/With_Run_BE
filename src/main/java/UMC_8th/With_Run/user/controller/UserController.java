@@ -5,6 +5,7 @@ import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.ProfileImageRequest;
 import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateCourseDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
@@ -30,16 +31,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -67,14 +73,24 @@ public class UserController {
     @PostMapping("/profile")
     @Operation(summary = "반려견 프로필 설정 API", description = "반려견의 프로필 정보를 설정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "프로필 생성 성공", content = @Content(schema = @Schema(implementation = StndResponse.class))),
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<BreedProfileRequestDTO>  createBreedProfile(@RequestBody UserRequestDto.BreedProfileRequestDTO breedProfileRequestDTO){
-        UserRequestDto.BreedProfileRequestDTO dto = new UserRequestDto.BreedProfileRequestDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<BreedProfileRequestDTO> createBreedProfile(
+            @RequestBody BreedProfileRequestDTO requestDTO,
+            HttpServletRequest request
+    ) {
+        BreedProfileRequestDTO result = profileService.createBreedProfile(requestDTO, request);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
+    }
+
+    @PostMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "프로필 이미지 업로드 API", description = "반려견의 프로필 이미지를 업로드합니다.")
+    public StndResponse<String> uploadProfileImage(
+            @ModelAttribute ProfileImageRequest request,
+            HttpServletRequest servletRequest
+    ) throws IOException {
+        String result = profileService.uploadProfileImage(request.getFile(), servletRequest);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
     }
 
     @PostMapping("/region")
@@ -195,41 +211,50 @@ public class UserController {
     @DeleteMapping("/followings/{following_id}")
     @Operation(summary = "팔로잉 취소 API", description = "사용자가 팔로우를 취소하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "요청 성공")
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "followingId", description = "팔로잉 id 입니다.")
-    })
-    public SuccessCode cancelFollowing(@PathVariable("following_id") Long following_id){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> cancelFollowing(
+            @PathVariable("following_id") Long followingId,
+            HttpServletRequest request
+    ) {
+        followService.cancelFollowing(followingId, request);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("id " + followingId + "의 팔로우를 취소하였습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
 
-    @DeleteMapping("/followings/{follower_id}")
+
+    @DeleteMapping("/followers/{follower_id}")
     @Operation(summary = "팔로워 삭제 API", description = "사용자의 팔로워를 삭제하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "삭제 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "followerId", description = "팔로워 id 입니다.")
-    })
-    public SuccessCode deleteFollower(@PathVariable Long follower_id){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> deleteFollower(
+            @PathVariable("follower_id") Long followerId,
+            HttpServletRequest request
+    ) {
+        followService.deleteFollower(followerId, request);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("id " + followerId + " 팔로워를 삭제하였습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
+
 
     @PatchMapping("/profile")
     @Operation(summary = "프로필 수정 API", description = "사용자의 프로필을 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<UpdateProfileDTO> updateProfile(@RequestBody UpdateProfileDTO updateProfileDTO){
-        UserRequestDto.UpdateProfileDTO dto = new UserRequestDto.UpdateProfileDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<UpdateProfileDTO> updateProfile(
+            @RequestBody UpdateProfileDTO updateProfileDTO,
+            HttpServletRequest request
+    ) {
+        UpdateProfileDTO result = profileService.updateProfile(updateProfileDTO, request);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
     }
+
 
     @PatchMapping("/courses/{course_id}")
     @Operation(summary = "코스 수정 API", description = "사용자의 코스를 수정하는 API입니다.")
