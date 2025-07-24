@@ -15,9 +15,11 @@ import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
+import UMC_8th.With_Run.common.exception.handler.CourseHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.entity.Course;
+import UMC_8th.With_Run.course.repository.CourseRepository;
 import UMC_8th.With_Run.user.entity.Follow;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
@@ -52,6 +54,7 @@ public class ChatService {
     private final JwtTokenProvider jwtTokenProvider;
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
+    private final CourseRepository courseRepository;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -87,14 +90,27 @@ public class ChatService {
         }
 
         User user = getUserByJWT(request);
-        List<UserChat> allByChatId = userChatRepository.findAllByChat_Id(chatId).stream().toList();
-        // 내가 팔로우 하는 사람이며, 채팅방에 참여하고 있지 않은 사용자 반환
-        List<User> canInviteUser = userRepository.findAllByFollowerAndUserChatListNotInOrderById(user, allByChatId);
-        List<Profile> canInviteUsersProfile = profileRepository.findAllByUserInOrderByUser_Id(canInviteUser);
 
-        log.info("user: {}, Profile: {}", canInviteUser.size(), canInviteUsersProfile.size());
+        /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
+        // 사용자가 팔로우 하는 다른 사용자, targetUser.id
+        List<User> followList = followRepository.findAllByUserId(user.getId()).stream()
+                .map(Follow-> Follow.getTargetUser()).toList();
 
-        return ChatConverter.toGetInviteUserDTO(canInviteUser, canInviteUsersProfile);
+        // 채팅방에 참여하고 있지 않은 사용자,
+        List<Long> userChatList = userChatRepository.findAllByChat_Id(chatId).stream()
+                .map(UserChat -> UserChat.getUser().getId()).toList();
+
+        // 팔로잉 리스트에서 채팅방 참여자 제외 추출
+        List<User> canInviteUserIdList = followList.stream()
+                .filter(u -> userChatList.contains(u.getId()))
+                .toList();
+
+        // 초대 가능 user.profile
+        List<Profile> canInviteUserProfileList = profileRepository.findAllByUserIn(canInviteUserIdList);
+
+        log.info("user: {}, Profile: {}", canInviteUserIdList.size(), canInviteUserProfileList.size());
+
+        return ChatConverter.toGetInviteUserDTO(canInviteUserIdList, canInviteUserProfileList);
     }
 
     @Transactional
@@ -134,7 +150,6 @@ public class ChatService {
 
     @Transactional
     public void leaveChat(Long chatId, HttpServletRequest request) {
-        // User user = userRepository.findById(3L).orElseThrow(()-> new ChatHandler(ErrorCode.WRONG_USER)); // test Code
         User user = getUserByJWT(request);
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
