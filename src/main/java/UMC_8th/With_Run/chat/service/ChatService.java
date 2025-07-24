@@ -18,10 +18,8 @@ import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.entity.Course;
-import UMC_8th.With_Run.user.entity.Follow;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
-import UMC_8th.With_Run.user.repository.FollowRepository;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +30,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,7 +46,6 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final SimpMessagingTemplate template;
-    private final FollowRepository followRepository;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -61,7 +55,7 @@ public class ChatService {
         User user = getUserByJWT(request); // jwt
         Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
-        User targetUser = userRepository.findById(3L).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
+        User targetUser = userRepository.findById(targetId).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
         Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
@@ -79,7 +73,7 @@ public class ChatService {
 
     public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request) {
 
-        Chat chat = chatRepository.findById(2L).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
 
         // 이미 채팅방이 자신 포함 4명이라면 초대 거절
         if (chat.getParticipants() >= 4 ){
@@ -87,8 +81,8 @@ public class ChatService {
         }
 
         User user = getUserByJWT(request);
-        List<UserChat> allByChatId = userChatRepository.findAllByChat_Id(2L).stream().toList();
-        // 사용자와 친구 관계이며, 채팅방에 참여하고 있지 않은 사용자 반환
+        List<UserChat> allByChatId = userChatRepository.findAllByChat_Id(chatId).stream().toList();
+        // 내가 팔로우 하는 사람이며, 채팅방에 참여하고 있지 않은 사용자 반환
         List<User> canInviteUser = userRepository.findAllByFollowerAndUserChatListNotInOrderById(user, allByChatId);
         List<Profile> canInviteUsersProfile = profileRepository.findAllByUserInOrderByUser_Id(canInviteUser);
 
@@ -144,7 +138,7 @@ public class ChatService {
     }
 
 
-    public List<Chat> getChatList(HttpServletRequest request) {
+    public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
         User user = getUserByJWT(request);  // jwt
         List<UserChat> userChats = userChatRepository.findAllByUser(user);
 
@@ -153,7 +147,8 @@ public class ChatService {
 
         List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
         log.info("allByUserChatListIn: " + allByUserChatListIn.size());
-        return allByUserChatListIn;
+
+        return ChatConverter.toGetChatListDTO(allByUserChatListIn);
     }
 
     public void chatting (HttpServletRequest request, Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {

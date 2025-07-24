@@ -125,9 +125,8 @@ public class ChatController {
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
     public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
-        List<Chat> chatList = chatService.getChatList(request);
-        List<ChatResponseDTO.GetChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
-        return StndResponse.onSuccess(getChatListDTO, SuccessCode.INQUIRY_SUCCESS);
+        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(request);
+        return StndResponse.onSuccess(chatListDTO, SuccessCode.INQUIRY_SUCCESS);
     }
 
     // 메세지 채팅
