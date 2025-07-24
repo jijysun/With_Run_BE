@@ -23,22 +23,25 @@ jobs:
           java-version: '17' # 사용 중인 자바 버전으로 변경
           distribution: 'temurin'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
       - name: Create PEM file
         run: |
-          echo "${{ secrets.EC2_KEY }}" > key.pem
-          chmod 400 key.pem
+          echo "${{ secrets.EC2_KEY }}" > with_run_key.pem
+          chmod 400 with_run_key.pem
 
       - name: Copy JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i key.pem build/libs/*.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
+          scp -o StrictHostKeyChecking=no -i with_run_key.pem build/libs/*.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
 
       - name: Run JAR on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # 기존 프로세스 종료 (PID 기반 또는 pkill 등)
+          ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 기존 프로세스 종료
             pkill -f 'java -jar' || true
 
             # 새로 실행
