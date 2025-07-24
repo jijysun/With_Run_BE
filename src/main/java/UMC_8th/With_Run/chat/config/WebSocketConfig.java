@@ -16,8 +16,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 통신 담당 엔드포인트 지정
-        // front 측에서 Back 과 연결하고 싶은 경우 이로 요청을
-        registry.addEndpoint("api/ws").setAllowedOrigins("*").withSockJS();
+        // front 측에서 Back 과 연결하고 싶은 경우 이로 요청, Not Http!
+        registry.addEndpoint("/api/ws").setAllowedOrigins("*");
     }
 
 

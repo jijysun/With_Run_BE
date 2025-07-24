@@ -6,36 +6,121 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
 public class MapSearchServiceImpl implements MapSearchService {
 
-    @Value("${naver.client-id}")
-    private String clientId;
-
-    @Value("${naver.secret}")
-    private String clientSecret;
+    @Value("${google.places.key}")
+    private String apiKey;
 
     private String removeHtmlTags(String input) {
+        if (input == null) return null;
         return input.replaceAll("<[^>]*>", "");
     }
 
-    private Double parseOrNull(String value) {
+    private MapResponseDTO.PlaceResponseDto getDetailedPlaceInfo(String placeId) {
         try {
-            return Double.parseDouble(value) / 1e7;
-        } catch (NumberFormatException e) {
+            URI uri = UriComponentsBuilder
+                    .fromUriString("https://maps.googleapis.com/maps/api/place/details/json")
+                    .queryParam("place_id", placeId)
+                    .queryParam("fields", "name,formatted_address,geometry,photos,opening_hours,business_status,types")
+                    .queryParam("key", apiKey)
+                    .encode()
+                    .build()
+                    .toUri();
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode result = mapper.readTree(response.getBody()).path("result");
+
+            if (result.isMissingNode() || result.isNull()) {
+                return null;
+            }
+
+            String name = result.path("name").asText();
+            String address = result.path("formatted_address").asText();
+            double lat = result.path("geometry").path("location").path("lat").asDouble();
+            double lng = result.path("geometry").path("location").path("lng").asDouble();
+
+            // ⭐ 'business_status'를 이용한 일반 영업 상태 ⭐
+            String businessStatus = result.path("business_status").asText();
+            String openStatusText = switch (businessStatus) {
+                case "OPERATIONAL" -> "영업중";
+                case "CLOSED_TEMPORARILY" -> "임시휴업";
+                case "CLOSED_PERMANENTLY" -> "폐업";
+                default -> "정보 없음";
+            };
+
+            String openingHours = "정보 없음"; // 주간 영업 시간 텍스트
+            String currentOperatingStatus = "정보 없음"; // ⭐ 현재 시각 기준 영업 상태 ⭐
+
+            JsonNode openingHoursNode = result.path("opening_hours");
+            if (!openingHoursNode.isMissingNode()) {
+                // 주간 영업 시간 텍스트 추출
+                JsonNode weekdayTextNode = openingHoursNode.path("weekday_text");
+                if (weekdayTextNode.isArray() && weekdayTextNode.size() > 0) {
+                    openingHours = StreamSupport.stream(weekdayTextNode.spliterator(), false)
+                            .map(JsonNode::asText)
+                            .collect(Collectors.joining(", "));
+                }
+
+                // ⭐ 'open_now' 필드 값 확인 및 currentOperatingStatus 설정 ⭐
+                // open_now 필드가 true이면 "영업중", false이면 "영업 종료"
+                boolean isOpenNowBool = openingHoursNode.path("open_now").asBoolean(false);
+                currentOperatingStatus = isOpenNowBool ? "영업중" : "영업 종료";
+
+            }
+
+
+            String photoRef = null;
+            JsonNode photosNode = result.path("photos");
+            if (photosNode.isArray() && photosNode.size() > 0) {
+                photoRef = photosNode.get(0).path("photo_reference").asText();
+            }
+
+            String imageUrl = (photoRef != null && !photoRef.isEmpty())
+                    ? "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" + photoRef + "&key=" + apiKey
+                    : null;
+
+            boolean hasParking = false;
+            JsonNode types = result.path("types");
+            if (types.isArray()) {
+                for (JsonNode type : types) {
+                    String typeText = type.asText();
+                    if (typeText.contains("parking") || typeText.contains("car_park")) {
+                        hasParking = true;
+                        break;
+                    }
+                }
+            }
+
+            return MapResponseDTO.PlaceResponseDto.builder()
+                    .id((long) placeId.hashCode())
+                    .name(name)
+                    .address(address)
+                    .latitude(lat)
+                    .longitude(lng)
+                    .imageUrl(imageUrl)
+                    .openingHours(openingHours) // 주간 영업 시간
+                    .parkingAvailable(hasParking)
+                    .currentOperatingStatus(currentOperatingStatus) // ⭐ 현재 시각 기준 영업 상태 ⭐
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -43,103 +128,29 @@ public class MapSearchServiceImpl implements MapSearchService {
 
     @Override
     public List<MapResponseDTO.PlaceResponseDto> searchPlacesByCategory(String category) {
-        List<MapResponseDTO.PlaceResponseDto> results = new ArrayList<>();
-
-        try {
-            ByteBuffer buffer = StandardCharsets.UTF_8.encode(category);
-            String encodedCategory = StandardCharsets.UTF_8.decode(buffer).toString();
-
-            URI uri = UriComponentsBuilder
-                    .fromUriString("https://openapi.naver.com")
-                    .path("/v1/search/local.json")
-                    .queryParam("query", encodedCategory)
-                    .queryParam("display", 10)
-                    .queryParam("start", 1)
-                    .queryParam("sort", "random")
-                    .encode()
-                    .build()
-                    .toUri();
-
-
-            RequestEntity<Void> request = RequestEntity.get(uri)
-                    .header("X-Naver-Client-Id", clientId.trim())
-                    .header("X-Naver-Client-Secret", clientSecret.trim())
-                    .build();
-
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode items = mapper.readTree(response.getBody()).path("items");
-
-            for (JsonNode item : items) {
-                MapResponseDTO.PlaceResponseDto dto = MapResponseDTO.PlaceResponseDto.builder()
-                        .id(null)
-                        .name(removeHtmlTags(item.path("title").asText()))
-                        .address(item.path("address").asText())
-                        .latitude(parseOrNull(item.path("mapy").asText()))
-                        .longitude(parseOrNull(item.path("mapx").asText()))
-                        .imageUrl(null)
-                        .openStatus(null)
-                        .openingHours(null)
-                        .parkingAvailable(null)
-                        .build();
-
-                results.add(dto);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return results;
-    }
-
-    @Override
-    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String query) {
         List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
 
         try {
-            ByteBuffer buffer = StandardCharsets.UTF_8.encode(query);
-            String encodedQuery = StandardCharsets.UTF_8.decode(buffer).toString();
-
             URI uri = UriComponentsBuilder
-                    .fromUriString("https://openapi.naver.com")
-                    .path("/v1/search/local.json")
-                    .queryParam("query", encodedQuery)
-                    .queryParam("display", 10)
-                    .queryParam("start", 1)
-                    .queryParam("sort", "random")
+                    .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
+                    .queryParam("query", category)
+                    .queryParam("key", apiKey)
                     .encode()
                     .build()
                     .toUri();
 
-
-            RequestEntity<Void> request = RequestEntity.get(uri)
-                    .header("X-Naver-Client-Id", clientId.trim())
-                    .header("X-Naver-Client-Secret", clientSecret.trim())
-                    .build();
-
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode items = mapper.readTree(response.getBody()).path("items");
+            JsonNode results = mapper.readTree(response.getBody()).path("results");
 
-            for (JsonNode item : items) {
-                MapResponseDTO.PlaceResponseDto dto = MapResponseDTO.PlaceResponseDto.builder()
-                        .id(null)
-                        .name(removeHtmlTags(item.path("title").asText()))
-                        .address(item.path("address").asText())
-                        .latitude(parseOrNull(item.path("mapy").asText()))
-                        .longitude(parseOrNull(item.path("mapx").asText()))
-                        .imageUrl(null)
-                        .openStatus(null)
-                        .openingHours(null)
-                        .parkingAvailable(null)
-                        .build();
-
-                resultList.add(dto);
+            for (JsonNode item : results) {
+                String placeId = item.path("place_id").asText();
+                MapResponseDTO.PlaceResponseDto detailed = getDetailedPlaceInfo(placeId);
+                if (detailed != null) {
+                    resultList.add(detailed);
+                }
             }
 
         } catch (Exception e) {
@@ -149,63 +160,70 @@ public class MapSearchServiceImpl implements MapSearchService {
         return resultList;
     }
 
-
     @Override
-    public MapResponseDTO.PlaceResponseDto getPlaceDetailByName(String placeName) {
+    public List<MapResponseDTO.PlaceResponseDto> searchPlacesByKeyword(String query) {
+        List<MapResponseDTO.PlaceResponseDto> resultList = new ArrayList<>();
+
         try {
             URI uri = UriComponentsBuilder
-                    .fromUriString("https://openapi.naver.com")
-                    .path("/v1/search/local.json")
-                    .queryParam("query", placeName)  // 인코딩은 UriComponentsBuilder에 맡김
-                    .queryParam("display", 1)
-                    .queryParam("start", 1)
+                    .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
+                    .queryParam("query", query)
+                    .queryParam("key", apiKey)
                     .encode()
                     .build()
                     .toUri();
 
-            System.out.println("▶ 요청 URI: " + uri);
-
-            RequestEntity<Void> request = RequestEntity.get(uri)
-                    .header("X-Naver-Client-Id", clientId.trim())
-                    .header("X-Naver-Client-Secret", clientSecret.trim())
-                    .build();
-
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-
-            System.out.println("▶ 네이버 API 응답: " + response.getBody());
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
-            JsonNode items = root.path("items");
+            JsonNode results = mapper.readTree(response.getBody()).path("results");
 
-            if (items.isEmpty()) {
-                System.out.println("items 배열이 비어있음");
-                return null;
+            for (JsonNode item : results) {
+                String placeId = item.path("place_id").asText();
+                MapResponseDTO.PlaceResponseDto detailed = getDetailedPlaceInfo(placeId);
+                if (detailed != null) {
+                    resultList.add(detailed);
+                }
             }
-
-            JsonNode item = items.get(0);
-            if (item == null) {
-                System.out.println("첫 번째 아이템이 null임");
-                return null;
-            }
-
-            return MapResponseDTO.PlaceResponseDto.builder()
-                    .id(null)
-                    .name(removeHtmlTags(item.path("title").asText()))
-                    .address(item.path("address").asText())
-                    .latitude(parseOrNull(item.path("mapy").asText()))
-                    .longitude(parseOrNull(item.path("mapx").asText()))
-                    .imageUrl(null)
-                    .openStatus("영업중")  // 계산코드추가하기
-                    .openingHours("09:00 ~ 18:00")
-                    .parkingAvailable(null)
-                    .build();
 
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+
+        return resultList;
+    }
+
+    @Override
+    public MapResponseDTO.PlaceResponseDto getPlaceDetailByPlaceId(String placeId) {
+        return getDetailedPlaceInfo(placeId);
+    }
+
+    @Override
+    public MapResponseDTO.PlaceResponseDto getPlaceDetailByName(String placeName) {
+        try {
+            URI searchUri = UriComponentsBuilder
+                    .fromUriString("https://maps.googleapis.com/maps/api/place/textsearch/json")
+                    .queryParam("query", placeName)
+                    .queryParam("key", apiKey)
+                    .encode()
+                    .build()
+                    .toUri();
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> searchResponse = restTemplate.getForEntity(searchUri, String.class);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode searchResults = mapper.readTree(searchResponse.getBody()).path("results");
+
+            if (searchResults.isArray() && searchResults.size() > 0) {
+                String placeId = searchResults.get(0).path("place_id").asText();
+                return getDetailedPlaceInfo(placeId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

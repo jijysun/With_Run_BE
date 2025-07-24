@@ -2,6 +2,7 @@ package UMC_8th.With_Run.chat.controller;
 
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
+import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
@@ -9,6 +10,7 @@ import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
+import UMC_8th.With_Run.user.entity.Profile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -20,9 +22,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -33,9 +39,9 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
-
+    private final SimpMessagingTemplate template;
     /// followee = 내가 팔로우
-    /// follower = 나를 팔로우!
+    /// , follower = 나를 팔로우!
 
     // userId -> JWT
 
@@ -132,9 +138,14 @@ public class ChatController {
     // 메세지 채팅
     @MessageMapping("/{id}/msg")
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
-    public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO, HttpServletRequest request) { // id, msg
-        chatService.chatting(request, chatId, reqDTO);
+    public void chatting(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
+        ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
+        template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
 
+        /*logging:
+        level:
+        org.springframework.web.socket: DEBUG
+        org.springframework.messaging.simp: DEBUG*/
     }
 
 
@@ -142,15 +153,13 @@ public class ChatController {
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     @Parameters({
-            @Parameter(name = "isChat", description = "채팅방 공유인 지, 친구 공유인지 구별하는 Bollean 값 입니다, True:채팅, False:친구 입니다 "),
+            @Parameter(name = "isChat", description = "채팅방 공유인 지, 친구 공유인지 구별하는 Boolean 값 입니다, True:채팅, False:친구 입니다 "),
             @Parameter(name = "userId", description = "공유할 사용자의 ID 입니다"),
             @Parameter(name = "chatId", description = "채팅방 id 입니다"),
             @Parameter(name = "courseId",description = "공유할 산책 코스 ID 입니다")
     })
     public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO, HttpServletRequest request) {
-        // 채팅방 1개 or 친구 1명
         chatService.shareCourse(request, reqDTO);
     }
 
-    // 산책 코스 공유
 }

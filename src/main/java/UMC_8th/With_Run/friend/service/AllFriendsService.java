@@ -1,7 +1,7 @@
 package UMC_8th.With_Run.friend.service;
 
 import UMC_8th.With_Run.friend.dto.FriendsResponse;
-import UMC_8th.With_Run.friend.repository.AllFriendsRepository;
+import UMC_8th.With_Run.friend.repository.FriendsRepository;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AllFriendsService {
-    private final AllFriendsRepository allFriendsRepository;
+    private final FriendsRepository friendsRepository;
     private final UserRepository userRepository; // 기준 사용자 프로필 가져올 때 필요
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -34,7 +34,7 @@ public class AllFriendsService {
                 ? parseJsonArray(myProfile.getCharacters())
                 : List.of();
 
-        List<User> users = allFriendsRepository.findUsersByRegion(provinceId, cityId, townId, userId);
+        List<User> users = friendsRepository.findUsersByRegion(provinceId, cityId, townId, userId);
 
         return users.stream()
                 .map(user -> {

@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface AllFriendsRepository extends JpaRepository<User, Long>, AllFriendsRepositoryCustom {
-
+public interface FriendsRepository extends JpaRepository<User, Long>, FriendsRepositoryCustom {
 }
 

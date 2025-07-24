@@ -24,14 +24,14 @@ public class MessageConverter {
                 .build();
     }
 
-    public static Message toShareMessage(User user, Chat chat, ChatRequestDTO.ShareReqDTO dto, Course course) {
+    public static Message toShareMessage(User user, Chat chat, Course course) {
         return Message.builder()
                 .user(user)
                 .chat(chat)
                 .isCourse(true)
                 .msg("산책 코스를 공유하였습니다")
-                /*.courseId(course.getId())
-                .courseImage(course.getCourseImage())*/
+                .courseId(course.getId())
+                .courseImage(course.getCourseImage())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -53,9 +53,9 @@ public class MessageConverter {
                 .userId(userId)
                 .msg("산책 코스를 공유하였습니다")
                 .isCourse(true)
-                /*.courseId(course.getId())
+                .courseId(course.getId())
                 .courseImage(course.getCourseImage())
-                .courseTag(course.getCourseTag())*/
+                .keyword(course.getKeyWord())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
