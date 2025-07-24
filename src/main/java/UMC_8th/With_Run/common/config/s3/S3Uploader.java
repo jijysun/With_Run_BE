@@ -27,8 +27,15 @@ public class S3Uploader {
     private String bucket;
 
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
-        File uploadFile = convert(multipartFile)
-                .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
+        File uploadFile;
+        try {
+            uploadFile = convert(multipartFile)
+                    .orElseThrow(() -> new IOException("MultipartFile -> File 전환 실패: convert()에서 Optional.empty() 반환됨"));
+        } catch (Exception e) {
+            log.error("파일 업로드 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("파일 업로드 중 오류 발생", e);
+        }
+
         return uploadFile(uploadFile, dirName);
     }
 
@@ -44,7 +51,6 @@ public class S3Uploader {
     private String putS3(File uploadFile, String fileName) {
         amazonS3.putObject(
                 new PutObjectRequest(bucket, fileName, uploadFile)
-                        .withCannedAcl(CannedAccessControlList.PublicRead)    // PublicRead 권한으로 업로드 됨
         );
         return amazonS3.getUrl(bucket, fileName).toString();
     }

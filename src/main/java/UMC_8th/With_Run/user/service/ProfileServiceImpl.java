@@ -1,6 +1,7 @@
 package UMC_8th.With_Run.user.service;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
+import UMC_8th.With_Run.common.config.s3.S3Uploader;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
@@ -12,12 +13,14 @@ import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final S3Uploader s3Uploader;
 
     @Override
     public UserResponseDto.ProfileResultDTO getProfileByCurrentUser(HttpServletRequest request){
@@ -125,5 +129,25 @@ public class ProfileServiceImpl implements ProfileService {
             throw new GeneralException(ErrorStatus.BAD_REQUEST);
         }
     }
+
+    public String uploadProfileImage(MultipartFile file, HttpServletRequest request) throws IOException {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+
+        Profile profile = profileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        String profileUrl = s3Uploader.upload(file, "profile");
+        profile.setProfileImage(profileUrl);
+        profile.setUpdatedAt(LocalDateTime.now());
+
+        profileRepository.save(profile);
+
+        return "프로필 사진 업로드에 성공하였습니다.";
+    }
+
 
 }

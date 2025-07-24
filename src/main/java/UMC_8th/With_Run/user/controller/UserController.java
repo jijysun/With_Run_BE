@@ -5,6 +5,7 @@ import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import UMC_8th.With_Run.user.dto.UserRequestDto;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.ProfileImageRequest;
 import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateCourseDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
@@ -30,16 +31,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -77,6 +83,15 @@ public class UserController {
         return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
     }
 
+    @PostMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "프로필 이미지 업로드 API", description = "반려견의 프로필 이미지를 업로드합니다.")
+    public StndResponse<String> uploadProfileImage(
+            @ModelAttribute ProfileImageRequest request,
+            HttpServletRequest servletRequest
+    ) throws IOException {
+        String result = profileService.uploadProfileImage(request.getFile(), servletRequest);
+        return StndResponse.onSuccess(result, SuccessCode.REQUEST_SUCCESS);
+    }
 
     @PostMapping("/region")
     @Operation(summary = "동네 설정 API", description = "사용자의 동네 정보를 설정하는 API입니다.")
