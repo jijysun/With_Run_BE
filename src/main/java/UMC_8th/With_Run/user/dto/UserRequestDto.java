@@ -1,12 +1,12 @@
 package UMC_8th.With_Run.user.dto;
 
-import UMC_8th.With_Run.course.entity.Course;
-import jakarta.persistence.Column;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import java.util.UUID;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 public class UserRequestDto {
 
@@ -25,16 +25,36 @@ public class UserRequestDto {
 
     @Getter
     @Setter
-    public static class BreedProfileRequestDTO{
+    public static class BreedProfileRequestDTO {
+        private Long townId;
+        private Long cityId;
+        private Long provinceId;
         private String name;
         private String gender;
         private String birth;
         private String breed;
         private String size;
-        private String profileImage;
-        private String characters;
-        private String style;
+        private List<String> characters;
+        private List<String> style;
+        private String introduction;
     }
+
+    @Getter
+    @Setter
+    public static class UpdateProfileDTO {
+        private Long townId;
+        private Long cityId;
+        private Long provinceId;
+        private String name;
+        private String gender;
+        private String birth;
+        private String breed;
+        private String size;
+        private List<String> characters;
+        private List<String> style;
+        private String introduction;
+    }
+
 
     @Getter
     @Setter
@@ -42,12 +62,6 @@ public class UserRequestDto {
         private Long townId;
         private Long cityId;
         private Long provinceId;
-    }
-
-    @Getter
-    @Setter
-    public static class UpdateProfileDTO{
-        private String profileImage;
     }
 
     @Getter
@@ -65,6 +79,13 @@ public class UserRequestDto {
         private Long townId;
         private Long cityId;
         private Long provinceId;
+    }
+
+    @Getter
+    @Setter
+    public static class ProfileImageRequest {
+        @Schema(description = "프로필 이미지 파일", type = "string", format = "binary")
+        private MultipartFile file;
     }
 
 
