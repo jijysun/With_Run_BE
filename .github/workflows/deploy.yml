@@ -49,7 +49,7 @@ jobs:
 
       - name: Run JAR on EC2 (inline SSH, disown)
         run: |
-          ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
             pkill -f 'java -jar' || true
             
             cd /home/ubuntu
