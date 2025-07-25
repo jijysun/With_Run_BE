@@ -40,11 +40,15 @@ jobs:
 
       - name: Export .env file
         run: |
-          export $(grep -v '^#' .env | xargs)
+          
 
       - name: Run JAR on EC2 (inline SSH, disown)
         run: |
           ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             pkill -f 'java -jar' || true
+            
+            cd /home/ubuntu
+            export \$(grep -v '^#' .env | xargs)
+            
             nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 &
           EOF
