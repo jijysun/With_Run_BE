@@ -36,9 +36,11 @@ jobs:
 
       - name: Copy JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i with_run_key.pem build/libs/*.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/With_Run_BE/build/libs/With_Run-0.0.1-SNAPSHOT.jar
+          scp -o StrictHostKeyChecking=no -i with_run_key.pem build/libs/With_Run-0.0.1-SNAPSHOT.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
 
       - name: Run JAR on EC2 (inline SSH, disown)
         run: |
-          ssh -tt -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "pkill -f 'java -jar' || true && nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 & disown"
+          ssh -o StrictHostKeyChecking=no -i with_run_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            pkill -f 'java -jar' || true
+            nohup java -jar /home/ubuntu/app.jar > /home/ubuntu/app.log 2>&1 &
+          EOF
