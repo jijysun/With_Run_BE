@@ -1,8 +1,6 @@
 package UMC_8th.With_Run.chat.controller;
 
 
-import UMC_8th.With_Run.chat.converter.ChatConverter;
-import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
@@ -10,7 +8,6 @@ import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
-import UMC_8th.With_Run.user.entity.Profile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -28,7 +25,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -42,6 +38,8 @@ public class ChatController {
     private final SimpMessagingTemplate template;
     /// followee = 내가 팔로우
     /// , follower = 나를 팔로우!
+    ///
+    /// @return
 
     // userId -> JWT
 
@@ -53,9 +51,10 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다.")
     })
-    public void createChat(@RequestParam("id") Long targetId, HttpServletRequest request) {
+    public StndResponse<Object> createChat(@RequestParam("id") Long targetId, HttpServletRequest request) {
         // userId = Jwt로 해결이 되니,
         chatService.createChat(targetId, request);
+        return StndResponse.onSuccess(null, SuccessCode.CHAT_CREATE_SUCCESS);
     }
 
     // 초대할 친구 목록 불러오기
@@ -68,7 +67,7 @@ public class ChatController {
     })
     public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
         List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, request);
-        return StndResponse.onSuccess(canInviteUserList, SuccessCode.INQUIRY_SUCCESS);
+        return StndResponse.onSuccess(canInviteUserList, SuccessCode.GET_INVITE_SUCCESS);
     }
 
     // 채팅 유저 추가
@@ -82,7 +81,7 @@ public class ChatController {
     })
     public StndResponse<Object> inviteUser(@PathVariable("id") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
         chatService.inviteUser(chatId, reqDTO);
-        return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS); // 초대 성공 코드 만들기
+        return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
     }
 
     @PatchMapping("/{chatId}")
@@ -95,8 +94,9 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public void renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName) {
+    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName) {
         chatService.renameChat(chatId, newName);
+        return StndResponse.onSuccess(null, SuccessCode.RENAME_SUCCESS);
     }
 
     @GetMapping("/{id}")
@@ -106,7 +106,7 @@ public class ChatController {
     })
     public StndResponse<List<Message>> enterChat(@PathVariable("id") Long chatId) {
         List<Message> messages = chatService.enterChat(chatId);
-        return StndResponse.onSuccess(messages, SuccessCode.INQUIRY_SUCCESS);
+        return StndResponse.onSuccess(messages, SuccessCode.ENTER_CHAT_SUCCESS);
     }
 
     @DeleteMapping("{id}")
@@ -119,7 +119,7 @@ public class ChatController {
     })
     public StndResponse<Object> leaveChat(@PathVariable("id") Long chatId, HttpServletRequest request) {
         chatService.leaveChat(chatId, request);
-        return StndResponse.onSuccess(null, SuccessCode.INQUIRY_SUCCESS); // 채팅방 나가기 성공 코드 만들기
+        return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS); // 채팅방 나가기 성공 코드 만들기
     }
 
     @GetMapping("")
@@ -131,9 +131,8 @@ public class ChatController {
             @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
     })
     public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
-        List<Chat> chatList = chatService.getChatList(request);
-        List<ChatResponseDTO.GetChatListDTO> getChatListDTO = ChatConverter.toGetChatListDTO(chatList);
-        return StndResponse.onSuccess(getChatListDTO, SuccessCode.INQUIRY_SUCCESS);
+        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(request);
+        return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
     }
 
     // 메세지 채팅
@@ -142,11 +141,6 @@ public class ChatController {
     public void chatting(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
         ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
         template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
-
-        /*logging:
-        level:
-        org.springframework.web.socket: DEBUG
-        org.springframework.messaging.simp: DEBUG*/
     }
 
 
@@ -155,12 +149,13 @@ public class ChatController {
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     @Parameters({
             @Parameter(name = "isChat", description = "채팅방 공유인 지, 친구 공유인지 구별하는 Boolean 값 입니다, True:채팅, False:친구 입니다 "),
-            @Parameter(name = "userId", description = "공유할 사용자의 ID 입니다"),
+            @Parameter(name = "userId", description = "공유하는 사용자의 ID 입니다"),
+            @Parameter(name = "targetUserId", description = "공유할 사용자의 ID 입니다"),
             @Parameter(name = "chatId", description = "채팅방 id 입니다"),
             @Parameter(name = "courseId",description = "공유할 산책 코스 ID 입니다")
     })
-    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO, HttpServletRequest request) {
-        chatService.shareCourse(request, reqDTO);
+    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
+        chatService.shareCourse(reqDTO);
     }
 
 }

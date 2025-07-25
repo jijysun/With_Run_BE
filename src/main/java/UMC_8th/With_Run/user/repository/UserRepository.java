@@ -16,10 +16,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByIdIn(Collection<Long> ids);
 
-
-    List<User> findAllByFollowerAndUserChatListNotIn(User follower, List<UserChat> userChatLists);
-
     List<User> findAllByFollowerAndUserChatListNotInOrderById(User follower, Collection<List<UserChat>> userChatLists);
 
-    List<User> findAllByFollowerAndUserChatListNotInOrderById(User user, List<UserChat> allByChatId);
+
+
 }
