@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 public class UserChatConverter {
 
-    public static UserChat toUserChat (User user, Chat chat) {
+    public static UserChat toNewUserChat(User user, Chat chat) {
         return UserChat.builder()
                 .user(user)
                 .chat(chat)

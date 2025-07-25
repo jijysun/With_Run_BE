@@ -18,4 +18,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
     @Query("select p From Profile p JOIN p.user where p.user in :userList")
     List<Profile> findAllByUserIn(@Param("userList") List<User> userList);
+
+    @Query("select p From Profile p where p.user.id in :userIdList")
+    List<Profile> findAllByUser_IdIn(List<Long> userIdList);
 }

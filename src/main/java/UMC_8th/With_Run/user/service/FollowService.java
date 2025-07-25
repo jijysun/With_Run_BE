@@ -6,7 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface FollowService {
     FollowingListResultDTO getFollowingList(HttpServletRequest request);
-
     FollowerListResultDTO getFollowerList(HttpServletRequest request);
+    void cancelFollowing(Long targetUserId, HttpServletRequest request);
+    void deleteFollower(Long followerId, HttpServletRequest request);
 }
 

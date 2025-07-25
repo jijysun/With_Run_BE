@@ -25,4 +25,6 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     void deleteUserChatByUserAndChat(User user, Chat chat);
 
     List<UserChat> findAllByChat_Id(Long chatId);
+
+    List<UserChat> findAllByUser_Id(Long userId);
 }

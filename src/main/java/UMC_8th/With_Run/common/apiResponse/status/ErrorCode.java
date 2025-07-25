@@ -43,10 +43,11 @@ public enum ErrorCode implements BaseErrorCode {
     WRONG_CHAT_NAME(HttpStatus.BAD_REQUEST , "CHAT4002", "잘못된 채팅방 이름 입니다."),
     EMPTY_CHAT_LIST(HttpStatus.BAD_REQUEST, "CHAT4003", "참여하고 있는 채팅방이 없습니다."),
     CHAT_IS_FULL(HttpStatus.BAD_REQUEST, "CHAT4004", "해당 채탕방은 꽉 찼습니다."),
+    WRONG_CHAT(HttpStatus.BAD_REQUEST, "CHAT4005", "잘못된 채팅방 입니다."),
 
 
     // Course
-    // 아직은 필요한 에러 코드가 없어 보입니다.
+    WRONG_COURSE(HttpStatus.BAD_REQUEST, "COURSE4001", "잘못된 산책 코스 입니다."),
 
     // Map
     PIN_NAME_REQUIRED(HttpStatus.BAD_REQUEST , "MAP4001", "핀 이름은 필수 입니다."),
