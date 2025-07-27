@@ -43,14 +43,11 @@ public class ChatResponseDTO {
 
         private String chatName;
 
-        private ArrayList<String> users; // 참여자 이름은 배열로
+        private List<String> usernameList; // 참여자 이름은 배열로
 
-        private ArrayList<?> userProfiles; // 참여자 프로필, 최대 3개?
+        private List<String> userProfileList; // 참여자 프로필, 최대 3개?
 
         private Integer participants;
-
-        // 마지막으로 받은 메세지, 그 시간을 어떻게...?
-        private LocalDate lastMsgReceived;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
