@@ -26,6 +26,7 @@ public class MapResponseDTO {
         private String color;
         private Double latitude;
         private Double longitude;
+        private Integer pinOrder;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

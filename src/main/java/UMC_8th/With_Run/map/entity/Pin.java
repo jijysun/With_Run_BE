@@ -6,70 +6,63 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter; // 반드시 필요
+import lombok.Setter; // Lombok Setter 어노테이션 추가
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter // PinServiceImpl에서 getXXX() 사용하므로 필요
-@Setter // PinServiceImpl에서 setXXX() 사용하므로 필요
+@Getter // 모든 필드에 대한 getter 자동 생성
+@Setter // 모든 필드에 대한 setter 자동 생성
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // PinServiceImpl에서 Pin.builder() 사용하므로 필요
-@Table(name = "Pin") // 데이터베이스 테이블 이름과 일치
+@Builder // 빌더 패턴 자동 생성
+@Table(name = "pin") // DB 테이블 이름과 정확히 일치 (image_eb9662.png 참고, 소문자 'pin'으로 가정)
 public class Pin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ERD에 따르면 Pin 테이블에는 user_id가 있습니다.
-    // PinServiceImpl에서는 현재 userId를 직접적으로 사용하지 않지만, 엔티티에는 필요합니다.
-    @Column(name = "user_id")
+    // Pin이 속한 Course에 대한 ManyToOne 관계
+    // 'course_id' 컬럼이 Pin 테이블의 외래 키가 됩니다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false) // Pin은 반드시 하나의 Course에 속하므로 nullable = false
+    private Course course; // Course 엔티티를 직접 참조
+
+    // Pin이 코스 내에서 가지는 순서 유지 (image_de5820.jpg 에서 순서 지정 UI 확인)
+    @Column(name = "pin_order", nullable = false) // Pin 테이블에 직접 추가
+    private Integer pinOrder;
+
+    @Column(name = "user_id") // DB 스키마에 존재
     private Long userId;
 
-    // PinServiceImpl에서 `courseId`를 사용하므로 추가.
-    // 하지만 Pin과 Course의 관계는 `CoursePin` 엔티티가 관리하는 것이 일반적이므로,
-    // 이 `course_id`는 Pin이 단일 코스에 종속적일 때만 사용되어야 합니다.
-    // 만약 한 Pin이 여러 코스에 사용될 수 있다면 이 필드는 삭제되어야 합니다.
-    // 일단 PinServiceImpl의 기존 로직을 위해 포함시킵니다.
-    @Column(name = "course_id")
-    private Long courseId; // Pin이 특정 코스에 속하는 경우에만 사용
-
-    @Column(name = "name", length = 255)
+    @Column(name = "name", length = 255) // DB 스키마에 존재
     private String name;
 
-    @Column(name = "detail", length = 255)
+    @Column(name = "detail", length = 255) // DB 스키마에 존재
     private String detail;
 
-    // PinServiceImpl에서 `color`를 사용하므로 추가. ERD에 명시되어 있지 않다면 추가해야 합니다.
-    @Column(name = "color", length = 50)
-    private String color; // 예: 색상 코드 "#FFFFFF" 또는 이름 "red"
+    @Column(name = "color", length = 50) // DB 스키마에 존재
+    private String color;
 
-    // PinServiceImpl에서 `latitude`와 `longitude`를 사용하므로 추가.
-    @Column(name = "latitude")
+    @Column(name = "latitude") // DB 스키마에 존재
     private Double latitude;
 
-    @Column(name = "longitude")
+    @Column(name = "longitude") // DB 스키마에 존재
     private Double longitude;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at") // DB 스키마에 존재
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at") // DB 스키마에 존재
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at") // DB 스키마에 존재
     private LocalDateTime deletedAt;
 
-    // ERD에 Pin 테이블에는 province_id, city_id, town_id도 있습니다.
-    // PinServiceImpl에서 직접 사용하지 않더라도 엔티티에는 필요할 수 있습니다.
-    @Column(name = "province_id")
+    @Column(name = "province_id") // ERD (image_de5b46.jpg) 에 존재
     private Long provinceId;
 
-    @Column(name = "city_id")
-    private Long cityId;
 
-    @Column(name = "town_id")
     private Long townId;
 }

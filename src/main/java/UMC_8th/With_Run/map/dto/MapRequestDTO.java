@@ -17,6 +17,7 @@ public class MapRequestDTO {
         private String color;
         private Double latitude;
         private Double longitude;
+        private Integer pinOrder;
     }
 
     @Getter
