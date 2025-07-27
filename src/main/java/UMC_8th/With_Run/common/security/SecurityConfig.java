@@ -29,7 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors
-                        .configurationSource(corsConfigurationSource())  // 👈 여기에 직접 CORS 설정 주입
+                        .configurationSource(corsConfigurationSource())
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
