@@ -8,9 +8,6 @@ import UMC_8th.With_Run.map.service.MapSearchService;
 import UMC_8th.With_Run.map.service.PinService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -154,7 +151,8 @@ public class MapController {
     )
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
-            @RequestHeader("Authorization") String accessToken,
+            @RequestHeader(value = "Authorization", required = false) String accessToken,
+
             @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
         Long courseId = mapSearchService.createCourse(accessToken, requestDto);
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
