@@ -138,6 +138,12 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
 
+        String oldImageUrl = profile.getProfileImage();
+        if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+            String s3Key = s3Uploader.extractKeyFromUrl(oldImageUrl);
+            s3Uploader.fileDelete(s3Key);
+        }
+
         String profileUrl = s3Uploader.upload(file, "profile");
         profile.setProfileImage(profileUrl);
         profile.setUpdatedAt(LocalDateTime.now());
