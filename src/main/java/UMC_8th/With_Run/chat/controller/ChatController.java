@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.chat.controller;
 
 
-import UMC_8th.With_Run.chat.config.redis.RedisPublisher;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
@@ -39,8 +38,6 @@ public class ChatController {
     private final SimpMessagingTemplate template;
     /// followee = 내가 팔로우
     /// , follower = 나를 팔로우!
-    ///
-    /// @return
 
     // userId -> JWT
 

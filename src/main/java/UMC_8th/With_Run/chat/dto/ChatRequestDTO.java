@@ -11,12 +11,6 @@ import java.util.List;
 public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class CreateChatReqDTO {
-        private Long userId;
-        private Long targetUserId;
-    }
-
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ShareReqDTO {
         private Boolean isChat;
         private Long userId;
@@ -43,11 +37,4 @@ public class ChatRequestDTO {
         private String message;
         private Boolean isCourse;
     }
-
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class ChattingRedisReqDTO {
-        private String type;
-        private ChatResponseDTO.BroadcastMsgDTO broadcastMsg;
-    }
-
 }

@@ -13,18 +13,9 @@ import java.util.Optional;
 
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
-    @Query(" SELECT uc.chat " +
-            "FROM UserChat uc " +
-            "where uc.user.id IN (:user1Id, :user2Id)" +
-            "GROUP BY uc.chat.id " +
-            "HAVING count (distinct uc.user.id) = 2 AND count (uc.chat.id) = 2")
-    Optional<Chat> findPrivateChat(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
-
     List<UserChat> findAllByUser(User user);
 
     void deleteUserChatByUserAndChat(User user, Chat chat);
 
     List<UserChat> findAllByChat_Id(Long chatId);
-
-    List<UserChat> findAllByUser_Id(Long userId);
 }

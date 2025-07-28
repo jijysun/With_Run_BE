@@ -1,6 +1,5 @@
 package UMC_8th.With_Run.chat.converter;
 
-import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.user.entity.Profile;

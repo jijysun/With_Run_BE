@@ -206,11 +206,11 @@ public class ChatService {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
-        Chat chat;
+
         Message courseMsg;
 
         if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
-            chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+            Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
             courseMsg= MessageConverter.toShareMessage(user, chat, course);
 
             messageRepository.save(courseMsg);
@@ -222,17 +222,17 @@ public class ChatService {
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
-            Chat newChat;
+
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
                 log.info("privateChat is Null!");
-                newChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, newChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, newChat));
+                ucList.add(UserChatConverter.toNewUserChat(user, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, privateChat));
 
-                Chat saveChat = chatRepository.save(newChat);
+                Chat saveChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
 
                 courseMsg= MessageConverter.toShareMessage(user, saveChat, course);
@@ -283,22 +283,21 @@ public class ChatService {
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
                 log.info("privateChat is Null!");
-                Chat newChat;
-                newChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, newChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, newChat));
+                ucList.add(UserChatConverter.toNewUserChat(user, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, privateChat));
 
-                Chat saveChat = chatRepository.save(newChat);
+                Chat savedChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
 
                 // Save And Broadcast
-                messageRepository.save(MessageConverter.toShareMessage(user, saveChat, course));
+                messageRepository.save(MessageConverter.toShareMessage(user, savedChat, course));
 
                 PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
                         .type("share")
-                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), saveChat.getId(), course))
+                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), savedChat.getId(), course))
                         .build();
 
                 // 메세지 BroadCast
