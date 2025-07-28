@@ -37,9 +37,10 @@ public class MessageConverter {
                 .build();
     }
 
-    public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId,Profile profile, Message message) {
+    public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId, Long chatId, Profile profile, Message message) {
         return ChatResponseDTO.BroadcastMsgDTO.builder()
                 .userId(userId)
+                .chatId(chatId)
                 .userName(profile.getName())
                 .userProfileImage(profile.getProfileImage())
                 .msg(message.getMsg())

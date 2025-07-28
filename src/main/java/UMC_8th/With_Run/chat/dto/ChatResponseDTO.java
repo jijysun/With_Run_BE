@@ -1,10 +1,7 @@
 package UMC_8th.With_Run.chat.dto;
 
 import UMC_8th.With_Run.chat.entity.Message;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -58,6 +55,8 @@ public class ChatResponseDTO {
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class BroadcastMsgDTO {
         private Long userId;
+
+        private Long chatId;
 
         private String userName;
 

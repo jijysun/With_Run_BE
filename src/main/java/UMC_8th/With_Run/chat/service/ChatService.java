@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.chat.service;
 
+import UMC_8th.With_Run.chat.config.PayloadDTO;
 import UMC_8th.With_Run.chat.config.redis.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
@@ -177,7 +178,7 @@ public class ChatService {
 
         // 메세지 저장, Redis...?
         messageRepository.save(msg);
-        return MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
+        return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId ,profile, msg);
     }
 
     public void chattingWithRedis (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
@@ -188,7 +189,14 @@ public class ChatService {
 
         // 메세지 저장, Redis...?
         messageRepository.save(msg);
-        redisPublisher.publishMsg("/sub/" + chatId + "/msg", msg);
+
+        // redis 처리 전용 dto 변환,
+        PayloadDTO payloadDTO = PayloadDTO.builder()
+                .type("chat")
+                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
+                .build();
+
+        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
     }
 
 

@@ -18,9 +18,6 @@ public class RedisPublisher {
     public <T> void publishMsg (String topic, T messageDTO){ // 일반 메세지, 공유 메세지 둘 다 사용 예정
         try {
             String msg = objectMapper.writeValueAsString(messageDTO);
-
-
-
             stringRedisTemplate.convertAndSend(topic, msg);
         } catch (JsonProcessingException e) {
             throw new ChatHandler(ErrorCode.MSG_SERIALIZE_FAIL);

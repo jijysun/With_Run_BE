@@ -1,45 +1,55 @@
 package UMC_8th.With_Run.chat.config.redis;
 
+import UMC_8th.With_Run.chat.config.PayloadDTO;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
+import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
+import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class RedisSubscriber implements MessageListener {
 
+    private final SimpMessagingTemplate msgTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
+
         String payload = new String(message.getBody(), StandardCharsets.UTF_8);
-
-        if (payload.contains("\"isCourse\" : false")){ // contains 로 하는 건 비효율적이다. + API 응답 코드를 바꾸는 게 나을 듯,
-            Message msg = objectMapper.readValue(payload, Message.class);
-
-            MessageConverter.toBroadCastMsgDTO()
-
-
-        }
-        else if (payload.contains("\"isCourse\" : true")){
-            if (payload.contains("\"isChat\" : true")){ // 산책 코스 - 채팅방 공유
-
-            }
-            else if (payload.contains("\"isChat\" : false")){ // 산책 코스 - 1대1 공유
-                
-            }
-
-            else{
-                throw new ChatHandler(ErrorCode.REDIS_CAN_LISTEN_MSG);
-            }
+        PayloadDTO <LinkedHashMap<String, Object>> payloadDTO = null;
+        try {
+            payloadDTO = objectMapper.readValue(payload, new TypeReference<>() { // 중립적으로 받기에 위에서 타입 중립화!
+            });
+        } catch (JsonProcessingException e) {
+            throw new ChatHandler(ErrorCode.REDIS_CANT_LISTEN_MSG);
         }
 
+        switch (payloadDTO.getType()) {
+            case "chat":
+                ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = objectMapper.convertValue(payloadDTO.getPayload(), ChatResponseDTO.BroadcastMsgDTO.class);
+                msgTemplate.convertAndSend("/sub"+broadcastMsgDTO.getChatId()+"/msg", broadcastMsgDTO); // broadcast
+                break;
+
+            case "share_chat":
+
+                break;
+
+            case "share_user":
+                break;
+
+        }
     }
 }

@@ -43,4 +43,11 @@ public class ChatRequestDTO {
         private String message;
         private Boolean isCourse;
     }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class ChattingRedisReqDTO {
+        private String type;
+        private ChatResponseDTO.BroadcastMsgDTO broadcastMsg;
+    }
+
 }

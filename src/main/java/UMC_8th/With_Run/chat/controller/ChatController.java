@@ -144,15 +144,6 @@ public class ChatController {
         template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
     }
 
-    /*// 메세지 채팅
-    @MessageMapping("/{id}/msg")
-    @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
-    public void chattingWithRedis(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-        ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
-        redisPublisher.publishMsg("/sub/" + chatId + "/msg" , broadcastMsgDTO);
-    }*/
-
-
     @PostMapping("/share")
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
