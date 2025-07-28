@@ -44,6 +44,9 @@ public enum ErrorCode implements BaseErrorCode {
     EMPTY_CHAT_LIST(HttpStatus.BAD_REQUEST, "CHAT4003", "참여하고 있는 채팅방이 없습니다."),
     CHAT_IS_FULL(HttpStatus.BAD_REQUEST, "CHAT4004", "해당 채탕방은 꽉 찼습니다."),
     WRONG_CHAT(HttpStatus.BAD_REQUEST, "CHAT4005", "잘못된 채팅방 입니다."),
+    MSG_SERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5001", "메세지 변환에 실패했습니다"),
+    REDIS_CAN_LISTEN_MSG (HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5002", "Redis 에서 메세지 변환에 실패했습니다"),
+
 
 
     // Course

@@ -1,6 +1,7 @@
 package UMC_8th.With_Run.chat.controller;
 
 
+import UMC_8th.With_Run.chat.config.redis.RedisPublisher;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
@@ -142,6 +143,14 @@ public class ChatController {
         ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
         template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
     }
+
+    /*// 메세지 채팅
+    @MessageMapping("/{id}/msg")
+    @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
+    public void chattingWithRedis(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
+        ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
+        redisPublisher.publishMsg("/sub/" + chatId + "/msg" , broadcastMsgDTO);
+    }*/
 
 
     @PostMapping("/share")

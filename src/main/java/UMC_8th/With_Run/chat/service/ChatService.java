@@ -1,5 +1,6 @@
 package UMC_8th.With_Run.chat.service;
 
+import UMC_8th.With_Run.chat.config.redis.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
@@ -50,6 +51,7 @@ public class ChatService {
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
+    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -177,6 +179,18 @@ public class ChatService {
         messageRepository.save(msg);
         return MessageConverter.toBroadCastMsgDTO(user.getId(), profile, msg);
     }
+
+    public void chattingWithRedis (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
+
+        // 메세지 저장, Redis...?
+        messageRepository.save(msg);
+        redisPublisher.publishMsg("/sub/" + chatId + "/msg", msg);
+    }
+
 
     public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
         /// 여려 명 공유 시 채팅방 공유 로직
