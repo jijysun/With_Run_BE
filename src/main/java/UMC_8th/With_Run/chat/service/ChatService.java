@@ -215,7 +215,7 @@ public class ChatService {
 
             messageRepository.save(courseMsg);
 
-            ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
+            ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), chat.getId(), course);
 
             // 메세지 BroadCast
             template.convertAndSend("/sub/" + chat.getId() + "/msg", courseDTO);
@@ -239,7 +239,7 @@ public class ChatService {
 
                 // Save And Broadcast
                 messageRepository.save(courseMsg);
-                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), saveChat.getId(),course);
 
                 // 메세지 BroadCast
                 template.convertAndSend("/sub/" + saveChat.getId() + "/msg", courseDTO);
@@ -250,7 +250,7 @@ public class ChatService {
 
                 // Save And Broadcast
                 messageRepository.save(courseMsg);
-                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), course);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), privateChat.getId(),course);
 
                 // 메세지 BroadCast
                 template.convertAndSend("/sub/" + privateChat.getId() + "/msg", courseDTO);
@@ -272,7 +272,7 @@ public class ChatService {
 
             PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
                     .type("share_chat")
-                    .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), course))
+                    .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), chat.getId(), course))
                     .build();
 
             // 메세지 BroadCast
@@ -297,8 +297,8 @@ public class ChatService {
                 messageRepository.save(MessageConverter.toShareMessage(user, saveChat, course));
 
                 PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                        .type("share_chat")
-                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), course))
+                        .type("share")
+                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), saveChat.getId(), course))
                         .build();
 
                 // 메세지 BroadCast
@@ -311,8 +311,8 @@ public class ChatService {
                 messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));
 
                 PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                        .type("share_chat")
-                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), course))
+                        .type("share")
+                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), privateChat.getId(), course))
                         .build();
 
                 // 메세지 BroadCast

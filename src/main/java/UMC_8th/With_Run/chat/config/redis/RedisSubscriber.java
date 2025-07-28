@@ -43,12 +43,15 @@ public class RedisSubscriber implements MessageListener {
                 msgTemplate.convertAndSend("/sub"+broadcastMsgDTO.getChatId()+"/msg", broadcastMsgDTO); // broadcast
                 break;
 
-            case "share_chat":
-
+            case "share": // 채팅방 공유, 사용자 공유 모두 포함
+                ChatResponseDTO.BroadcastCourseDTO broadcastCourseDTO = objectMapper.convertValue(payloadDTO.getPayload(), ChatResponseDTO.BroadcastCourseDTO.class);
+                msgTemplate.convertAndSend("/sub"+broadcastCourseDTO.getChatId()+"/msg", broadcastCourseDTO);
                 break;
+/*
 
             case "share_user":
                 break;
+*/
 
         }
     }

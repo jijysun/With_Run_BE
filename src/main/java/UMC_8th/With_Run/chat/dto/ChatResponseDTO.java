@@ -73,6 +73,8 @@ public class ChatResponseDTO {
     public static class BroadcastCourseDTO {
         private Long userId;
 
+        private Long chatId;
+
         private String msg;
 
         private boolean isCourse;
