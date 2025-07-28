@@ -17,7 +17,11 @@ public class MapResponseDTO {
         private Boolean parkingAvailable;
     }
 
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class PinResponseDto {
         private Long pinId;
         private Long courseId;
@@ -27,12 +31,17 @@ public class MapResponseDTO {
         private Double latitude;
         private Double longitude;
         private Integer pinOrder;
+        // image_e32623.png 및 DB 스키마(image_e2c4e3.png)에 따라 추가
+        private Long userId;
+        private Long provinceId;
+        private Long cityId;
+        private Long townId;
     }
+
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
-        private String message;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

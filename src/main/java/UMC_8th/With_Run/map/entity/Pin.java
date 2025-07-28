@@ -1,4 +1,3 @@
-// src/main/java/UMC_8th/With_Run/map/entity/Pin.java
 package UMC_8th.With_Run.map.entity;
 
 import jakarta.persistence.*;
@@ -6,63 +5,65 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter; // Lombok Setter 어노테이션 추가
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter // 모든 필드에 대한 getter 자동 생성
-@Setter // 모든 필드에 대한 setter 자동 생성
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // 빌더 패턴 자동 생성
-@Table(name = "pin") // DB 테이블 이름과 정확히 일치 (image_eb9662.png 참고, 소문자 'pin'으로 가정)
+@Builder
+@Table(name = "pin")
 public class Pin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Pin이 속한 Course에 대한 ManyToOne 관계
-    // 'course_id' 컬럼이 Pin 테이블의 외래 키가 됩니다.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false) // Pin은 반드시 하나의 Course에 속하므로 nullable = false
-    private Course course; // Course 엔티티를 직접 참조
+    // DB 스키마(image_e2c4e3.png)에 따라 'course_id'가 bigint 일반 컬럼이므로 Long으로 매핑.
+    // 필드 이름 'courseId'가 DB 컬럼 이름 'course_id'와 자동 매핑되므로 @Column(name="course_id")는 제거
+    @Column(nullable = false) // 'course_id' 컬럼이 NOT NULL인 경우
+    private Long courseId;
 
-    // Pin이 코스 내에서 가지는 순서 유지 (image_de5820.jpg 에서 순서 지정 UI 확인)
-    @Column(name = "pin_order", nullable = false) // Pin 테이블에 직접 추가
+    @Column(nullable = false)
     private Integer pinOrder;
 
-    @Column(name = "user_id") // DB 스키마에 존재
+    // DB 스키마(image_e2c4e3.png)에 존재하는 user_id, province_id, city_id, town_id
+    @Column
     private Long userId;
 
-    @Column(name = "name", length = 255) // DB 스키마에 존재
+    @Column(length = 255)
     private String name;
 
-    @Column(name = "detail", length = 255) // DB 스키마에 존재
+    @Column(length = 255)
     private String detail;
 
-    @Column(name = "color", length = 50) // DB 스키마에 존재
+    @Column(length = 50)
     private String color;
 
-    @Column(name = "latitude") // DB 스키마에 존재
+    @Column
     private Double latitude;
 
-    @Column(name = "longitude") // DB 스키마에 존재
+    @Column
     private Double longitude;
 
-    @Column(name = "created_at") // DB 스키마에 존재
+    @Column
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at") // DB 스키마에 존재
+    @Column
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at") // DB 스키마에 존재
+    @Column
     private LocalDateTime deletedAt;
 
-    @Column(name = "province_id") // ERD (image_de5b46.jpg) 에 존재
+    @Column
     private Long provinceId;
 
-
+    @Column
     private Long townId;
+
+    @Column
+    private Long cityId;
 }
