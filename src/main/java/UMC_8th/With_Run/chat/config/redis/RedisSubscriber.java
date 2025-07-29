@@ -1,8 +1,6 @@
 package UMC_8th.With_Run.chat.config.redis;
 
 import UMC_8th.With_Run.chat.config.PayloadDTO;
-import UMC_8th.With_Run.chat.converter.MessageConverter;
-import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
@@ -10,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class RedisSubscriber implements MessageListener {
 
@@ -40,19 +40,22 @@ public class RedisSubscriber implements MessageListener {
         switch (payloadDTO.getType()) {
             case "chat":
                 ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = objectMapper.convertValue(payloadDTO.getPayload(), ChatResponseDTO.BroadcastMsgDTO.class);
-                msgTemplate.convertAndSend("/sub"+broadcastMsgDTO.getChatId()+"/msg", broadcastMsgDTO); // broadcast
+                log.info("broadcast chat ! {}", broadcastMsgDTO.getChatId());
+                msgTemplate.convertAndSend("/sub/"+broadcastMsgDTO.getChatId()+"/msg", broadcastMsgDTO); // broadcast
                 break;
 
             case "share": // 채팅방 공유, 사용자 공유 모두 포함
                 ChatResponseDTO.BroadcastCourseDTO broadcastCourseDTO = objectMapper.convertValue(payloadDTO.getPayload(), ChatResponseDTO.BroadcastCourseDTO.class);
-                msgTemplate.convertAndSend("/sub"+broadcastCourseDTO.getChatId()+"/msg", broadcastCourseDTO);
+                msgTemplate.convertAndSend("/sub/"+broadcastCourseDTO.getChatId()+"/msg", broadcastCourseDTO);
+                break;
+
+            default:
+                log.info("unknown chat ! {}", payloadDTO.getPayload());
                 break;
 /*
-
             case "share_user":
                 break;
 */
-
         }
     }
 }

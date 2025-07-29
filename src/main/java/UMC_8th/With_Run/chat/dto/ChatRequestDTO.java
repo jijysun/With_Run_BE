@@ -25,13 +25,6 @@ public class ChatRequestDTO {
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class RenameChatDTO {
-        private Long userId;
-        private Long chatId;
-        private String newName;
-    }
-
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ChattingReqDTO {
         private Long userId;
         private String message;
