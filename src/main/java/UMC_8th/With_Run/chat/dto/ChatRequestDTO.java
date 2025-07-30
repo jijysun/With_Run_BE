@@ -26,9 +26,11 @@ public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteUserReqDTO {
+        private String username; // 초대한 사용자 이름
         private List<InviteDTO> inviteUserList;
     }
 
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteDTO{
         private Long userId;
         private String username;
