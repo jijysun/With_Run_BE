@@ -37,6 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,7 +54,7 @@ public class ChatService {
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
-    private final RedisPublisher redisPublisher;
+//    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -118,24 +120,40 @@ public class ChatService {
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        if (chat.getParticipants() + reqDTO.getUserIds().size() > 4){
+        if (chat.getParticipants() + reqDTO.getInviteUserList().size() > 4){
             throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
 
-        List<User> users = userRepository.findAllByIdIn(reqDTO.getUserIds()); // 받은 id에 대한 여러 user 조회, JWT
+//        List<User> users = userRepository.findAllByIdIn(reqDTO..getUserIds()); // 받은 id에 대한 여러 user 조회, JWT
+
+        List<Long> userIdList = reqDTO.getInviteUserList().stream()
+                .map(ChatRequestDTO.InviteDTO::getUserId).toList();
+
+        List<User> userList = userRepository.findAllByIdIn(userIdList);
+
+        List<String> nameList = reqDTO.getInviteUserList().stream()
+                .map(ChatRequestDTO.InviteDTO::getUsername).toList();
+
+        String name="";
+        for (String s : nameList) {
+            name += s + "님 ";
+        }
 
         // userChat 여러 개 저장
-        List<UserChat> newUserList = new ArrayList<>();
-        for (User user : users) {
-            newUserList.add(UserChat.builder()
+        List<UserChat> newUserChatList = new ArrayList<>();
+        for (User user : userList) {
+            newUserChatList.add(UserChat.builder()
                     .chat(chat)
                     .user(user)
                     .build());
         }
 
         // chat : participants 증가 시키기, 이름 변경
-        chat.updateParticipants(chat.getParticipants() + users.size());
-        userChatRepository.saveAll(newUserList);
+        chat.updateParticipants(chat.getParticipants() + newUserChatList.size());
+        userChatRepository.saveAll(newUserChatList);
+
+        // 채팅방에 초대 메세지 뿌리기
+        template.convertAndSend("/sub/" + chatId + "/msg", reqDTO.getUsername() + "님이 " + name +"을 초대하였습니다.");
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -180,7 +198,7 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
 
-        // 메세지 저장, Redis...?
+        // 메세지 저장
         messageRepository.save(msg);
         return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId ,profile, msg);
     }
@@ -200,7 +218,7 @@ public class ChatService {
                 .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
                 .build();
 
-        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
+//        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
     }
 
 
@@ -276,7 +294,7 @@ public class ChatService {
                     .build();
 
             // 메세지 BroadCast
-            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
@@ -302,7 +320,7 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
             else{
                 log.info("privateChat is Not Null! id = {}", privateChat.getId());
@@ -316,7 +334,7 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
         }
     }
