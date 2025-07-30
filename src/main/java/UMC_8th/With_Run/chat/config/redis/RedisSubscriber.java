@@ -52,10 +52,6 @@ public class RedisSubscriber implements MessageListener {
             default:
                 log.info("unknown chat ! {}", payloadDTO.getPayload());
                 break;
-/*
-            case "share_user":
-                break;
-*/
         }
     }
 }

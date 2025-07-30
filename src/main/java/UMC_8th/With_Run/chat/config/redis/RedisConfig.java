@@ -14,9 +14,6 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 @Configuration
 public class RedisConfig {
 
-/*    private final int redisPort = 6379;
-    private RedisServer redisServer;*/
-
     @Bean
     public RedisConnectionFactory lettuceConnectionFactory() {
         return new LettuceConnectionFactory(new RedisStandaloneConfiguration("localhost", 6379));
