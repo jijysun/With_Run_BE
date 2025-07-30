@@ -54,7 +54,7 @@ public class ChatService {
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
-    private final RedisPublisher redisPublisher;
+//    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -218,7 +218,7 @@ public class ChatService {
                 .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
                 .build();
 
-        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
+//        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
     }
 
 
@@ -294,7 +294,7 @@ public class ChatService {
                     .build();
 
             // 메세지 BroadCast
-            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
@@ -320,7 +320,7 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
             else{
                 log.info("privateChat is Not Null! id = {}", privateChat.getId());
@@ -334,7 +334,7 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
         }
     }

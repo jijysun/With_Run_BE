@@ -38,12 +38,6 @@ public class MessageConverter {
                 .build();
     }
 
-    public static ChatResponseDTO.BroadcastInviteUserDTO toBroadcastInviteUserDTO (List<User> userList){
-        String msg;
-
-
-    }
-
     public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId, Long chatId, Profile profile, Message message) {
         return ChatResponseDTO.BroadcastMsgDTO.builder()
                 .userId(userId)
