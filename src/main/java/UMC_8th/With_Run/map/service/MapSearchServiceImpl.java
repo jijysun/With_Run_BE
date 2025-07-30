@@ -24,6 +24,8 @@ public class MapSearchServiceImpl implements MapSearchService {
     @Value("${google.places.key}")
     private String apiKey;
 
+    private final CourseService courseService; // CourseService 주입
+
     private String removeHtmlTags(String input) {
         if (input == null) return null;
         return input.replaceAll("<[^>]*>", "");
@@ -55,7 +57,6 @@ public class MapSearchServiceImpl implements MapSearchService {
             double lat = result.path("geometry").path("location").path("lat").asDouble();
             double lng = result.path("geometry").path("location").path("lng").asDouble();
 
-            // ⭐ 'business_status'를 이용한 일반 영업 상태 ⭐
             String businessStatus = result.path("business_status").asText();
             String openStatusText = switch (businessStatus) {
                 case "OPERATIONAL" -> "영업중";
@@ -64,12 +65,11 @@ public class MapSearchServiceImpl implements MapSearchService {
                 default -> "정보 없음";
             };
 
-            String openingHours = "정보 없음"; // 주간 영업 시간 텍스트
-            String currentOperatingStatus = "정보 없음"; // ⭐ 현재 시각 기준 영업 상태 ⭐
+            String openingHours = "정보 없음";
+            String currentOperatingStatus = "정보 없음";
 
             JsonNode openingHoursNode = result.path("opening_hours");
             if (!openingHoursNode.isMissingNode()) {
-                // 주간 영업 시간 텍스트 추출
                 JsonNode weekdayTextNode = openingHoursNode.path("weekday_text");
                 if (weekdayTextNode.isArray() && weekdayTextNode.size() > 0) {
                     openingHours = StreamSupport.stream(weekdayTextNode.spliterator(), false)
@@ -77,8 +77,6 @@ public class MapSearchServiceImpl implements MapSearchService {
                             .collect(Collectors.joining(", "));
                 }
 
-                // ⭐ 'open_now' 필드 값 확인 및 currentOperatingStatus 설정 ⭐
-                // open_now 필드가 true이면 "영업중", false이면 "영업 종료"
                 boolean isOpenNowBool = openingHoursNode.path("open_now").asBoolean(false);
                 currentOperatingStatus = isOpenNowBool ? "영업중" : "영업 종료";
 
@@ -114,9 +112,9 @@ public class MapSearchServiceImpl implements MapSearchService {
                     .latitude(lat)
                     .longitude(lng)
                     .imageUrl(imageUrl)
-                    .openingHours(openingHours) // 주간 영업 시간
+                    .openingHours(openingHours)
                     .parkingAvailable(hasParking)
-                    .currentOperatingStatus(currentOperatingStatus) // ⭐ 현재 시각 기준 영업 상태 ⭐
+                    .currentOperatingStatus(currentOperatingStatus)
                     .build();
 
         } catch (Exception e) {
@@ -251,7 +249,11 @@ public class MapSearchServiceImpl implements MapSearchService {
     }
 
     @Override
-    public Long createCourse(String accessToken, MapRequestDTO.CourseCreateRequestDto dto) {
-        return 123L;
+    // 수정 부분 시작: createCourse 메소드 호출 시 userId 추가
+    public Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto) {
+        // CourseService의 createCourse를 호출하여 실제 코스 생성 로직 실행
+        // requestDto에서 userId를 가져와서 전달
+        return courseService.createCourse(requestDto.getUserId(), requestDto);
     }
+    // 수정 부분 끝
 }
