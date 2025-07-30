@@ -31,16 +31,21 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
-        private String message;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PetFacilityResponseDto {
         private Long id;
         private String name;
-        private String imageUrl;
-        private String openingHours;
+        private String category;
+        private Double longitude;
+        private Double latitude;
+        private String address;
+        private String closedDay;
+        private Integer runningTime;
         private Boolean hasParking;
+        private String createdAt;
+        private String updatedAt;
+        private String deletedAt;
     }
-
 }

@@ -1,12 +1,8 @@
 package UMC_8th.With_Run.chat.dto;
 
 import UMC_8th.With_Run.chat.entity.Message;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +22,6 @@ public class ChatResponseDTO {
 
         private String profileImage;
     }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class GetInviteChatDTO {
-        private Long chatId;
-
-        private String name;
-
-        private ArrayList<String> userProfileList;
-    }
-
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class GetChatListDTO {
@@ -59,6 +45,8 @@ public class ChatResponseDTO {
     public static class BroadcastMsgDTO {
         private Long userId;
 
+        private Long chatId;
+
         private String userName;
 
         private String userProfileImage;
@@ -73,6 +61,8 @@ public class ChatResponseDTO {
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class BroadcastCourseDTO {
         private Long userId;
+
+        private Long chatId;
 
         private String msg;
 

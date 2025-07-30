@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.config;
+package UMC_8th.With_Run.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

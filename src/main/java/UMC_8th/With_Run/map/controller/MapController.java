@@ -8,9 +8,6 @@ import UMC_8th.With_Run.map.service.MapSearchService;
 import UMC_8th.With_Run.map.service.PinService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -154,26 +151,27 @@ public class MapController {
     )
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
-            @RequestHeader("Authorization") String accessToken,
             @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
-        Long courseId = mapSearchService.createCourse(accessToken, requestDto);
+        // 수정 부분: mapSearchService.createCourse 호출 방식 변경
+        Long courseId = mapSearchService.createCourse(requestDto); // userId 파라미터 제거
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
-                .message("산책 코스가 성공적으로 등록되었어요!")
                 .build();
         return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
     }
 
 
-
     //반려동물 시설 관련 API
     @Operation(
-            summary = "반려동물 시설 전체 조회",
-            description = "모든 반려동물 시설 목록을 조회합니다."
+            summary = "반려동물 시설 단일 조회",
+            description = "ID로 특정 반려동물 시설의 상세 정보를 조회합니다.",
+            parameters = {
+                    @Parameter(name = "id", description = "조회할 반려동물 시설의 ID", required = true, example = "1")
+            }
     )
-    @GetMapping("/pet-facilities")
-    public StndResponse<List<MapResponseDTO.PetFacilityResponseDto>> getAllPetFacilities() {
-        List<MapResponseDTO.PetFacilityResponseDto> facilities = mapSearchService.getAllPetFacilities();
-        return StndResponse.onSuccess(facilities, SuccessCode.INQUIRY_SUCCESS);
+    @GetMapping("/pet-facilities/{id}")
+    public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
+        MapResponseDTO.PetFacilityResponseDto facility = mapSearchService.getPetFacilityById(id);
+        return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
     }
 }
