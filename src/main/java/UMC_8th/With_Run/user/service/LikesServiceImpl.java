@@ -35,8 +35,7 @@ public class LikesServiceImpl implements LikesService {
 
         List<LikeItemDTO> likeItems = likes.stream()
                 .map(like -> LikeItemDTO.builder()
-                        .courseId(like.getCourseId())
-                        .count(like.getCount())
+                        .courseId(like.getCourse().getId())
                         .likedAt(like.getCreatedAt())
                         .build())
                 .toList();
