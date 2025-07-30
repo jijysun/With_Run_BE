@@ -36,7 +36,7 @@ public class ScrapServiceImpl implements ScrapService {
 
         List<ScrapItemDTO> scrapItems = scraps.stream()
                 .map(scrap -> ScrapItemDTO.builder()
-                        .courseId(scrap.getCourseId())
+                        .courseId(scrap.getCourse().getId())
                         .scrapedAt(scrap.getCreatedAt())
                         .build())
                 .toList();

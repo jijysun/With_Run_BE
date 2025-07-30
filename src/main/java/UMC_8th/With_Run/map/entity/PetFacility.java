@@ -13,12 +13,14 @@ public class PetFacility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long townId;
-    private Long cityId;
-    private Long provinceId;
     private String name;
+    private String category;
+    private Double longitude;
+    private Double latitude;
+    private String address;
+    private String closedDay;
     private Integer runningTime;
-    private Boolean parking;
+    private Boolean hasParking;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
