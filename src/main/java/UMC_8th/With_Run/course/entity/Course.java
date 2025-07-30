@@ -3,6 +3,7 @@ package UMC_8th.With_Run.course.entity;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
 import UMC_8th.With_Run.map.entity.RegionsTown;
+import UMC_8th.With_Run.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -37,6 +38,8 @@ public class Course {
 
     private String courseImage;
 
+    private String location;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_province_id")
     private RegionProvince regionProvince;
@@ -48,5 +51,9 @@ public class Course {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "regions_town_id")
     private RegionsTown regionsTown;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

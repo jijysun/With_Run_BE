@@ -6,6 +6,8 @@ import UMC_8th.With_Run.course.repository.CourseRepository;
 import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.entity.Pin;
 import UMC_8th.With_Run.map.repository.PinRepository;
+import UMC_8th.With_Run.user.entity.User;
+import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final PinRepository pinRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -44,13 +47,16 @@ public class CourseServiceImpl implements CourseService {
         }
         // 수정 부분 끝
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다."));
+
+
         Course course = Course.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
                 .keyWord(keywordsString)
-                .location(locationId)
                 .time(timeString)
-                .userId(userId)
+                .user(user)
                 .createdAt(LocalDateTime.now())
                 .build();
 

@@ -29,4 +29,8 @@ public class Pin {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+
+    public void setCourseId(Long id) {
+
+    }
 }

@@ -37,7 +37,7 @@ public class CourseDetailService {
         }
 
         // 핀을 pinOrder 오름차순으로 정렬해서 조회
-        List<Pin> pins = pinRepository.findByCourseIdOrderByPinOrderAsc(courseId);
+        List<Pin> pins = pinRepository.findByCourseOrderByPinOrderAsc(course);
 
         List<CourseDetailResponse.PinResponse> pinResponses = pins.stream()
                 .map(pin -> CourseDetailResponse.PinResponse.builder()
