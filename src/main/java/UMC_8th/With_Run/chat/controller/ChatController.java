@@ -75,9 +75,6 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
-    })
     public StndResponse<Object> inviteUser(@PathVariable("id") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
         chatService.inviteUser(chatId, reqDTO);
         return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기

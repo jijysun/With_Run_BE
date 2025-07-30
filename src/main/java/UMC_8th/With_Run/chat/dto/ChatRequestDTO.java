@@ -19,10 +19,21 @@ public class ChatRequestDTO {
         private Long courseId;
     }
 
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    /*@Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteUserReqDTO {
         private List<Long> userIds;
+    }*/
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class InviteUserReqDTO {
+        private List<InviteDTO> inviteUserList;
     }
+
+    public static class InviteDTO{
+        private Long userId;
+        private String username;
+    }
+
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ChattingReqDTO {

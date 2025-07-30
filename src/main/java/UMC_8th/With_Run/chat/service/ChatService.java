@@ -136,6 +136,10 @@ public class ChatService {
         // chat : participants 증가 시키기, 이름 변경
         chat.updateParticipants(chat.getParticipants() + users.size());
         userChatRepository.saveAll(newUserList);
+
+        // 채팅방에 초대 메세지 뿌리기
+        template.convertAndSend("/sub/" + chatId + "/msg", "");
+
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -180,7 +184,7 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
 
-        // 메세지 저장, Redis...?
+        // 메세지 저장
         messageRepository.save(msg);
         return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId ,profile, msg);
     }

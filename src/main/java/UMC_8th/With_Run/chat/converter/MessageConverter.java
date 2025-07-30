@@ -9,6 +9,7 @@ import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MessageConverter {
 
@@ -35,6 +36,12 @@ public class MessageConverter {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public static ChatResponseDTO.BroadcastInviteUserDTO toBroadcastInviteUserDTO (List<User> userList){
+        String msg;
+
+
     }
 
     public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId, Long chatId, Profile profile, Message message) {
