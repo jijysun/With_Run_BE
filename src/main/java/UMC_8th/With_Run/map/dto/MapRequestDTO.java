@@ -24,5 +24,7 @@ public class MapRequestDTO {
         private List<String> keyWords;
         private List<String> regions;
         private List<Long> pinIds;
+        private List<Long> regionIds;
+        private Long userId;
     }
 }

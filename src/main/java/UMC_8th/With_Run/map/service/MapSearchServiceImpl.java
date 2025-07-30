@@ -2,6 +2,8 @@ package UMC_8th.With_Run.map.service;
 
 import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.dto.MapResponseDTO;
+import UMC_8th.With_Run.map.entity.PetFacility;
+import UMC_8th.With_Run.map.repository.PetFacilityRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +23,12 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class MapSearchServiceImpl implements MapSearchService {
 
+    private final PetFacilityRepository petFacilityRepository;
+
     @Value("${google.places.key}")
     private String apiKey;
+
+    private final CourseService courseService; // CourseService 주입
 
     private String removeHtmlTags(String input) {
         if (input == null) return null;
@@ -55,7 +61,7 @@ public class MapSearchServiceImpl implements MapSearchService {
             double lat = result.path("geometry").path("location").path("lat").asDouble();
             double lng = result.path("geometry").path("location").path("lng").asDouble();
 
-            // ⭐ 'business_status'를 이용한 일반 영업 상태 ⭐
+            // 'business_status'를 이용한 일반 영업 상태
             String businessStatus = result.path("business_status").asText();
             String openStatusText = switch (businessStatus) {
                 case "OPERATIONAL" -> "영업중";
@@ -64,8 +70,8 @@ public class MapSearchServiceImpl implements MapSearchService {
                 default -> "정보 없음";
             };
 
-            String openingHours = "정보 없음"; // 주간 영업 시간 텍스트
-            String currentOperatingStatus = "정보 없음"; // ⭐ 현재 시각 기준 영업 상태 ⭐
+            String openingHours = "정보 없음";
+            String currentOperatingStatus = "정보 없음";
 
             JsonNode openingHoursNode = result.path("opening_hours");
             if (!openingHoursNode.isMissingNode()) {
@@ -77,8 +83,6 @@ public class MapSearchServiceImpl implements MapSearchService {
                             .collect(Collectors.joining(", "));
                 }
 
-                // ⭐ 'open_now' 필드 값 확인 및 currentOperatingStatus 설정 ⭐
-                // open_now 필드가 true이면 "영업중", false이면 "영업 종료"
                 boolean isOpenNowBool = openingHoursNode.path("open_now").asBoolean(false);
                 currentOperatingStatus = isOpenNowBool ? "영업중" : "영업 종료";
 
@@ -228,30 +232,32 @@ public class MapSearchServiceImpl implements MapSearchService {
 
 
     @Override
-    public List<MapResponseDTO.PetFacilityResponseDto> getAllPetFacilities() {
-        List<MapResponseDTO.PetFacilityResponseDto> results = new ArrayList<>();
+    public MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id) {
+        PetFacility petFacility = petFacilityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pet facility not found with id: " + id));
 
-        results.add(MapResponseDTO.PetFacilityResponseDto.builder()
-                .id(1L)
-                .name("카페 도그라운드")
-                .imageUrl("https://example.com/images/dogcafe.jpg")
-                .openingHours("10:00~21:00")
-                .hasParking(true)
-                .build());
-
-        results.add(MapResponseDTO.PetFacilityResponseDto.builder()
-                .id(2L)
-                .name("홍대 펫약국")
-                .imageUrl("https://example.com/images/petpharmacy.jpg")
-                .openingHours("09:00~20:00")
-                .hasParking(false)
-                .build());
-
-        return results;
+        return MapResponseDTO.PetFacilityResponseDto.builder()
+                .id(petFacility.getId())
+                .name(petFacility.getName())
+                .category(petFacility.getCategory())
+                .longitude(petFacility.getLongitude())
+                .latitude(petFacility.getLatitude())
+                .address(petFacility.getAddress())
+                .closedDay(petFacility.getClosedDay())
+                .runningTime(petFacility.getRunningTime())
+                .hasParking(petFacility.getHasParking())
+                .createdAt(petFacility.getCreatedAt() != null ? petFacility.getCreatedAt().toString() : null)
+                .updatedAt(petFacility.getUpdatedAt() != null ? petFacility.getUpdatedAt().toString() : null)
+                .deletedAt(petFacility.getDeletedAt() != null ? petFacility.getDeletedAt().toString() : null)
+                .build();
     }
 
     @Override
-    public Long createCourse(String accessToken, MapRequestDTO.CourseCreateRequestDto dto) {
-        return 123L;
+    // 수정 부분 시작: createCourse 메소드 호출 시 userId 추가
+    public Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto) {
+        // CourseService의 createCourse를 호출하여 실제 코스 생성 로직 실행
+        // requestDto에서 userId를 가져와서 전달
+        return courseService.createCourse(requestDto.getUserId(), requestDto);
     }
+    // 수정 부분 끝
 }
