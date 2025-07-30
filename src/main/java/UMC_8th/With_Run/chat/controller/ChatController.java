@@ -36,10 +36,11 @@ public class ChatController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate template;
-    /// followee = 내가 팔로우
-    /// , follower = 나를 팔로우!
 
-    // userId -> JWT
+    /// followee = 내가 팔로우
+    /// follower = 나를 팔로우!
+
+
 
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
@@ -85,7 +86,7 @@ public class ChatController {
     @PatchMapping("/{chatId}")
     @Operation(summary = "채팅방 이름 변경 API", description = "생성된 채팅방에 대한 이름 변경 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Chat.class))) // 성공 DTO Response 클래스
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class))) // 성공 DTO Response 클래스
     })
     @Parameters({
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
@@ -97,7 +98,7 @@ public class ChatController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 내역 확인 API 입니다.")
+    @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 메세지 내역 확인 API 입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.ChatHistoryDTO.class)))
     })
@@ -116,7 +117,7 @@ public class ChatController {
     })
     public StndResponse<Object> leaveChat(@PathVariable("id") Long chatId, HttpServletRequest request) {
         chatService.leaveChat(chatId, request);
-        return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS); // 채팅방 나가기 성공 코드 만들기
+        return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
 
     @GetMapping("")
@@ -132,20 +133,14 @@ public class ChatController {
         return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
     }
 
-    /*// 메세지 채팅
-    @MessageMapping("/{id}/msg")
-    @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
-    public void chatting(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-        ChatResponseDTO.BroadcastMsgDTO broadcastMsgDTO = chatService.chatting(chatId, reqDTO);
-        template.convertAndSend("/sub/" + chatId + "/msg" , broadcastMsgDTO);
-    }*/
-
     // 메세지 채팅
     @MessageMapping("/{id}/msg")
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     public void chattingWithRedis(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-        chatService.chattingWithRedis(chatId, reqDTO);
+
+        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
+//        chatService.chattingWithRedis(chatId, reqDTO);
     }
 
     @PostMapping("/share")
@@ -153,6 +148,7 @@ public class ChatController {
     @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
     public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
         chatService.shareCourse(reqDTO);
+//        chatService.shareCourseWithRedis(reqDTO);
     }
 
 }

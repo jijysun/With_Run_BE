@@ -1,7 +1,7 @@
 package UMC_8th.With_Run.chat.service;
 
-import UMC_8th.With_Run.chat.config.PayloadDTO;
-import UMC_8th.With_Run.chat.config.redis.RedisPublisher;
+import UMC_8th.With_Run.chat.config.redis.dto.PayloadDTO;
+import UMC_8th.With_Run.chat.config.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
@@ -57,6 +57,7 @@ public class ChatService {
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
 
+    // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
         User user = getUserByJWT(request); // jwt
@@ -78,6 +79,7 @@ public class ChatService {
         userChatRepository.saveAll(userChats);
     }
 
+    // 채팅 초대 목록 조회 리스트
     public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request) {
 
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
@@ -111,12 +113,13 @@ public class ChatService {
         return ChatConverter.toGetInviteUserDTO(canInviteUserIdList, canInviteUserProfileList);
     }
 
+    // 위 메소드에서 조회한 사용자 초대 메소드
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         if (chat.getParticipants() + reqDTO.getUserIds().size() > 4){
-            throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
+            throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
 
         List<User> users = userRepository.findAllByIdIn(reqDTO.getUserIds()); // 받은 id에 대한 여러 user 조회, JWT
@@ -135,6 +138,7 @@ public class ChatService {
         userChatRepository.saveAll(newUserList);
     }
 
+    // 채팅방 이름 변경 메소드, 전체 공통 변경
     @Transactional
     public void renameChat(Long roomId, String newName) {
         Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
@@ -142,8 +146,8 @@ public class ChatService {
     }
 
     public List<Message> enterChat (Long roomId) {
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        return messageRepository.findByChat(chat);
+        // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
+        return messageRepository.findByChat(chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT)));
     }
 
     @Transactional
@@ -201,10 +205,7 @@ public class ChatService {
 
 
     public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
-        /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
-
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
 
         Message courseMsg;
@@ -222,7 +223,7 @@ public class ChatService {
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
-
+            User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
                 log.info("privateChat is Null!");
@@ -262,7 +263,6 @@ public class ChatService {
         /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
 
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
 
         if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
@@ -271,7 +271,7 @@ public class ChatService {
             messageRepository.save(MessageConverter.toShareMessage(user, chat, course));
 
             PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                    .type("share_chat")
+                    .type("share")
                     .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), chat.getId(), course))
                     .build();
 
@@ -280,6 +280,7 @@ public class ChatService {
         }
         else{
             // 친구를 통한 공유, 채팅이 없는 경우 추가
+            User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
                 log.info("privateChat is Null!");

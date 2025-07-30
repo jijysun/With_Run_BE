@@ -1,6 +1,6 @@
-package UMC_8th.With_Run.chat.config.redis;
+package UMC_8th.With_Run.chat.config.redis.pub_sub;
 
-import UMC_8th.With_Run.chat.config.PayloadDTO;
+import UMC_8th.With_Run.chat.config.redis.dto.PayloadDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
