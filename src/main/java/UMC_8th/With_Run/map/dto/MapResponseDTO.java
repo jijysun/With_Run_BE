@@ -31,7 +31,6 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
-        private String message;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

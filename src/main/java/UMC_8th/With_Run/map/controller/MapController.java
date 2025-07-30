@@ -156,7 +156,6 @@ public class MapController {
         Long courseId = mapSearchService.createCourse(requestDto); // userId 파라미터 제거
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
-                .message("산책 코스가 성공적으로 등록되었어요!")
                 .build();
         return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
     }
