@@ -9,6 +9,7 @@ import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MessageConverter {
 
@@ -37,9 +38,10 @@ public class MessageConverter {
                 .build();
     }
 
-    public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId,Profile profile, Message message) {
+    public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO (Long userId, Long chatId, Profile profile, Message message) {
         return ChatResponseDTO.BroadcastMsgDTO.builder()
                 .userId(userId)
+                .chatId(chatId)
                 .userName(profile.getName())
                 .userProfileImage(profile.getProfileImage())
                 .msg(message.getMsg())
@@ -48,9 +50,10 @@ public class MessageConverter {
                 .build();
     }
 
-    public static ChatResponseDTO.BroadcastCourseDTO toBroadCastCourseDTO (Long userId, Course course) {
+    public static ChatResponseDTO.BroadcastCourseDTO toBroadCastCourseDTO (Long userId, Long chatId, Course course) {
         return ChatResponseDTO.BroadcastCourseDTO.builder()
                 .userId(userId)
+                .chatId(chatId)
                 .msg("산책 코스를 공유하였습니다")
                 .isCourse(true)
                 .courseId(course.getId())

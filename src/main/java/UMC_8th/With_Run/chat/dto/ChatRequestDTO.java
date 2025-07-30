@@ -11,12 +11,6 @@ import java.util.List;
 public class ChatRequestDTO {
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class CreateChatReqDTO {
-        private Long userId;
-        private Long targetUserId;
-    }
-
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ShareReqDTO {
         private Boolean isChat;
         private Long userId;
@@ -25,17 +19,23 @@ public class ChatRequestDTO {
         private Long courseId;
     }
 
-    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    /*@Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteUserReqDTO {
         private List<Long> userIds;
+    }*/
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class InviteUserReqDTO {
+        private String username; // 초대한 사용자 이름
+        private List<InviteDTO> inviteUserList;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class RenameChatDTO {
+    public static class InviteDTO{
         private Long userId;
-        private Long chatId;
-        private String newName;
+        private String username;
     }
+
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class ChattingReqDTO {
