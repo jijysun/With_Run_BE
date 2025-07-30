@@ -29,10 +29,12 @@ public class UserResponseDto {
     public static class ProfileResultDTO {
         private Long id;              // 프로필 ID
         private Long userId;          // 사용자 ID
-        private Long townId;          // 동네 ID
-        private Long cityId;          // 시/군/구 ID
-        private Long provinceId;      // 도 ID
-
+        private Long provinceId;
+        private String provinceName;
+        private Long cityId;
+        private String cityName;
+        private Long townId;
+        private String townName;
         private String name;          // 반려견 이름
         private String gender;        // 성별
         private String birth;         // 생일 (문자열 또는 Date로 변경 가능)

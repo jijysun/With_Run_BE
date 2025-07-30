@@ -26,9 +26,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class BreedProfileRequestDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
@@ -42,9 +42,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class UpdateProfileDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
