@@ -38,9 +38,10 @@ public class MapResponseDTO {
     public static class PetFacilityResponseDto {
         private Long id;
         private String name;
-        private String imageUrl;
-        private String openingHours;
-        private Boolean hasParking;
+        private String category;
+        private Double longitude;
+        private Double latitude;
+        private String address;
+        private String closedDay;
     }
-
 }
