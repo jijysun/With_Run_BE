@@ -232,20 +232,24 @@ public class MapSearchServiceImpl implements MapSearchService {
 
 
     @Override
-    public List<MapResponseDTO.PetFacilityResponseDto> getAllPetFacilities() {
-        List<PetFacility> petFacilities = petFacilityRepository.findAll();
+    public MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id) {
+        PetFacility petFacility = petFacilityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pet facility not found with id: " + id));
 
-        return petFacilities.stream()
-                .map(facility -> MapResponseDTO.PetFacilityResponseDto.builder()
-                        .id(facility.getId())
-                        .name(facility.getName())
-                        .category(facility.getCategory())
-                        .longitude(facility.getLongitude())
-                        .latitude(facility.getLatitude())
-                        .address(facility.getAddress())
-                        .closedDay(facility.getClosedDay())
-                        .build())
-                .collect(Collectors.toList());
+        return MapResponseDTO.PetFacilityResponseDto.builder()
+                .id(petFacility.getId())
+                .name(petFacility.getName())
+                .category(petFacility.getCategory())
+                .longitude(petFacility.getLongitude())
+                .latitude(petFacility.getLatitude())
+                .address(petFacility.getAddress())
+                .closedDay(petFacility.getClosedDay())
+                .runningTime(petFacility.getRunningTime())
+                .hasParking(petFacility.getHasParking())
+                .createdAt(petFacility.getCreatedAt() != null ? petFacility.getCreatedAt().toString() : null)
+                .updatedAt(petFacility.getUpdatedAt() != null ? petFacility.getUpdatedAt().toString() : null)
+                .deletedAt(petFacility.getDeletedAt() != null ? petFacility.getDeletedAt().toString() : null)
+                .build();
     }
 
     @Override

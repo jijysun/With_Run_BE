@@ -15,7 +15,7 @@ public interface MapSearchService {
 
     MapResponseDTO.PlaceResponseDto getPlaceDetailByPlaceId(String placeId);
 
-    List<MapResponseDTO.PetFacilityResponseDto> getAllPetFacilities();
+    MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id);
 
     // 수정 부분 시작: createCourse 메소드 시그니처 변경
     // Long createCourse(String accessToken, MapRequestDTO.CourseCreateRequestDto requestDto); // 이전

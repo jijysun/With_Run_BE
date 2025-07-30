@@ -163,12 +163,15 @@ public class MapController {
 
     //반려동물 시설 관련 API
     @Operation(
-            summary = "반려동물 시설 전체 조회",
-            description = "모든 반려동물 시설 목록을 조회합니다."
+            summary = "반려동물 시설 단일 조회",
+            description = "ID로 특정 반려동물 시설의 상세 정보를 조회합니다.",
+            parameters = {
+                    @Parameter(name = "id", description = "조회할 반려동물 시설의 ID", required = true, example = "1")
+            }
     )
-    @GetMapping("/pet-facilities")
-    public StndResponse<List<MapResponseDTO.PetFacilityResponseDto>> getAllPetFacilities() {
-        List<MapResponseDTO.PetFacilityResponseDto> facilities = mapSearchService.getAllPetFacilities();
-        return StndResponse.onSuccess(facilities, SuccessCode.INQUIRY_SUCCESS);
+    @GetMapping("/pet-facilities/{id}")
+    public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
+        MapResponseDTO.PetFacilityResponseDto facility = mapSearchService.getPetFacilityById(id);
+        return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
     }
 }

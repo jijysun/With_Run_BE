@@ -42,5 +42,10 @@ public class MapResponseDTO {
         private Double latitude;
         private String address;
         private String closedDay;
+        private Integer runningTime;
+        private Boolean hasParking;
+        private String createdAt;
+        private String updatedAt;
+        private String deletedAt;
     }
 }
