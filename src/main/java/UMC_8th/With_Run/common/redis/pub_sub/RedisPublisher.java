@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.config.redis.pub_sub;
+package UMC_8th.With_Run.common.redis.pub_sub;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;

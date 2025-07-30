@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.config.redis.dto;
+package UMC_8th.With_Run.common.redis.dto;
 
 
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package UMC_8th.With_Run.chat.service;
 
-import UMC_8th.With_Run.chat.config.redis.dto.PayloadDTO;
-import UMC_8th.With_Run.chat.config.redis.pub_sub.RedisPublisher;
+import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
+import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;

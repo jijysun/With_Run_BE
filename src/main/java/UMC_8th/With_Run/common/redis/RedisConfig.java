@@ -1,6 +1,6 @@
-package UMC_8th.With_Run.chat.config.redis;
+package UMC_8th.With_Run.common.redis;
 
-import UMC_8th.With_Run.chat.config.redis.pub_sub.RedisSubscriber;
+import UMC_8th.With_Run.common.redis.pub_sub.RedisSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
