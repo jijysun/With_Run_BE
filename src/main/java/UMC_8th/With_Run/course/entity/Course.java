@@ -35,4 +35,6 @@ public class Course {
     private LocalDateTime deletedAt;
 
     private String courseImage;
+
+    private Long userId; //추가
 }
