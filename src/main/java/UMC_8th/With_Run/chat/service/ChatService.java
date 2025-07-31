@@ -91,26 +91,41 @@ public class ChatService {
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
 
-//        User user = getUserByJWT(request);
-        User user = userRepository.findById(1L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        User user = getUserByJWT(request, "getInviteUser");
 
         /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
         // 사용자가 팔로우 하는 다른 사용자, targetUser.id
         List<User> followList = followRepository.findAllByUserId(user.getId()).stream()
                 .map(Follow-> Follow.getTargetUser()).toList();
 
+        String idList = "";
+        for (User user1 : followList) {
+            idList += user1.getId() + ", ";  // loging
+        }
+
         // 채팅방에 참여하고 있지 않은 사용자,
         List<Long> userChatList = userChatRepository.findAllByChat_Id(chatId).stream()
                 .map(UserChat -> UserChat.getUser().getId()).toList();
 
+        String userChatIdList = userChatList.toString();
+
         // 팔로잉 리스트에서 채팅방 참여자 제외 추출
-        List<User> canInviteUserIdList = followList.stream()
+        List<Long> canInviteUserIdList = followList.stream()
                 .filter(u -> !userChatList.contains(u.getId()))
+                .map(u -> u.getId())
                 .toList();
 
-        // 초대 가능 user.profile
-        List<Profile> canInviteUserProfileList = profileRepository.findAllByUserIn(canInviteUserIdList);
+        String canInviteList = "";
+        for (Long userId : canInviteUserIdList) { // logging
+            canInviteList += userId.toString() + ", ";
+        }
 
+
+        List<Profile> canInviteUserProfileList = profileRepository.findAllByUser_IdIn(canInviteUserIdList);
+
+        log.info("follow List : {}", idList);
+        log.info("in Chat, userIdList : {}", userChatIdList);
+        log.info("canInviteList : {}", canInviteList);
         log.info("user: {}, Profile: {}", canInviteUserIdList.size(), canInviteUserProfileList.size());
 
         return ChatConverter.toGetInviteUserDTO(canInviteUserIdList, canInviteUserProfileList);
