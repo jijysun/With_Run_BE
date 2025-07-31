@@ -62,7 +62,7 @@ public class ChatService {
     // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
-        User user = getUserByJWT(request); // jwt
+        User user = getUserByJWT(request, "createChat"); // jwt
         Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         User targetUser = userRepository.findById(targetId).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
@@ -91,7 +91,8 @@ public class ChatService {
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
 
-        User user = getUserByJWT(request);
+//        User user = getUserByJWT(request);
+        User user = userRepository.findById(1L).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
         // 사용자가 팔로우 하는 다른 사용자, targetUser.id
@@ -104,7 +105,7 @@ public class ChatService {
 
         // 팔로잉 리스트에서 채팅방 참여자 제외 추출
         List<User> canInviteUserIdList = followList.stream()
-                .filter(u -> userChatList.contains(u.getId()))
+                .filter(u -> !userChatList.contains(u.getId()))
                 .toList();
 
         // 초대 가능 user.profile
@@ -170,7 +171,7 @@ public class ChatService {
 
     @Transactional
     public void leaveChat(Long chatId, HttpServletRequest request) {
-        User user = getUserByJWT(request);
+        User user = getUserByJWT(request, "leaveChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         userChatRepository.deleteUserChatByUserAndChat(user, chat);
@@ -180,8 +181,8 @@ public class ChatService {
 
 
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
-        User user = getUserByJWT(request);  // jwt
-        List<UserChat> userChats = userChatRepository.findAllByUser(user);
+        User user = getUserByJWT(request, "getChatList");  // jwt
+        List<UserChat> userChats = userChatRepository.findAllByUser_Id(user.getId());
 
         log.info("userchat: " + userChats.size());
         if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
@@ -340,9 +341,11 @@ public class ChatService {
     }
 
 
-    public User getUserByJWT(HttpServletRequest request) {
+    public User getUserByJWT(HttpServletRequest request, String method) {
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
+
+        log.info("{} -> found User!", method);
         return userRepository.findByEmail(email).orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
     }
 }

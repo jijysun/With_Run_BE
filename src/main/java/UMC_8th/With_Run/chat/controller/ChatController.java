@@ -40,8 +40,6 @@ public class ChatController {
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
 
-
-
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
     @ApiResponses({
