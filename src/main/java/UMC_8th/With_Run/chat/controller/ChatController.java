@@ -144,5 +144,5 @@ public class ChatController {
         chatService.leaveChat(chatId, request);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
-    
+
 }

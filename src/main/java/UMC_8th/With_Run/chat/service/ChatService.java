@@ -63,10 +63,10 @@ public class ChatService {
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
         User user = getUserByJWT(request, "createChat"); // jwt
-        Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         User targetUser = userRepository.findById(targetId).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
-        Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
 
@@ -209,7 +209,7 @@ public class ChatService {
 
     public ChatResponseDTO.BroadcastMsgDTO chatting (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
@@ -220,7 +220,7 @@ public class ChatService {
 
     public void chattingWithRedis (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
