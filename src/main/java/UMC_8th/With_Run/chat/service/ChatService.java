@@ -126,8 +126,6 @@ public class ChatService {
         log.info("follow List : {}", idList);
         log.info("in Chat, userIdList : {}", userChatIdList);
         log.info("canInviteList : {}", canInviteList);
-        log.info("user: {}, Profile: {}", canInviteUserIdList.size(), canInviteUserProfileList.size());
-
         return ChatConverter.toGetInviteUserDTO(canInviteUserIdList, canInviteUserProfileList);
     }
 
@@ -139,8 +137,6 @@ public class ChatService {
         if (chat.getParticipants() + reqDTO.getInviteUserList().size() > 4){
             throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
-
-//        List<User> users = userRepository.findAllByIdIn(reqDTO..getUserIds()); // 받은 id에 대한 여러 user 조회, JWT
 
         List<Long> userIdList = reqDTO.getInviteUserList().stream()
                 .map(ChatRequestDTO.InviteDTO::getUserId).toList();
@@ -154,6 +150,7 @@ public class ChatService {
         for (String s : nameList) {
             name += s + "님 ";
         }
+        name = name.substring(0, name.length()-1);
 
         // userChat 여러 개 저장
         List<UserChat> newUserChatList = new ArrayList<>();
@@ -168,8 +165,10 @@ public class ChatService {
         chat.updateParticipants(chat.getParticipants() + newUserChatList.size());
         userChatRepository.saveAll(newUserChatList);
 
-        // 채팅방에 초대 메세지 뿌리기
-        template.convertAndSend("/sub/" + chatId + "/msg", reqDTO.getUsername() + "님이 " + name +"을 초대하였습니다.");
+        // 채팅방에 초대 메세지 뿌리기 + save
+        String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
+        messageRepository.save(MessageConverter.toInviteMessage(chat, inviteMsg));
+        template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -212,7 +211,7 @@ public class ChatService {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
+        Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
         // 메세지 저장
         messageRepository.save(msg);
@@ -223,7 +222,7 @@ public class ChatService {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = MessageConverter.toMessage(user, chat, reqDTO, null);
+        Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
         // 메세지 저장, Redis...?
         messageRepository.save(msg);
