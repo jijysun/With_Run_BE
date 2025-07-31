@@ -59,6 +59,18 @@ public class ChatService {
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
 
+    public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
+        User user = getUserByJWT(request, "getChatList");  // jwt
+        List<UserChat> userChats = userChatRepository.findAllByUser_Id(user.getId());
+
+        if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
+
+        List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
+        log.info("'getChatList' - Chat.count that user is participating in : " + allByUserChatListIn.size());
+
+        return ChatConverter.toGetChatListDTO(allByUserChatListIn);
+    }
+
     // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
@@ -79,6 +91,13 @@ public class ChatService {
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
+    }
+
+    // 채팅방 이름 변경 메소드, 전체 공통 변경
+    @Transactional
+    public void renameChat(Long roomId, String newName) {
+        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        chat.renameChat(newName);
     }
 
     // 채팅 초대 목록 조회 리스트
@@ -171,40 +190,9 @@ public class ChatService {
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
-    // 채팅방 이름 변경 메소드, 전체 공통 변경
-    @Transactional
-    public void renameChat(Long roomId, String newName) {
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        chat.renameChat(newName);
-    }
-
     public List<Message> enterChat (Long roomId) {
         // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         return messageRepository.findByChat(chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT)));
-    }
-
-    @Transactional
-    public void leaveChat(Long chatId, HttpServletRequest request) {
-        User user = getUserByJWT(request, "leaveChat");
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-
-        userChatRepository.deleteUserChatByUserAndChat(user, chat);
-
-        chat.updateParticipants(chat.getParticipants()-1);
-    }
-
-
-    public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
-        User user = getUserByJWT(request, "getChatList");  // jwt
-        List<UserChat> userChats = userChatRepository.findAllByUser_Id(user.getId());
-
-        log.info("userchat: " + userChats.size());
-        if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
-
-        List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
-        log.info("allByUserChatListIn: " + allByUserChatListIn.size());
-
-        return ChatConverter.toGetChatListDTO(allByUserChatListIn);
     }
 
     public ChatResponseDTO.BroadcastMsgDTO chatting (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
@@ -259,7 +247,7 @@ public class ChatService {
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
-                log.info("privateChat is Null!");
+                log.info("'shareCourse'/toFriend - privateChat is Null!");
                 privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
                 List<UserChat> ucList = new ArrayList<>();
@@ -279,7 +267,7 @@ public class ChatService {
                 template.convertAndSend("/sub/" + saveChat.getId() + "/msg", courseDTO);
             }
             else{
-                log.info("privateChat is Not Null! id = {}", privateChat.getId());
+                log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
                 courseMsg= MessageConverter.toShareMessage(user, privateChat, course);
 
                 // Save And Broadcast
@@ -316,7 +304,7 @@ public class ChatService {
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null){
-                log.info("privateChat is Null!");
+                log.info("'shareCourse'/toFriend - privateChat is Null!");
                 privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
                 List<UserChat> ucList = new ArrayList<>();
@@ -338,7 +326,7 @@ public class ChatService {
 //                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
             else{
-                log.info("privateChat is Not Null! id = {}", privateChat.getId());
+                log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
                 // Save And Broadcast
                 messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));
@@ -352,6 +340,16 @@ public class ChatService {
 //                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
         }
+    }
+
+    @Transactional
+    public void leaveChat(Long chatId, HttpServletRequest request) {
+        User user = getUserByJWT(request, "leaveChat");
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+
+        userChatRepository.deleteUserChatByUserAndChat(user, chat);
+
+        chat.updateParticipants(chat.getParticipants()-1);
     }
 
 
