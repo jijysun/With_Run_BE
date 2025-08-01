@@ -32,6 +32,9 @@ public enum ErrorCode implements BaseErrorCode {
     INVALID_TOKEN (HttpStatus.BAD_REQUEST, "MEMBER4007", "만료된 토큰 입니다."),
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
 
+    // Profile
+    WRONG_PROFILE (HttpStatus.INTERNAL_SERVER_ERROR, "PROFILE5001", "프로필을 찾을 수 없습니다."),
+
     // Friend
     BANNED_USER(HttpStatus.BAD_REQUEST , "FRIEND4001", "차단된 사용자 입니다."),
     ALREADY_REPORTED(HttpStatus.BAD_REQUEST , "FRIEND4002", "이미 신고한 사용자 입니다."),

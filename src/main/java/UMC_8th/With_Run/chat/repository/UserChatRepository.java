@@ -13,7 +13,9 @@ import java.util.Optional;
 
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
-    List<UserChat> findAllByUser(User user);
+//    List<UserChat> findAllByUser(User user);
+
+    List<UserChat> findAllByUser_Id(Long userId);
 
     void deleteUserChatByUserAndChat(User user, Chat chat);
 
