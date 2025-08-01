@@ -35,6 +35,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collector;
@@ -77,12 +78,12 @@ public class ChatService {
         User user = getUserByJWT(request, "createChat"); // jwt
         Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
-        User targetUser = userRepository.findById(targetId).orElseThrow(()-> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
+        User targetUser = userRepository.findById(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
         Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
 
-        List<UserChat> userChats = new  ArrayList<>();
+        List<UserChat> userChats = new ArrayList<>();
         userChats.add(UserChatConverter.toNewUserChat(user, chat));
         userChats.add(UserChatConverter.toNewUserChat(targetUser, chat));
 
@@ -106,7 +107,7 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 이미 채팅방이 자신 포함 4명이라면 초대 목록 조회도 거절
-        if (chat.getParticipants() >= 4 ){
+        if (chat.getParticipants() >= 4) {
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
 
@@ -115,7 +116,7 @@ public class ChatService {
         /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
         // 사용자가 팔로우 하는 다른 사용자, targetUser.id
         List<User> followList = followRepository.findAllByUserId(user.getId()).stream()
-                .map(Follow-> Follow.getTargetUser()).toList();
+                .map(Follow -> Follow.getTargetUser()).toList();
 
         String idList = "";
         for (User user1 : followList) {
@@ -153,7 +154,7 @@ public class ChatService {
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        if (chat.getParticipants() + reqDTO.getInviteUserList().size() > 4){
+        if (chat.getParticipants() + reqDTO.getInviteUserList().size() > 4) {
             throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
 
@@ -165,11 +166,11 @@ public class ChatService {
         List<String> nameList = reqDTO.getInviteUserList().stream()
                 .map(ChatRequestDTO.InviteDTO::getUsername).toList();
 
-        String name="";
+        String name = "";
         for (String s : nameList) {
             name += s + "님 ";
         }
-        name = name.substring(0, name.length()-1);
+        name = name.substring(0, name.length() - 1);
 
         // userChat 여러 개 저장
         List<UserChat> newUserChatList = new ArrayList<>();
@@ -177,6 +178,8 @@ public class ChatService {
             newUserChatList.add(UserChat.builder()
                     .chat(chat)
                     .user(user)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build());
         }
 
@@ -190,12 +193,12 @@ public class ChatService {
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
-    public List<Message> enterChat (Long roomId) {
+    public List<Message> enterChat(Long roomId) {
         // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         return messageRepository.findByChat(chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT)));
     }
 
-    public ChatResponseDTO.BroadcastMsgDTO chatting (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+    public ChatResponseDTO.BroadcastMsgDTO chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
@@ -203,10 +206,10 @@ public class ChatService {
 
         // 메세지 저장
         messageRepository.save(msg);
-        return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId ,profile, msg);
+        return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg);
     }
 
-    public void chattingWithRedis (Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+    public void chattingWithRedis(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
@@ -225,15 +228,15 @@ public class ChatService {
     }
 
 
-    public void shareCourse (ChatRequestDTO.ShareReqDTO reqDTO){
+    public void shareCourse(ChatRequestDTO.ShareReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
 
         Message courseMsg;
 
-        if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
+        if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
             Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-            courseMsg= MessageConverter.toShareMessage(user, chat, course);
+            courseMsg = MessageConverter.toShareMessage(user, chat, course);
 
             messageRepository.save(courseMsg);
 
@@ -241,12 +244,11 @@ public class ChatService {
 
             // 메세지 BroadCast
             template.convertAndSend("/sub/" + chat.getId() + "/msg", courseDTO);
-        }
-        else{
+        } else {
             // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
-            if (privateChat == null){
+            if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
                 privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
@@ -257,22 +259,21 @@ public class ChatService {
                 Chat saveChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
 
-                courseMsg= MessageConverter.toShareMessage(user, saveChat, course);
+                courseMsg = MessageConverter.toShareMessage(user, saveChat, course);
 
                 // Save And Broadcast
                 messageRepository.save(courseMsg);
-                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), saveChat.getId(),course);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), saveChat.getId(), course);
 
                 // 메세지 BroadCast
                 template.convertAndSend("/sub/" + saveChat.getId() + "/msg", courseDTO);
-            }
-            else{
+            } else {
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
-                courseMsg= MessageConverter.toShareMessage(user, privateChat, course);
+                courseMsg = MessageConverter.toShareMessage(user, privateChat, course);
 
                 // Save And Broadcast
                 messageRepository.save(courseMsg);
-                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), privateChat.getId(),course);
+                ChatResponseDTO.BroadcastCourseDTO courseDTO = MessageConverter.toBroadCastCourseDTO(user.getId(), privateChat.getId(), course);
 
                 // 메세지 BroadCast
                 template.convertAndSend("/sub/" + privateChat.getId() + "/msg", courseDTO);
@@ -280,13 +281,13 @@ public class ChatService {
         }
     }
 
-    public void shareCourseWithRedis (ChatRequestDTO.ShareReqDTO reqDTO){
+    public void shareCourseWithRedis(ChatRequestDTO.ShareReqDTO reqDTO) {
         /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
 
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
 
-        if (reqDTO.getIsChat()){ // 채팅방 공유 시 채팅방 ID 이용
+        if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
             Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
             messageRepository.save(MessageConverter.toShareMessage(user, chat, course));
@@ -298,12 +299,11 @@ public class ChatService {
 
             // 메세지 BroadCast
 //            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
-        }
-        else{
+        } else {
             // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
-            if (privateChat == null){
+            if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
                 privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
 
@@ -324,8 +324,7 @@ public class ChatService {
 
                 // 메세지 BroadCast
 //                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
-            }
-            else{
+            } else {
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
                 // Save And Broadcast
@@ -349,7 +348,7 @@ public class ChatService {
 
         userChatRepository.deleteUserChatByUserAndChat(user, chat);
 
-        chat.updateParticipants(chat.getParticipants()-1);
+        chat.updateParticipants(chat.getParticipants() - 1);
     }
 
 
