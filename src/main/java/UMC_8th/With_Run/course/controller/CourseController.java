@@ -23,6 +23,7 @@ import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "산책코스 API", description = "우리동네 산책코스, 떠오르는 산책코스, 검색, 스크랩 및 좋아요 등 산책코스 관련 기능 제공")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course")
