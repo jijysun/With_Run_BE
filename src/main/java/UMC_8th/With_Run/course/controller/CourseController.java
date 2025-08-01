@@ -27,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course")
+@Tag(name = "산책 코스 API")
 public class CourseController {
 
     private final NearbyCourseService nearbyCourseService;
