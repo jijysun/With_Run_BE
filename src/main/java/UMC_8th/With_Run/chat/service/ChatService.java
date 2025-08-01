@@ -211,7 +211,7 @@ public class ChatService {
                 .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
                 .build();
 
-        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
+        redisPublisher.publishMsg("redis.chat.msg."+chatId, payloadDTO);
     }
 
     public void shareCourseWithRedis(ChatRequestDTO.ShareReqDTO reqDTO) {
