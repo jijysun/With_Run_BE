@@ -52,6 +52,11 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class ScrapItemDTO {
         private Long courseId;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private Long location;
         private LocalDateTime scrapedAt;
     }
 
@@ -86,6 +91,11 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class LikeItemDTO {
         private Long courseId;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private Long location;
         private Long count;
         private LocalDateTime likedAt;
     }
