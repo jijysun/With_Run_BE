@@ -33,4 +33,8 @@ public class Pin {
     public void setCourseId(Long id) {
 
     }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
 }

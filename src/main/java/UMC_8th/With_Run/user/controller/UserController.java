@@ -258,15 +258,15 @@ public class UserController {
     @PatchMapping("/courses/{course_id}")
     @Operation(summary = "코스 수정 API", description = "사용자의 코스를 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "수정 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "courseId", description = "코스 id 입니다.")
-    })
-    public StndResponse<UpdateCourseDTO> updateCourse(@PathVariable Long course_id, @RequestBody UpdateCourseDTO updateCourseDTO){
-        UserRequestDto.UpdateCourseDTO dto = new UserRequestDto.UpdateCourseDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<UpdateCourseDTO> updateCourse(
+            @PathVariable("course_id") Long courseId,
+            @RequestBody UpdateCourseDTO updateCourseDTO
+    ) {
+        UpdateCourseDTO updatedDto = myCourseService.updateCourse(courseId, updateCourseDTO);
+        return StndResponse.onSuccess(updatedDto, SuccessCode.REQUEST_SUCCESS);
     }
+
 
 }
