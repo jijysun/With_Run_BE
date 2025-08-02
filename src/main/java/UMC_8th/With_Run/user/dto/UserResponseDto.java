@@ -56,7 +56,7 @@ public class UserResponseDto {
         private String keyword;
         private String time;
         private String courseImage;
-        private Long location;
+        private String location;
         private LocalDateTime scrapedAt;
     }
 
@@ -95,8 +95,7 @@ public class UserResponseDto {
         private String keyword;
         private String time;
         private String courseImage;
-        private Long location;
-        private Long count;
+        private String location;
         private LocalDateTime likedAt;
     }
 
@@ -108,12 +107,26 @@ public class UserResponseDto {
         private List<LikeItemDTO> likeList;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyCourseItemDTO {
+        private Long courseId;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private String location;
+        private LocalDateTime createdAt;
+    }
+
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CourseListResultDTO {
-        private ArrayList<Course> courses;
+    public static class MyCourseListResultDTO {
+        private List<MyCourseItemDTO> myCourseList;
     }
 
     @Builder

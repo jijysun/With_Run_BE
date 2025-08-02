@@ -3,6 +3,7 @@ package UMC_8th.With_Run.user.service;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LikeItemDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.entity.Likes;
@@ -34,10 +35,19 @@ public class LikesServiceImpl implements LikesService {
         List<Likes> likes = likesRepository.findAllByUserId(user.getId());
 
         List<LikeItemDTO> likeItems = likes.stream()
-                .map(like -> LikeItemDTO.builder()
-                        .courseId(like.getCourse().getId())
-                        .likedAt(like.getCreatedAt())
-                        .build())
+                .map(like -> {
+                    Course course = like.getCourse();
+
+                    return LikeItemDTO.builder()
+                            .courseId(course.getId())
+                            .courseName(course.getName())
+                            .keyword(course.getKeyWord())
+                            .time(course.getTime())
+                            .courseImage(course.getCourseImage())
+                            .location(course.getLocation())
+                            .likedAt(like.getCreatedAt())
+                            .build();
+                })
                 .toList();
 
         return LikeListResultDTO.builder()
