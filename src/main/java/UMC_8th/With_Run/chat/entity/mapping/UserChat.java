@@ -27,7 +27,7 @@ public class UserChat {
     @Column(nullable = false, columnDefinition = "BIGINT")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) // EAGER ?!?!
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
@@ -38,9 +38,16 @@ public class UserChat {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Chat chat;
 
+    @Column(columnDefinition = "unread_msg")
+    private Integer unReadMsg;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void resetUnReadMsg() {
+        this.unReadMsg = 0;
+    }
 }

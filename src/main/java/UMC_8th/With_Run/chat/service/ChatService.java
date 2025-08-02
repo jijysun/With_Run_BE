@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
-import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
@@ -30,7 +29,6 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -39,8 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -194,9 +190,17 @@ public class ChatService {
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
-    public List<Message> enterChat(Long roomId) {
+    @Transactional
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) {
         // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
-        return messageRepository.findByChat(chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT)));
+
+        ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
+        User user = getUserByJWT(request, "enterChat");
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId);
+
+        userChat.resetUnReadMsg();
+
+        return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
     public ChatResponseDTO.BroadcastMsgDTO chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {

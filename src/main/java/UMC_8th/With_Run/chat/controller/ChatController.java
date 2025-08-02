@@ -4,7 +4,6 @@ package UMC_8th.With_Run.chat.controller;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
-import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
@@ -108,11 +107,10 @@ public class ChatController {
     @GetMapping("/{chatId}")
     @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 메세지 내역 확인 API 입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "test", content = @Content(schema = @Schema(implementation = ChatResponseDTO.ChatHistoryDTO.class)))
+            @ApiResponse(responseCode = "CHAT2004", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     })
-    public StndResponse<List<Message>> enterChat(@PathVariable("chatId") Long chatId) {
-        List<Message> messages = chatService.enterChat(chatId);
-        return StndResponse.onSuccess(messages, SuccessCode.ENTER_CHAT_SUCCESS);
+    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> enterChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
+        return StndResponse.onSuccess(chatService.enterChat(chatId, request), SuccessCode.ENTER_CHAT_SUCCESS);
     }
 
     // 메세지 채팅

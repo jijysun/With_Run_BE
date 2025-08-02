@@ -12,6 +12,7 @@ public class UserChatConverter {
         return UserChat.builder()
                 .user(user)
                 .chat(chat)
+                .unReadMsg(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
