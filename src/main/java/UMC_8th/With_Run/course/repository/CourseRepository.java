@@ -22,4 +22,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 """, nativeQuery = true)
     List<Course> findCoursesByRegion(Long provinceId, Long cityId, Long townId);
 
+    List<Course> findAllByUserId(Long userId);
 }

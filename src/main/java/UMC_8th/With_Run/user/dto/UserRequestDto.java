@@ -26,9 +26,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class BreedProfileRequestDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
@@ -42,9 +42,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class UpdateProfileDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
@@ -66,19 +66,15 @@ public class UserRequestDto {
 
     @Getter
     @Setter
-    public static class UpdateCourseDTO{
-        private Long courseId;
-        //코스 엔티티 나오면 핀 데이터 추가할 예정
-        //private ArrayList<Pin> pinList;
-        private String courseName;
-        private String courseDescription;
-        private String courseImage;
-        private String keyword;
-        private Integer hour;
-        private Integer minute;
-        private Long townId;
-        private Long cityId;
+    public static class UpdateCourseDTO {
+        private String name;
+        private String description;
+        private String time;
+        private List<String> keyWords;
+        private List<Long> pinIds;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
     }
 
     @Getter

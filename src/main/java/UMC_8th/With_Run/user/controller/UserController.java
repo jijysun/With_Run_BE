@@ -10,7 +10,6 @@ import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateCourseDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
-import UMC_8th.With_Run.user.dto.UserResponseDto.CourseListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.FollowerListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.FollowingListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
@@ -19,6 +18,7 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.SimpleUserResultDTO;
 import UMC_8th.With_Run.user.service.FollowService;
 import UMC_8th.With_Run.user.service.LikesService;
+import UMC_8th.With_Run.user.service.MyCourseService;
 import UMC_8th.With_Run.user.service.ProfileService;
 import UMC_8th.With_Run.user.service.ScrapService;
 import UMC_8th.With_Run.user.service.UserService;
@@ -59,6 +59,7 @@ public class UserController {
     private final LikesService likesService;
     private final ScrapService scrapService;
     private final FollowService followService;
+    private final MyCourseService myCourseService;
 
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "로그인 API입니다.")
@@ -175,17 +176,15 @@ public class UserController {
 
 
     @GetMapping("/courses")
-    @Operation(summary = "내코스 목록 조회 API", description = "사용자의 코스를 조회하는 API입니다.")
+    @Operation(summary = "내 코스 목록 조회 API", description = "현재 로그인한 사용자가 작성한 코스를 조회하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<CourseListResultDTO> getCourseList(){
-        UserResponseDto.CourseListResultDTO dto = new UserResponseDto.CourseListResultDTO();
+    public StndResponse<UserResponseDto.MyCourseListResultDTO> getCourseList(HttpServletRequest request) {
+        UserResponseDto.MyCourseListResultDTO dto = myCourseService.getMyCourses(request);
         return StndResponse.onSuccess(dto, SuccessCode.INQUIRY_SUCCESS);
     }
+
 
     @GetMapping("/followers")
     @Operation(summary = "팔로워 목록 조회 API", description = "나를 팔로우한 사용자 목록(팔로워 리스트)을 반환합니다.")
@@ -259,15 +258,15 @@ public class UserController {
     @PatchMapping("/courses/{course_id}")
     @Operation(summary = "코스 수정 API", description = "사용자의 코스를 수정하는 API입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "수정 성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다."),
-            @Parameter(name = "courseId", description = "코스 id 입니다.")
-    })
-    public StndResponse<UpdateCourseDTO> updateCourse(@PathVariable Long course_id, @RequestBody UpdateCourseDTO updateCourseDTO){
-        UserRequestDto.UpdateCourseDTO dto = new UserRequestDto.UpdateCourseDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<UpdateCourseDTO> updateCourse(
+            @PathVariable("course_id") Long courseId,
+            @RequestBody UpdateCourseDTO updateCourseDTO
+    ) {
+        UpdateCourseDTO updatedDto = myCourseService.updateCourse(courseId, updateCourseDTO);
+        return StndResponse.onSuccess(updatedDto, SuccessCode.REQUEST_SUCCESS);
     }
+
 
 }
