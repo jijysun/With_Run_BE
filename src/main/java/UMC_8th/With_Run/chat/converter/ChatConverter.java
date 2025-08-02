@@ -33,14 +33,14 @@ public class ChatConverter {
                 .build();
     }
 
-    public static List<ChatResponseDTO.GetInviteUserDTO> toGetInviteUserDTO(List<User> userList, List<Profile> profileList) {
+    public static List<ChatResponseDTO.GetInviteUserDTO> toGetInviteUserDTO(List<Long> userList, List<Profile> profileList) {
         List<ChatResponseDTO.GetInviteUserDTO> dtoList = new ArrayList<>();
 
         for (int i = 0; i < userList.size(); i++) {
             dtoList.add(ChatResponseDTO.GetInviteUserDTO.builder()
-                    .userId(userList.get(0).getId())
-                    .name(profileList.get(0).getName())
-                    .profileImage(profileList.get(0).getProfileImage())
+                    .userId(userList.get(i))
+                    .name(profileList.get(i).getName())
+                    .profileImage(profileList.get(i).getProfileImage())
                     .build());
         }
 

@@ -37,6 +37,16 @@ public class ChatResponseDTO {
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class BroadcastInviteUserDTO {
+        private Long userId;
+
+        private LocalDateTime createdAt;
+
+        private String msg;
+
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class ChatHistoryDTO {
         private ArrayList<Message> messages;
     }

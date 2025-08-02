@@ -40,7 +40,18 @@ public class ChatController {
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
 
-
+    @GetMapping("")
+    @Operation(summary = "채팅방 목록 조회 API", description = "대화를 생성하거나, 초대된 채팅방 리스트 조회 리스트입니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.GetChatListDTO.class))) // 성공 DTO Response 클래스
+    })
+    @Parameters({
+            @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
+    })
+    public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
+        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(request);
+        return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
+    }
 
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
@@ -54,33 +65,6 @@ public class ChatController {
         // userId = Jwt로 해결이 되니,
         chatService.createChat(targetId, request);
         return StndResponse.onSuccess(null, SuccessCode.CHAT_CREATE_SUCCESS);
-    }
-
-    // 초대할 친구 목록 불러오기
-    @GetMapping("/{id}/invite")
-    @Operation(summary = "채팅방 초대 친구 목록 불러오기 API", description = "채팅방에 초대할 친구 목록을 확인하는 API 입니다. 다수 초대가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
-    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
-    @Parameters({
-            @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
-            @Parameter(name = "userId", description = "초대할 사용자들의 ID 입니다"),
-    })
-    public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
-        List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, request);
-        return StndResponse.onSuccess(canInviteUserList, SuccessCode.GET_INVITE_SUCCESS);
-    }
-
-    // 채팅 유저 추가
-    @PostMapping("/{id}/invite")
-    @Operation(summary = "채팅방 초대 API", description = "채팅방 초대 API 입니다. 딱히 반환할 게 없어 성공 코드만 반활할 예정입니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = StndResponse.class)))
-    })
-    @Parameters({
-            @Parameter(name = "userId", description = "초대할 사용자 id 입니다.")
-    })
-    public StndResponse<Object> inviteUser(@PathVariable("id") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
-        chatService.inviteUser(chatId, reqDTO);
-        return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
     }
 
     @PatchMapping("/{chatId}")
@@ -97,6 +81,30 @@ public class ChatController {
         return StndResponse.onSuccess(null, SuccessCode.RENAME_SUCCESS);
     }
 
+    // 초대할 친구 목록 불러오기
+    @GetMapping("/{id}/invite")
+    @Operation(summary = "채팅방 초대 친구 목록 불러오기 API", description = "채팅방에 초대할 친구 목록을 확인하는 API 입니다. 다수 초대가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
+    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+    @Parameters({
+            @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
+            @Parameter(name = "userId", description = "초대할 사용자들의 ID 입니다"),
+    })
+    public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("id") Long chatId, HttpServletRequest request) {
+        List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, request);
+        return StndResponse.onSuccess(canInviteUserList, SuccessCode.GET_INVITE_SUCCESS);
+    }
+
+    // 채팅 사용자 초대
+    @PostMapping("/{id}/invite")
+    @Operation(summary = "채팅방 초대 API", description = "채팅방 초대 API 입니다. 딱히 반환할 게 없어 성공 코드만 반활할 예정입니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "Test code", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+    })
+    public StndResponse<Object> inviteUser(@PathVariable("id") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
+        chatService.inviteUser(chatId, reqDTO);
+        return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 메세지 내역 확인 API 입니다.")
     @ApiResponses({
@@ -105,6 +113,23 @@ public class ChatController {
     public StndResponse<List<Message>> enterChat(@PathVariable("id") Long chatId) {
         List<Message> messages = chatService.enterChat(chatId);
         return StndResponse.onSuccess(messages, SuccessCode.ENTER_CHAT_SUCCESS);
+    }
+
+    // 메세지 채팅
+    @MessageMapping("/{id}/msg")
+    @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
+    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
+    public void chattingWithRedis(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
+        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
+//        chatService.chattingWithRedis(chatId, reqDTO);
+    }
+
+    @PostMapping("/share")
+    @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
+    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
+    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
+        chatService.shareCourse(reqDTO);
+//        chatService.shareCourseWithRedis(reqDTO);
     }
 
     @DeleteMapping("{id}")
@@ -118,37 +143,6 @@ public class ChatController {
     public StndResponse<Object> leaveChat(@PathVariable("id") Long chatId, HttpServletRequest request) {
         chatService.leaveChat(chatId, request);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
-    }
-
-    @GetMapping("")
-    @Operation(summary = "채팅방 목록 조회 API", description = "대화를 생성하거나, 초대된 채팅방 리스트 조회 리스트입니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.GetChatListDTO.class))) // 성공 DTO Response 클래스
-    })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
-    })
-    public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
-        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(request);
-        return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
-    }
-
-    // 메세지 채팅
-    @MessageMapping("/{id}/msg")
-    @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
-    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
-    public void chattingWithRedis(@DestinationVariable ("id") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-
-        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
-//        chatService.chattingWithRedis(chatId, reqDTO);
-    }
-
-    @PostMapping("/share")
-    @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
-    @ApiResponse(responseCode = "SuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
-    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
-        chatService.shareCourse(reqDTO);
-//        chatService.shareCourseWithRedis(reqDTO);
     }
 
 }

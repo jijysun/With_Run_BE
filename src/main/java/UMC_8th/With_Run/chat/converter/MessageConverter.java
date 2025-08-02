@@ -9,16 +9,28 @@ import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MessageConverter {
 
-    public static Message toMessage(User user, Chat chat, ChatRequestDTO.ChattingReqDTO dto, Course course) {
+    public static Message toMessage(User user, Chat chat, ChatRequestDTO.ChattingReqDTO dto) {
 
         return Message.builder()
                 .user(user)
                 .chat(chat)
                 .isCourse(false)
                 .msg(dto.getMessage())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Message toInviteMessage (Chat chat, String msg){
+        return Message.builder()
+                .user(null)
+                .chat(chat)
+                .isCourse(false)
+                .msg(msg)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
