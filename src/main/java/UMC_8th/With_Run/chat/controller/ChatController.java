@@ -66,17 +66,18 @@ public class ChatController {
         return StndResponse.onSuccess(null, SuccessCode.CHAT_CREATE_SUCCESS);
     }
 
-    @PatchMapping("/{chatId}")
+    @PatchMapping("/{chatId}/rename")
     @Operation(summary = "채팅방 이름 변경 API", description = "생성된 채팅방에 대한 이름 변경 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class))) // 성공 DTO Response 클래스
+            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = ChatResponseDTO.RenameChatDTO.class))) // 성공 DTO Response 클래스
     })
     @Parameters({
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName, HttpServletRequest request) {
+    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("name") String newName, HttpServletRequest request) {
         chatService.renameChat(chatId, newName, request);
+        // 변경 이름 & id 반환하기
         return StndResponse.onSuccess(null, SuccessCode.RENAME_SUCCESS);
     }
 
@@ -130,15 +131,22 @@ public class ChatController {
 //        chatService.shareCourseWithRedis(reqDTO);
     }
 
+    @PatchMapping ("/{chatId}")
+    @Operation(summary = "채팅방 떠나기 API", description = "참여 채팅방 화면에서 잠시 떠나는 API 입니다. 읽지 않은 메세지 수 계산을 위한 API 입니다!")
+    @ApiResponse(responseCode = "CHAT2005", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+    public StndResponse<ChatResponseDTO.RenameChatDTO> leaveChat (@PathVariable ("chatId") Long chatId, HttpServletRequest request){
+        chatService.leaveChat(chatId, request);
+    }
+
     @DeleteMapping("{chatId}")
-    @Operation(summary = "채팅방 떠나기 API", description = "참여 채팅방 떠나기 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
+    @Operation(summary = "채팅방 삭제 API", description = "참여 채팅방 삭제 API 입니다. 다른 응답할 정보가 없어, 성공 코드만 반환할 예정입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = Chat.class))) // 성공 DTO Response 클래스
     })
     @Parameters({
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
-    public StndResponse<Object> leaveChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
+    public StndResponse<Object> deleteChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
         chatService.deleteChat(chatId, request);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }

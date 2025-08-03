@@ -28,6 +28,7 @@ public enum SuccessCode implements BaseCode {
     ENTER_CHAT_SUCCESS (HttpStatus.OK, "CHAT2004", "채팅방 진입에 성공했습니다"),
     LEAVE_CHAT_SUCCESS (HttpStatus.OK, "CHAT2005", "채팅방 나가기에 성공했습니다"),
     GET_LIST_SUCCESS (HttpStatus.OK, "CHAT2006", "참여 채팅방 목록 조회에 성공했습니다"),
+    DELETE_CHAT_SUCCESS (HttpStatus.OK, "CHAT2007", "참여 채팅방 삭제에 성공했습니다"),
     
 
 

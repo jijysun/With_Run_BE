@@ -39,7 +39,7 @@ public class UserChat {
     private Chat chat;
 
     @Column(nullable = false)
-    private Boolean isDefaultChatName = false;
+    private Boolean isDefaultChatName = true;
 
     @Column(nullable = false, length = 15)
     private String chatName;
@@ -57,12 +57,17 @@ public class UserChat {
     private LocalDateTime updatedAt;
 
     public void renameChat (String newName){
+        this.isDefaultChatName = false;
         this.chatName = newName;
     }
 
     public void setToChatting() {
         this.unReadMsg = 0;
         this.isChatting = true;
+    }
+
+    public void setToNotChatting() {
+        this.isChatting = false;
     }
 
     public void updateUnReadMsg() {

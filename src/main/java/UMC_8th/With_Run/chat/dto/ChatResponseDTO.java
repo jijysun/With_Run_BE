@@ -37,6 +37,12 @@ public class ChatResponseDTO {
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class RenameChatDTO{
+        private Long chatId;
+        private String chatName;
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class BroadcastInviteUserDTO {
         private Long userId;
 

@@ -170,7 +170,7 @@ public class ChatService {
 
         List<UserChat> userCHatList = userChatRepository.findAllByChat_Id(chatId);
         for (UserChat userChat : userCHatList) { // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
-            if (userChat.getIsDefaultChatName()){
+            if (!userChat.getIsDefaultChatName()){
                 continue;
             }
 
@@ -392,6 +392,14 @@ public class ChatService {
 //                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
             }
         }
+    }
+
+
+    @Transactional
+    public void leaveChat (Long chatId, HttpServletRequest request){
+        User user = getUserByJWT(request, "leaveChat");
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId);
+        userChat.setToNotChatting();
     }
 
     @Transactional
