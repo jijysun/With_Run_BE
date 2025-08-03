@@ -1,7 +1,9 @@
 package UMC_8th.With_Run.map.dto;
 
-import lombok.*;
-import org.springframework.data.domain.Page;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -40,6 +42,7 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
+        private String overviewPolyline;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor

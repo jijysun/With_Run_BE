@@ -58,4 +58,6 @@ public class Course {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    private String overviewPolyline; //프론트에서 암호화해서주는 최적코스 좌표
 }

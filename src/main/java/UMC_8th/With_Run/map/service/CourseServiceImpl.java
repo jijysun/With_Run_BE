@@ -74,6 +74,7 @@ public class CourseServiceImpl implements CourseService {
                 .createdAt(LocalDateTime.now())
                 .regionProvince(regionProvince) // 조회한 엔티티 할당
                 .regionsCity(regionsCity)
+                .overviewPolyline(requestDto.getOverviewPolyline())
                 .build();
 
         courseRepository.save(course);

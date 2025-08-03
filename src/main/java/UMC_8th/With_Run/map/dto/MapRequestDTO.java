@@ -27,6 +27,7 @@ public class MapRequestDTO {
         private Long userId;
         private Long regionProvinceId;
         private Long regionsCityId;
+        private String overviewPolyline;
 
     }
 }
