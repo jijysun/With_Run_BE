@@ -9,7 +9,7 @@ import UMC_8th.With_Run.map.entity.Pin;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
 import UMC_8th.With_Run.map.repository.PinRepository;
-import UMC_8th.With_Run.map.repository.RegionProvinceRepository;
+import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
 import UMC_8th.With_Run.map.repository.RegionsCityRepository;
 
 import UMC_8th.With_Run.user.entity.User;

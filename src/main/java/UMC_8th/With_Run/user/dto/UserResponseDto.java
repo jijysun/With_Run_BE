@@ -50,7 +50,7 @@ public class UserResponseDto {
         private Long courseId;
         private String courseName;
         private String keyword;
-        private String time;
+        private Integer time;
         private String courseImage;
         private String location;
         private LocalDateTime scrapedAt;
@@ -93,7 +93,7 @@ public class UserResponseDto {
         private Long courseId;
         private String courseName;
         private String keyword;
-        private String time;
+        private Integer time;
         private String courseImage;
         private String location;
         private LocalDateTime likedAt;
@@ -115,7 +115,7 @@ public class UserResponseDto {
         private Long courseId;
         private String courseName;
         private String keyword;
-        private String time;
+        private Integer time;
         private String courseImage;
         private String location;
         private LocalDateTime createdAt;
@@ -169,5 +169,4 @@ public class UserResponseDto {
             private String name;
         }
     }
-
 }
