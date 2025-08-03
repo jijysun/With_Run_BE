@@ -11,10 +11,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import UMC_8th.With_Run.map.entity.PetFacility;
 
 @Tag(name = "지도 API", description = "Swagger 테스트용 지도 관련 API")
 @RestController
@@ -26,63 +28,53 @@ public class MapController {
     private final PinService pinService;
 
 
+<<<<<<< HEAD
 
     //검색 관련 API
+=======
+>>>>>>> 0730fe8 ([UPDATE] 카테고리기반 장소 검색 에러 해결 & 페이징 처리)
     @Operation(
-            summary = "키워드 검색",
-            description = "키워드로 장소를 검색합니다.",
+            summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
+            description = "카테고리로 반려동물 시설을 페이징 형태로 검색합니다.",
             parameters = {
-                    @Parameter(name = "query", description = "검색 키워드", required = true, example = "약국")
-            }
-    )
-    @GetMapping("/search/keyword")
-    public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByKeyword(
-            @RequestParam String query) {
-
-
-        List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByKeyword(query);
-        return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
-    }
-
-
-
-    @Operation(
-            summary = "카테고리 검색",
-            description = "카테고리로 장소를 검색합니다.",
-            parameters = {
-                    @Parameter(name = "type", description = "카테고리 타입 (예: 약국, 병원)", required = true, example = "약국")
+                    @Parameter(name = "type", description = "카테고리 타입 (예: 동물약국, 미술관)", required = true, example = "동물약국"),
+                    @Parameter(name = "page", description = "페이지 번호 (0부터 시작, 최소 0)", required = false, example = "0"),
+                    @Parameter(name = "size", description = "한 페이지당 항목 수 (1-100)", required = false, example = "20")
             }
     )
     @GetMapping("/search/categories")
-    public StndResponse<List<MapResponseDTO.PlaceResponseDto>> searchByCategory(
-            @RequestParam String type) {
+    public StndResponse<MapResponseDTO.PetFacilityPageResponseDto> searchByCategory(
+            @RequestParam String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
+        MapResponseDTO.PetFacilityPageResponseDto result = 
+                mapSearchService.searchPlacesByCategorySimple(type, page, size);
 
-        List<MapResponseDTO.PlaceResponseDto> result = mapSearchService.searchPlacesByCategory(type);
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
 
 
-
     @Operation(
-            summary = "특정 시설 클릭 (상세 정보)",
-            description = "선택한 장소의 상세 정보를 반환합니다.",
+            summary = "ID 기반 반려동물 시설 검색",
+            description = "ID로 특정 반려동물 시설의 상세 정보를 검색합니다.",
             parameters = {
-                    @Parameter(name = "placeName", description = "장소 이름", required = true, example = "연남약국")
+                    @Parameter(name = "id", description = "조회할 반려동물 시설의 ID", required = true, example = "1")
             }
     )
-    @GetMapping("/places/detail")
-    public ResponseEntity<MapResponseDTO.PlaceResponseDto> getPlaceDetail(@RequestParam String placeName) {
-        MapResponseDTO.PlaceResponseDto detail = mapSearchService.getPlaceDetailByName(placeName);
-        if (detail == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(detail);
+    @GetMapping("/search/{id}")
+    public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
+        MapResponseDTO.PetFacilityResponseDto facility = mapSearchService.getPetFacilityById(id);
+        return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
     }
 
 
 
+<<<<<<< HEAD
     // 핀 관련 API
+=======
+
+>>>>>>> 0730fe8 ([UPDATE] 카테고리기반 장소 검색 에러 해결 & 페이징 처리)
     @Operation(
             summary = "핀 생성",
             description = "새로운 핀을 생성합니다.",
@@ -182,17 +174,4 @@ public class MapController {
     }
 
 
-    //반려동물 시설 관련 API
-    @Operation(
-            summary = "반려동물 시설 단일 조회",
-            description = "ID로 특정 반려동물 시설의 상세 정보를 조회합니다.",
-            parameters = {
-                    @Parameter(name = "id", description = "조회할 반려동물 시설의 ID", required = true, example = "1")
-            }
-    )
-    @GetMapping("/pet-facilities/{id}")
-    public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
-        MapResponseDTO.PetFacilityResponseDto facility = mapSearchService.getPetFacilityById(id);
-        return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
-    }
 }

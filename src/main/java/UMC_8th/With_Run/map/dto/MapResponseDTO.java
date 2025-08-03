@@ -1,6 +1,9 @@
 package UMC_8th.With_Run.map.dto;
 
 import lombok.*;
+import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public class MapResponseDTO {
 
@@ -47,11 +50,19 @@ public class MapResponseDTO {
         private Double longitude;
         private Double latitude;
         private String address;
-        private String closedDay;
-        private Integer runningTime;
-        private Boolean hasParking;
-        private String createdAt;
-        private String updatedAt;
-        private String deletedAt;
+        private String closed_day;
+        private String running_time;
+        private String has_parking;
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class PetFacilityPageResponseDto {
+        private List<PetFacilityResponseDto> content;
+        private long totalElements;
+        private int totalPages;
+        private int size;
+        private int number;
+        private boolean first;
+        private boolean last;
     }
 }

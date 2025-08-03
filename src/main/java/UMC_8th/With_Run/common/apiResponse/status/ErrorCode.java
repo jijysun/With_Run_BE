@@ -63,7 +63,9 @@ public enum ErrorCode implements BaseErrorCode {
     // 아직은 필요한 에러 코드가 없어 보입니다.
 
     // PAGING 오류
-    WRONG_PAGE (HttpStatus.BAD_REQUEST, "PAGE4001", "올바르지 않은 페이지 번호 입니다.");
+    WRONG_PAGE (HttpStatus.BAD_REQUEST, "PAGE4001", "올바르지 않은 페이지 번호 입니다."),
+    WRONG_PAGE_SIZE (HttpStatus.BAD_REQUEST, "PAGE4002", "페이지 크기는 1-100 사이여야 합니다."),
+    PAGE_OUT_OF_RANGE (HttpStatus.BAD_REQUEST, "PAGE4003", "페이지 번호가 범위를 벗어났습니다.");
 
 
     private final HttpStatus httpStatus;
