@@ -46,13 +46,7 @@ cloud:
     stack:
       auto: false
 
-<<<<<<< HEAD
-
 google:
   places:
     key: ${GOOGLE-API-KEY}
-=======
-google:
-    places:
-      key: ${GOOGLE-API-KEY}
->>>>>>> 0730fe8 ([UPDATE] 카테고리기반 장소 검색 에러 해결 & 페이징 처리)
+
