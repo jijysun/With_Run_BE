@@ -34,7 +34,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,12 +99,17 @@ public class ChatService {
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
     @Transactional
-    public void renameChat(Long roomId, String newName, HttpServletRequest request) {
+    public ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, HttpServletRequest request) {
         User user = getUserByJWT(request, "renameChat");
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId());
         userchat.renameChat(newName);
+
+        return ChatResponseDTO.RenameChatDTO.builder()
+                .chatId(chatId)
+                .chatName(newName)
+                .build();
     }
 
     // 채팅 초대 목록 조회 리스트

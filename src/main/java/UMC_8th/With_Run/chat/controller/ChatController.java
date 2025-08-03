@@ -75,10 +75,10 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("name") String newName, HttpServletRequest request) {
-        chatService.renameChat(chatId, newName, request);
+    public StndResponse<ChatResponseDTO.RenameChatDTO> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("name") String newName, HttpServletRequest request) {
+        ChatResponseDTO.RenameChatDTO renameChatDTO = chatService.renameChat(chatId, newName, request);
         // 변경 이름 & id 반환하기
-        return StndResponse.onSuccess(null, SuccessCode.RENAME_SUCCESS);
+        return StndResponse.onSuccess(renameChatDTO, SuccessCode.RENAME_SUCCESS);
     }
 
     // 초대할 친구 목록 불러오기
@@ -136,6 +136,7 @@ public class ChatController {
     @ApiResponse(responseCode = "CHAT2005", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     public StndResponse<ChatResponseDTO.RenameChatDTO> leaveChat (@PathVariable ("chatId") Long chatId, HttpServletRequest request){
         chatService.leaveChat(chatId, request);
+        return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
 
     @DeleteMapping("{chatId}")
