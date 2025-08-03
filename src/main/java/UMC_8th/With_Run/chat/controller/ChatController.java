@@ -139,7 +139,7 @@ public class ChatController {
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
     public StndResponse<Object> leaveChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
-        chatService.leaveChat(chatId, request);
+        chatService.deleteChat(chatId, request);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
 

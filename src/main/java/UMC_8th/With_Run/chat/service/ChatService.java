@@ -89,6 +89,8 @@ public class ChatService {
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
+
+        ///  TODO 채팅방 이름 세팅 및 반환하기!!!
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -191,23 +193,29 @@ public class ChatService {
     }
 
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) {
-        // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
-
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
         User user = getUserByJWT(request, "enterChat");
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId);
 
-        userChat.resetUnReadMsg();
+        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
+        userChat.setToChatting();
 
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
+    @Transactional
     public ChatResponseDTO.BroadcastMsgDTO chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+        // 1. 메세지가 수신된다
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
+
+        // 2. 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
+        // select * From user_chat uc where chat_id = ? and isChatting = false;
+        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
+        userChatList.forEach(UserChat::updateUnReadMsg);
 
         // 메세지 저장
         messageRepository.save(msg);
@@ -347,7 +355,7 @@ public class ChatService {
     }
 
     @Transactional
-    public void leaveChat(Long chatId, HttpServletRequest request) {
+    public void deleteChat(Long chatId, HttpServletRequest request) {
         User user = getUserByJWT(request, "leaveChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 

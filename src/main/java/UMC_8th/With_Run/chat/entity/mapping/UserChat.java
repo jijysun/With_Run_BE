@@ -44,10 +44,18 @@ public class UserChat {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private Boolean isChatting;
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public void resetUnReadMsg() {
+    public void setToChatting() {
         this.unReadMsg = 0;
+        this.isChatting = true;
+    }
+
+    public void updateUnReadMsg() {
+        this.unReadMsg ++;
     }
 }
