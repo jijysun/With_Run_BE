@@ -1,20 +1,17 @@
 package UMC_8th.With_Run.user.service;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
-import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LoginResultDTO;
-import UMC_8th.With_Run.user.entity.Role;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import java.time.LocalDate;
 import java.util.Collections;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -74,7 +71,7 @@ public class UserServiceImpl implements UserService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         // soft delete
         user.delete();

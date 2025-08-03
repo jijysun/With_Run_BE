@@ -1,7 +1,9 @@
 package UMC_8th.With_Run.user.service;
 
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
@@ -48,7 +50,7 @@ public class MyCourseServiceImpl implements MyCourseService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         List<Course> myCourses = courseRepository.findAllByUserId(user.getId());
 
@@ -74,7 +76,7 @@ public class MyCourseServiceImpl implements MyCourseService {
     public UserRequestDto.UpdateCourseDTO updateCourse(Long courseId, UpdateCourseDTO dto) {
 
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         // 1. 코스 정보 수정
         course.setName(dto.getName());
