@@ -3,6 +3,7 @@ package UMC_8th.With_Run.user.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,13 +56,13 @@ public class UserRequestDto {
         private String introduction;
     }
 
-
     @Getter
     @Setter
-    public static class RegionRequestDTO{
-        private Long townId;
-        private Long cityId;
+    public static class RegionRequestDTO {
+        @NotNull(message = "provinceId는 필수입니다.")
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
     }
 
     @Getter

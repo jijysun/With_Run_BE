@@ -148,4 +148,20 @@ public class UserResponseDto {
         private String message;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RegionResponseDTO {
+        private RegionDTO province;
+        private RegionDTO city;
+        private RegionDTO town;
+
+        @Getter @Builder
+        public static class RegionDTO {
+            private Long id;
+            private String name;
+        }
+    }
+
 }
