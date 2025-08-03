@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class MapController {
 
     private final MapService mapService;
+    private final CourseService courseService;
 
     @Operation(
             summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
@@ -134,8 +135,7 @@ public class MapController {
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
             @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
-        // 수정 부분: mapService.createCourse 호출 방식 변경
-        Long courseId = mapService.createCourse(requestDto); // userId 파라미터 제거
+        Long courseId = courseService.createCourse(requestDto);
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
                 .build();

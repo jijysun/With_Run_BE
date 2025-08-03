@@ -95,11 +95,6 @@ public class MapServiceImpl implements MapService {
     }
 
     @Override
-    public Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto) {
-        return courseService.createCourse(requestDto.getUserId(), requestDto);
-    }
-
-    @Override
     @Transactional
     public Long createPin(MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = Pin.builder()

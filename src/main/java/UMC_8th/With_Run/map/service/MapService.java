@@ -12,8 +12,6 @@ public interface MapService {
     MapResponseDTO.PetFacilityPageResponseDto getPetFacilityByCategory(String category, int page, int size);
     MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id);
 
-    Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto);
-
     Long createPin(MapRequestDTO.PinRequestDto requestDto);
     Long updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto);
     Long deletePin(Long pinId);

@@ -55,6 +55,10 @@ public enum ErrorCode implements BaseErrorCode {
     COURSE_NAME_REQUIRED(HttpStatus.BAD_REQUEST , "MAP4003", "산책 코스 이름은 필수 입니다."),
     COURSE_TAG_REQUIRED(HttpStatus.BAD_REQUEST , "MAP4004", "산책 코스 태그는 필수 입니다."),
     TIME_REQUIRED(HttpStatus.BAD_REQUEST , "MAP4005", "소요 시간은 필수 입니다."),
+    PIN_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4006", "핀을 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4007", "사용자를 찾을 수 없습니다."),
+    REGION_PROVINCE_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4008", "해당 지역(도)을 찾을 수 없습니다."),
+    REGION_CITY_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4009", "해당 지역(시)을 찾을 수 없습니다."),
 
     // Notice
     // 아직은 필요한 에러 코드가 없어 보입니다.
