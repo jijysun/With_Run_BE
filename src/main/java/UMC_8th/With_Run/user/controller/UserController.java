@@ -14,6 +14,7 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.FollowerListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.FollowingListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LikeListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ProfileResultDTO;
+import UMC_8th.With_Run.user.dto.UserResponseDto.RegionResponseDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.SimpleUserResultDTO;
 import UMC_8th.With_Run.user.service.FollowService;
@@ -31,6 +32,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,16 +98,14 @@ public class UserController {
 
     @PostMapping("/region")
     @Operation(summary = "동네 설정 API", description = "사용자의 동네 정보를 설정하는 API입니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
-    })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public StndResponse<RegionRequestDTO> createRegion(@RequestBody UserRequestDto.RegionRequestDTO RegionRequestDTO){
-        UserRequestDto.RegionRequestDTO dto = new UserRequestDto.RegionRequestDTO();
-        return StndResponse.onSuccess(dto, SuccessCode.REQUEST_SUCCESS);
+    public StndResponse<RegionResponseDTO> createRegion(
+            @RequestBody @Valid RegionRequestDTO regionRequestDTO,
+            HttpServletRequest request) {
+
+        RegionResponseDTO response = userService.setUserRegion(request, regionRequestDTO);
+        return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
     }
+
 
     @PostMapping("/alarm")
     @Operation(summary = "알람 끄기 API", description = "사용자의 알람을 끄는 API입니다.")

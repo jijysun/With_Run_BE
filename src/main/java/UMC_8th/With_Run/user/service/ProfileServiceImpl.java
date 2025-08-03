@@ -1,8 +1,8 @@
 package UMC_8th.With_Run.user.service;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.config.s3.S3Uploader;
-import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
@@ -45,17 +45,17 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         RegionProvince province = provinceRepository.findById(profile.getProvinceId())
-                .orElseThrow(() -> new IllegalArgumentException("도 정보 없음"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         RegionsCity city = cityRepository.findById(profile.getCityId())
-                .orElseThrow(() -> new IllegalArgumentException("시/군/구 정보 없음"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         RegionsTown town = townRepository.findById(profile.getTownId())
-                .orElseThrow(() -> new IllegalArgumentException("동 정보 없음"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
 
         return UserResponseDto.ProfileResultDTO.builder()
                 .id(profile.getId())
@@ -83,14 +83,14 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         RegionProvince province = provinceRepository.findById(requestDTO.getProvinceId())
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 도 ID"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         RegionsCity city = cityRepository.findById(requestDTO.getCityId())
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 시/군/구 ID"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         RegionsTown town = townRepository.findById(requestDTO.getTownId())
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 동/읍/면 ID"));
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
 
         String charactersJson = convertToJson(requestDTO.getCharacters());
         String styleJson = convertToJson(requestDTO.getStyle());
@@ -122,10 +122,10 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         // 업데이트
         profile.setTownId(dto.getTownId());
@@ -150,7 +150,7 @@ public class ProfileServiceImpl implements ProfileService {
         try {
             return new ObjectMapper().writeValueAsString(list != null ? list : Collections.emptyList());
         } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+            throw new UserHandler(ErrorCode.BAD_REQUEST);
         }
     }
 
@@ -159,10 +159,10 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
 
 

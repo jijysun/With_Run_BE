@@ -1,10 +1,6 @@
 package UMC_8th.With_Run.user.dto;
 
-import UMC_8th.With_Run.course.entity.Course;
-import UMC_8th.With_Run.user.entity.Likes;
-import UMC_8th.With_Run.user.entity.Scraps;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,23 +23,23 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ProfileResultDTO {
-        private Long id;              // 프로필 ID
-        private Long userId;          // 사용자 ID
+        private Long id;
+        private Long userId;
         private Long provinceId;
         private String provinceName;
         private Long cityId;
         private String cityName;
         private Long townId;
         private String townName;
-        private String name;          // 반려견 이름
-        private String gender;        // 성별
-        private String birth;         // 생일 (문자열 또는 Date로 변경 가능)
-        private String breed;         // 품종
-        private String size;          // 크기
-        private String profileImage;  // 이미지 URL
+        private String name;
+        private String gender;
+        private String birth;
+        private String breed;
+        private String size;
+        private String profileImage;
 
-        private String character;     // 성격 (JSON -> String or Map<String, Object>)
-        private String style;         // 스타일 (JSON -> String or Map<String, Object>)
+        private String character;
+        private String style;
     }
 
     @Getter
@@ -66,6 +62,8 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class FollowItemDTO {
         private Long targetUserId;
+        private String name;
+        private String profileImage;
     }
 
     @Getter
@@ -74,6 +72,8 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class FollowerItemDTO {
         private Long userId;
+        private String name;
+        private String profileImage;
     }
 
 
@@ -134,6 +134,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowerListResultDTO {
+        private int count;
         private List<FollowerItemDTO> followers;
     }
 
@@ -142,6 +143,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowingListResultDTO {
+        private int count;
         private List<FollowItemDTO> followings;
     }
 
@@ -150,6 +152,22 @@ public class UserResponseDto {
     @NoArgsConstructor
     public static class SimpleUserResultDTO {
         private String message;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RegionResponseDTO {
+        private RegionDTO province;
+        private RegionDTO city;
+        private RegionDTO town;
+
+        @Getter @Builder
+        public static class RegionDTO {
+            private Long id;
+            private String name;
+        }
     }
 
 }
