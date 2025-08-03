@@ -20,6 +20,12 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PinResponseDto {
         private Long pinId;
+
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class GetPinDto {
+        private Long pinId;
         private Long courseId;
         private String name;
         private String detail;

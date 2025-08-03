@@ -26,6 +26,7 @@ public class MapController {
     private final PinService pinService;
 
 
+
     //검색 관련 API
     @Operation(
             summary = "키워드 검색",
@@ -81,20 +82,26 @@ public class MapController {
 
 
 
-    //핀 관련 API
+    // 핀 관련 API
     @Operation(
             summary = "핀 생성",
             description = "새로운 핀을 생성합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "핀 생성 요청 DTO", required = true)
     )
     @PostMapping("/pin")
-    public StndResponse<String> createPin(@RequestBody MapRequestDTO.PinRequestDto requestDto) {
-        pinService.createPin(requestDto);
-        return StndResponse.onSuccess(null, SuccessCode.CREATE_SUCCESS);
+    public StndResponse<MapResponseDTO.PinResponseDto> createPin(@RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
+        // 1. 서비스 레이어 호출, pinId를 반환 받음
+        Long pinId = pinService.createPin(requestDto);
+
+        // 2. 응답 DTO 생성
+        MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
+                .pinId(pinId)
+                .build();
+
+        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
+        return StndResponse.onSuccess(responseDto, SuccessCode.REQUEST_SUCCESS);
     }
 
-
-    //추후 코스 별 핀 리스트 조회로 변경할 예정
     @Operation(
             summary = "핀 단건 조회",
             description = "핀 ID로 특정 핀 정보를 조회합니다.",
@@ -103,13 +110,13 @@ public class MapController {
             }
     )
     @GetMapping("/pin/{pinId}")
-    public StndResponse<MapResponseDTO.PinResponseDto> getPinById(@PathVariable Long pinId) {
-        MapResponseDTO.PinResponseDto pin = pinService.getPinById(pinId);
-        return StndResponse.onSuccess(pin, SuccessCode.INQUIRY_SUCCESS);
+    public StndResponse<MapResponseDTO.GetPinDto> getPinById(@PathVariable Long pinId) {
+        // 1. 서비스 레이어 호출 (PinServiceImpl의 getPinById 메서드)
+        MapResponseDTO.GetPinDto responseDto = pinService.getPinById(pinId);
+
+        // 2. StndResponse에 DTO와 성공 코드를 담아 반환
+        return StndResponse.onSuccess(responseDto, SuccessCode.INQUIRY_SUCCESS);
     }
-
-
-
 
     @Operation(
             summary = "핀 수정",
@@ -119,14 +126,21 @@ public class MapController {
             }
     )
     @PatchMapping("/pin/{pinId}")
-    public StndResponse<String> updatePin(
-            @PathVariable Long pinId,
-            @RequestBody MapRequestDTO.PinRequestDto requestDto) {
-        pinService.updatePin(pinId, requestDto);
-        return StndResponse.onSuccess(null, SuccessCode.UPDATE_SUCCESS);
+    public StndResponse<MapResponseDTO.PinResponseDto> updatePin( // 반환 타입 변경
+                                                                  @PathVariable Long pinId,
+                                                                  @RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
+
+        // 1. 서비스 레이어 호출, 수정된 핀의 ID를 반환 받음
+        Long updatedPinId = pinService.updatePin(pinId, requestDto);
+
+        // 2. 응답 DTO 생성
+        MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
+                .pinId(updatedPinId)
+                .build();
+
+        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
+        return StndResponse.onSuccess(responseDto, SuccessCode.UPDATE_SUCCESS);
     }
-
-
 
     @Operation(
             summary = "핀 삭제",
@@ -136,11 +150,18 @@ public class MapController {
             }
     )
     @DeleteMapping("/pin/{pinId}")
-    public StndResponse<String> deletePin(@PathVariable Long pinId) {
-        pinService.deletePin(pinId);
-        return StndResponse.onSuccess(null, SuccessCode.DELETE_SUCCESS);
-    }
+    public StndResponse<MapResponseDTO.PinResponseDto> deletePin(@PathVariable Long pinId) {
+        // 1. 서비스 레이어 호출, 삭제된 핀의 ID를 반환 받음
+        Long deletedPinId = pinService.deletePin(pinId);
 
+        // 2. 응답 DTO 생성
+        MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
+                .pinId(deletedPinId)
+                .build();
+
+        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
+        return StndResponse.onSuccess(responseDto, SuccessCode.DELETE_SUCCESS);
+    }
 
 
     //코스 관련 API

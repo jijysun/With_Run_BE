@@ -2,7 +2,6 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-      - classpath:api-key.yml
 
 
   datasource:
@@ -22,7 +21,7 @@ spring:
         format_sql: true
         use_sql_comments: true
         hbm2ddl:
-          auto: update
+          auto: none
         default_batch_fetch_size: 1000
 
 jwt:
@@ -46,3 +45,8 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+
+google:
+  places:
+    key: ${GOOGLE-API-KEY}
