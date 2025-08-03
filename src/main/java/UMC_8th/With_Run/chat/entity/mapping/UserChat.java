@@ -38,17 +38,20 @@ public class UserChat {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Chat chat;
 
+    @Column(nullable = false)
+    private Boolean isDefaultChatName = false;
+
     @Column(nullable = false, length = 15)
     private String chatName;
 
     @Column(columnDefinition = "unread_msg")
     private Integer unReadMsg;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-
     @Column(nullable = false)
     private Boolean isChatting;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;

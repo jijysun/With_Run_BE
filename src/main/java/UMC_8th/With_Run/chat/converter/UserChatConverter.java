@@ -12,7 +12,7 @@ public class UserChatConverter {
         return UserChat.builder()
                 .user(user)
                 .chat(chat)
-                .chatName()
+                .chatName(targetUser.getProfile().getName())
                 .unReadMsg(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
