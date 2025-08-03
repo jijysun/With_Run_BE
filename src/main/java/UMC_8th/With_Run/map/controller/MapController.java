@@ -27,12 +27,6 @@ public class MapController {
     private final MapSearchService mapSearchService;
     private final PinService pinService;
 
-
-<<<<<<< HEAD
-
-    //검색 관련 API
-=======
->>>>>>> 0730fe8 ([UPDATE] 카테고리기반 장소 검색 에러 해결 & 페이징 처리)
     @Operation(
             summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
             description = "카테고리로 반려동물 시설을 페이징 형태로 검색합니다.",
@@ -70,11 +64,6 @@ public class MapController {
 
 
 
-<<<<<<< HEAD
-    // 핀 관련 API
-=======
-
->>>>>>> 0730fe8 ([UPDATE] 카테고리기반 장소 검색 에러 해결 & 페이징 처리)
     @Operation(
             summary = "핀 생성",
             description = "새로운 핀을 생성합니다.",
@@ -82,15 +71,12 @@ public class MapController {
     )
     @PostMapping("/pin")
     public StndResponse<MapResponseDTO.PinResponseDto> createPin(@RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
-        // 1. 서비스 레이어 호출, pinId를 반환 받음
         Long pinId = pinService.createPin(requestDto);
 
-        // 2. 응답 DTO 생성
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(pinId)
                 .build();
 
-        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
         return StndResponse.onSuccess(responseDto, SuccessCode.REQUEST_SUCCESS);
     }
 
@@ -103,10 +89,8 @@ public class MapController {
     )
     @GetMapping("/pin/{pinId}")
     public StndResponse<MapResponseDTO.GetPinDto> getPinById(@PathVariable Long pinId) {
-        // 1. 서비스 레이어 호출 (PinServiceImpl의 getPinById 메서드)
         MapResponseDTO.GetPinDto responseDto = pinService.getPinById(pinId);
 
-        // 2. StndResponse에 DTO와 성공 코드를 담아 반환
         return StndResponse.onSuccess(responseDto, SuccessCode.INQUIRY_SUCCESS);
     }
 
@@ -118,19 +102,13 @@ public class MapController {
             }
     )
     @PatchMapping("/pin/{pinId}")
-    public StndResponse<MapResponseDTO.PinResponseDto> updatePin( // 반환 타입 변경
-                                                                  @PathVariable Long pinId,
-                                                                  @RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
-
-        // 1. 서비스 레이어 호출, 수정된 핀의 ID를 반환 받음
+    public StndResponse<MapResponseDTO.PinResponseDto> updatePin(@PathVariable Long pinId, @RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
         Long updatedPinId = pinService.updatePin(pinId, requestDto);
 
-        // 2. 응답 DTO 생성
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(updatedPinId)
                 .build();
 
-        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
         return StndResponse.onSuccess(responseDto, SuccessCode.UPDATE_SUCCESS);
     }
 
@@ -143,15 +121,12 @@ public class MapController {
     )
     @DeleteMapping("/pin/{pinId}")
     public StndResponse<MapResponseDTO.PinResponseDto> deletePin(@PathVariable Long pinId) {
-        // 1. 서비스 레이어 호출, 삭제된 핀의 ID를 반환 받음
         Long deletedPinId = pinService.deletePin(pinId);
 
-        // 2. 응답 DTO 생성
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(deletedPinId)
                 .build();
 
-        // 3. StndResponse에 DTO와 성공 코드를 담아 반환
         return StndResponse.onSuccess(responseDto, SuccessCode.DELETE_SUCCESS);
     }
 

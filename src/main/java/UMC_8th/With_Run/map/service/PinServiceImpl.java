@@ -51,8 +51,7 @@ public class PinServiceImpl implements PinService {
 
     @Override
     @Transactional
-    public Long deletePin(Long pinId) { // void -> Long 으로 반환 타입 수정
-        // pin 변수를 사용하기 위해 주석을 제거하고 Pin 객체를 조회합니다.
+    public Long deletePin(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
 
