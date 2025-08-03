@@ -7,10 +7,15 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-public interface MapSearchService {
-    List<PetFacility> searchPlacesByCategory(String category);
-    Page<MapResponseDTO.PetFacilityResponseDto> searchPlacesByCategory(String category, int page, int size);
-    MapResponseDTO.PetFacilityPageResponseDto searchPlacesByCategorySimple(String category, int page, int size);
+public interface MapService {
+
+    MapResponseDTO.PetFacilityPageResponseDto getPetFacilityByCategory(String category, int page, int size);
     MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id);
+
     Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto);
+
+    Long createPin(MapRequestDTO.PinRequestDto requestDto);
+    Long updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto);
+    Long deletePin(Long pinId);
+    MapResponseDTO.GetPinDto getPinById(Long pinId);
 }

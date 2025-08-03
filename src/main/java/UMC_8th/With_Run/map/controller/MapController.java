@@ -4,19 +4,14 @@ import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.dto.MapResponseDTO;
-import UMC_8th.With_Run.map.service.MapSearchService;
-import UMC_8th.With_Run.map.service.PinService;
+import UMC_8th.With_Run.map.service.CourseService;
+import UMC_8th.With_Run.map.service.MapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import UMC_8th.With_Run.map.entity.PetFacility;
 
 @Tag(name = "지도 API", description = "Swagger 테스트용 지도 관련 API")
 @RestController
@@ -24,8 +19,7 @@ import UMC_8th.With_Run.map.entity.PetFacility;
 @RequiredArgsConstructor
 public class MapController {
 
-    private final MapSearchService mapSearchService;
-    private final PinService pinService;
+    private final MapService mapService;
 
     @Operation(
             summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
@@ -43,7 +37,7 @@ public class MapController {
             @RequestParam(defaultValue = "20") int size) {
 
         MapResponseDTO.PetFacilityPageResponseDto result = 
-                mapSearchService.searchPlacesByCategorySimple(type, page, size);
+                mapService.getPetFacilityByCategory(type, page, size);
 
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
@@ -58,7 +52,7 @@ public class MapController {
     )
     @GetMapping("/search/{id}")
     public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
-        MapResponseDTO.PetFacilityResponseDto facility = mapSearchService.getPetFacilityById(id);
+        MapResponseDTO.PetFacilityResponseDto facility = mapService.getPetFacilityById(id);
         return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
     }
 
@@ -71,7 +65,7 @@ public class MapController {
     )
     @PostMapping("/pin")
     public StndResponse<MapResponseDTO.PinResponseDto> createPin(@RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
-        Long pinId = pinService.createPin(requestDto);
+        Long pinId = mapService.createPin(requestDto);
 
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(pinId)
@@ -89,7 +83,7 @@ public class MapController {
     )
     @GetMapping("/pin/{pinId}")
     public StndResponse<MapResponseDTO.GetPinDto> getPinById(@PathVariable Long pinId) {
-        MapResponseDTO.GetPinDto responseDto = pinService.getPinById(pinId);
+        MapResponseDTO.GetPinDto responseDto = mapService.getPinById(pinId);
 
         return StndResponse.onSuccess(responseDto, SuccessCode.INQUIRY_SUCCESS);
     }
@@ -103,7 +97,7 @@ public class MapController {
     )
     @PatchMapping("/pin/{pinId}")
     public StndResponse<MapResponseDTO.PinResponseDto> updatePin(@PathVariable Long pinId, @RequestBody @Valid MapRequestDTO.PinRequestDto requestDto) {
-        Long updatedPinId = pinService.updatePin(pinId, requestDto);
+        Long updatedPinId = mapService.updatePin(pinId, requestDto);
 
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(updatedPinId)
@@ -121,7 +115,7 @@ public class MapController {
     )
     @DeleteMapping("/pin/{pinId}")
     public StndResponse<MapResponseDTO.PinResponseDto> deletePin(@PathVariable Long pinId) {
-        Long deletedPinId = pinService.deletePin(pinId);
+        Long deletedPinId = mapService.deletePin(pinId);
 
         MapResponseDTO.PinResponseDto responseDto = MapResponseDTO.PinResponseDto.builder()
                 .pinId(deletedPinId)
@@ -140,8 +134,8 @@ public class MapController {
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
             @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
-        // 수정 부분: mapSearchService.createCourse 호출 방식 변경
-        Long courseId = mapSearchService.createCourse(requestDto); // userId 파라미터 제거
+        // 수정 부분: mapService.createCourse 호출 방식 변경
+        Long courseId = mapService.createCourse(requestDto); // userId 파라미터 제거
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
                 .build();
