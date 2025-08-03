@@ -3,6 +3,7 @@ package UMC_8th.With_Run.user.service;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapItemDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.ScrapListResultDTO;
 import UMC_8th.With_Run.user.entity.Scraps;
@@ -35,10 +36,19 @@ public class ScrapServiceImpl implements ScrapService {
         List<Scraps> scraps = scrapsRepository.findAllByUserId(user.getId());
 
         List<ScrapItemDTO> scrapItems = scraps.stream()
-                .map(scrap -> ScrapItemDTO.builder()
-                        .courseId(scrap.getCourse().getId())
-                        .scrapedAt(scrap.getCreatedAt())
-                        .build())
+                .map(scrap -> {
+                    Course course = scrap.getCourse();
+
+                    return ScrapItemDTO.builder()
+                            .courseId(course.getId())
+                            .courseName(course.getName())
+                            .keyword(course.getKeyWord())
+                            .time(course.getTime())
+                            .courseImage(course.getCourseImage())
+                            .location(course.getLocation())
+                            .scrapedAt(scrap.getCreatedAt())
+                            .build();
+                })
                 .toList();
 
         return ScrapListResultDTO.builder()

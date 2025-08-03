@@ -29,10 +29,12 @@ public class UserResponseDto {
     public static class ProfileResultDTO {
         private Long id;              // 프로필 ID
         private Long userId;          // 사용자 ID
-        private Long townId;          // 동네 ID
-        private Long cityId;          // 시/군/구 ID
-        private Long provinceId;      // 도 ID
-
+        private Long provinceId;
+        private String provinceName;
+        private Long cityId;
+        private String cityName;
+        private Long townId;
+        private String townName;
         private String name;          // 반려견 이름
         private String gender;        // 성별
         private String birth;         // 생일 (문자열 또는 Date로 변경 가능)
@@ -50,6 +52,11 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class ScrapItemDTO {
         private Long courseId;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private String location;
         private LocalDateTime scrapedAt;
     }
 
@@ -84,7 +91,11 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class LikeItemDTO {
         private Long courseId;
-        private Long count;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private String location;
         private LocalDateTime likedAt;
     }
 
@@ -96,12 +107,26 @@ public class UserResponseDto {
         private List<LikeItemDTO> likeList;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyCourseItemDTO {
+        private Long courseId;
+        private String courseName;
+        private String keyword;
+        private String time;
+        private String courseImage;
+        private String location;
+        private LocalDateTime createdAt;
+    }
+
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CourseListResultDTO {
-        private ArrayList<Course> courses;
+    public static class MyCourseListResultDTO {
+        private List<MyCourseItemDTO> myCourseList;
     }
 
     @Builder
