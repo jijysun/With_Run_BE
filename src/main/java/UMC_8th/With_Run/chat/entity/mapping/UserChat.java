@@ -38,6 +38,9 @@ public class UserChat {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Chat chat;
 
+    @Column(nullable = false, length = 15)
+    private String chatName;
+
     @Column(columnDefinition = "unread_msg")
     private Integer unReadMsg;
 
@@ -49,6 +52,10 @@ public class UserChat {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void renameChat (String newName){
+        this.chatName = newName;
+    }
 
     public void setToChatting() {
         this.unReadMsg = 0;

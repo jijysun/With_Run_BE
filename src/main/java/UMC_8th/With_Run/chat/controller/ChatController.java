@@ -75,8 +75,8 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName) {
-        chatService.renameChat(chatId, newName);
+    public StndResponse<Object> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("newName") String newName, HttpServletRequest request) {
+        chatService.renameChat(chatId, newName, request);
         return StndResponse.onSuccess(null, SuccessCode.RENAME_SUCCESS);
     }
 

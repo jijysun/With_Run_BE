@@ -8,13 +8,14 @@ import java.time.LocalDateTime;
 
 public class UserChatConverter {
 
-    public static UserChat toNewUserChat(User user, Chat chat) {
+    public static UserChat toNewUserChat(User user, User targetUser, Chat chat) {
         return UserChat.builder()
                 .user(user)
                 .chat(chat)
+                .chatName()
                 .unReadMsg(0)
                 .createdAt(LocalDateTime.now())
-                .updateAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }

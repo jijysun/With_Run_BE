@@ -81,7 +81,7 @@ public class ChatService {
         Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
 
         List<UserChat> userChats = new ArrayList<>();
-        userChats.add(UserChatConverter.toNewUserChat(user, chat));
+        userChats.add(UserChatConverter.toNewUserChat(user, targetUser chat));
         userChats.add(UserChatConverter.toNewUserChat(targetUser, chat));
 
         chat.addUserChat(userChats.get(0));
@@ -91,13 +91,20 @@ public class ChatService {
         userChatRepository.saveAll(userChats);
 
         ///  TODO 채팅방 이름 세팅 및 반환하기!!!
+
+        /*
+        * 1:1 갠톡에서는 채팅방 이름이 서로 다르다.
+        * */
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
     @Transactional
-    public void renameChat(Long roomId, String newName) {
+    public void renameChat(Long roomId, String newName, HttpServletRequest request) {
+        User user = getUserByJWT(request, "renameChat");
         Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        chat.renameChat(newName);
+
+        UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId());
+        userchat.renameChat(newName);
     }
 
     // 채팅 초대 목록 조회 리스트
