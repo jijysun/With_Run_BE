@@ -10,6 +10,7 @@ import UMC_8th.With_Run.user.dto.UserResponseDto.FollowerItemDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.FollowerListResultDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto.FollowingListResultDTO;
 import UMC_8th.With_Run.user.entity.Follow;
+import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.FollowRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
@@ -38,13 +39,21 @@ public class FollowServiceImpl implements FollowService {
         List<Follow> followings = followRepository.findAllByUserId(user.getId());
 
         List<FollowItemDTO> result = followings.stream()
-                .map(follow -> FollowItemDTO.builder()
-                        .targetUserId(follow.getTargetUser().getId())
-                        .build())
+                .map(follow -> {
+                    User targetUser = follow.getTargetUser();
+                    Profile profile = targetUser.getProfile();
+
+                    return FollowItemDTO.builder()
+                            .targetUserId(targetUser.getId())
+                            .name(profile != null ? profile.getName() : null)
+                            .profileImage(profile != null ? profile.getProfileImage() : null)
+                            .build();
+                })
                 .toList();
 
         return FollowingListResultDTO.builder()
                 .followings(result)
+                .count(result.size())
                 .build();
     }
 
@@ -59,15 +68,24 @@ public class FollowServiceImpl implements FollowService {
         List<Follow> followers = followRepository.findAllByTargetUserId(me.getId());
 
         List<FollowerItemDTO> result = followers.stream()
-                .map(f -> FollowerItemDTO.builder()
-                        .userId(f.getUser().getId())
-                        .build())
+                .map(f -> {
+                    User follower = f.getUser();
+                    Profile profile = follower.getProfile();
+
+                    return FollowerItemDTO.builder()
+                            .userId(follower.getId())
+                            .name(profile != null ? profile.getName() : null)
+                            .profileImage(profile != null ? profile.getProfileImage() : null)
+                            .build();
+                })
                 .toList();
 
         return FollowerListResultDTO.builder()
                 .followers(result)
+                .count(result.size())
                 .build();
     }
+
 
     @Override
     public void cancelFollowing(Long targetUserId, HttpServletRequest request) {

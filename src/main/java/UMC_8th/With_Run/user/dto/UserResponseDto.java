@@ -62,6 +62,8 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class FollowItemDTO {
         private Long targetUserId;
+        private String name;
+        private String profileImage;
     }
 
     @Getter
@@ -70,6 +72,8 @@ public class UserResponseDto {
     @AllArgsConstructor
     public static class FollowerItemDTO {
         private Long userId;
+        private String name;
+        private String profileImage;
     }
 
 
@@ -130,6 +134,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowerListResultDTO {
+        private int count;
         private List<FollowerItemDTO> followers;
     }
 
@@ -138,6 +143,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FollowingListResultDTO {
+        private int count;
         private List<FollowItemDTO> followings;
     }
 
