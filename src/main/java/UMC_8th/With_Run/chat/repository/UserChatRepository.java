@@ -21,7 +21,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     @Query("Select uc from UserChat uc join fetch uc.chat Where uc.user.id = :userId")
     List<UserChat> findAllByUser_IdWithChat(@Param("userId") Long userId);
 
-    @Query("Select uc From UserChat uc JOIN FETCH uc.chat, uc.user where uc.user.id = :userId")
+    @Query("Select uc From UserChat uc JOIN FETCH uc.chat JOIN FETCH uc.user where uc.user.id = :userId")
     List<UserChat> findAllByUserIdWithChatAndParticipants(@Param("userId") Long userId);
 
 
@@ -36,7 +36,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     @Query ("Select uc From UserChat uc join fetch uc.user u join fetch u.profile where uc.chat.id = :chatId ")
     List<UserChat> findAllByChat_Id(@Param("chatId") Long chatId);
 
-    UserChat findByUser_IdAndChat_Id(Long userId, Long chatId);
+    Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
 

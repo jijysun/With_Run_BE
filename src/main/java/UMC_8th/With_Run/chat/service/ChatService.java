@@ -425,9 +425,17 @@ public class ChatService {
         User user = getUserByJWT(request, "leaveChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        userChatRepository.deleteUserChatByUserAndChat(user, chat);
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        userChatRepository.delete(userChat);
 
-        chat.updateParticipants(chat.getParticipants() - 1);
+        Integer participants = chat.getParticipants();
+
+        if (participants -1 == 0) {
+            chatRepository.deleteById(chatId);
+        }
+        else{
+            chat.updateParticipants(participants - 1);
+        }
     }
 
 
