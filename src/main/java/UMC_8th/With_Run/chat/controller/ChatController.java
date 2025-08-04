@@ -100,8 +100,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "CHAT2002", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    public StndResponse<Object> inviteUser(@PathVariable("chatId") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO) {
-        chatService.inviteUser(chatId, reqDTO);
+    public StndResponse<Object> inviteUser(@PathVariable("chatId") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
+        chatService.inviteUser(chatId, reqDTO, request);
         return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
     }
 

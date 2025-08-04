@@ -39,9 +39,9 @@ public class MessageConverter {
                 .toList();
     }
 
-    public static Message toInviteMessage(Chat chat, String msg) {
+    public static Message toInviteMessage(User user,Chat chat, String msg) {
         return Message.builder()
-                .user(null)
+                .user(user)
                 .chat(chat)
                 .isCourse(false)
                 .msg(msg)

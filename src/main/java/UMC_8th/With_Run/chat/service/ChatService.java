@@ -179,7 +179,7 @@ public class ChatService {
 
     ///  TODO 업데이트 안되는 오류 수정할 것!
     @Transactional
-    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
+    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
         
         ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
         
@@ -252,7 +252,7 @@ public class ChatService {
 
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
-        messageRepository.save(MessageConverter.toInviteMessage(chat, inviteMsg));
+        messageRepository.save(MessageConverter.toInviteMessage(getUserByJWT(request, "InviteUser"), chat, inviteMsg));
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
