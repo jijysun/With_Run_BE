@@ -86,7 +86,7 @@ public class ChatService {
 
         log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
         
-        return ChatConverter.toGetChatListDTOV2(unReadMsgCountList, chatIdList, participantsMap);
+        return ChatConverter.toGetChatListDTOV2(userChatList, unReadMsgCountList, chatIdList, participantsMap);
     }
 
     // 채팅 첫 생성 메소드
@@ -106,6 +106,8 @@ public class ChatService {
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
+
+        ///  메세지 보내기!!
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -115,6 +117,9 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        log.info("newName : " + newName);
+
         userchat.renameChat(newName);
 
         return ChatResponseDTO.RenameChatDTO.builder()
@@ -162,7 +167,6 @@ public class ChatService {
             canInviteList += userId.toString() + ", ";
         }
 
-
         List<Profile> canInviteUserProfileList = profileRepository.findAllByUser_IdIn(canInviteUserIdList);
 
         log.info("follow List : {}", idList);
@@ -172,12 +176,13 @@ public class ChatService {
     }
 
     // 위 메소드에서 조회한 사용자 초대 메소드
+
+    ///  TODO 업데이트 안되는 오류 수정할 것!
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
         
         ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
         
-        // 1. 사용자를 초대 + 입력 받는다.
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         List<ChatRequestDTO.InviteDTO> inviteUserList = reqDTO.getInviteUserList();
@@ -185,50 +190,55 @@ public class ChatService {
         if (chat.getParticipants() + inviteUserList.size() > 4) {
             throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
+        chat.updateParticipants(chat.getParticipants() + inviteUserList.size());
 
-        List<UserChat> userCHatList = userChatRepository.findAllByChat_Id(chatId);
-        for (UserChat userChat : userCHatList) { // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
-            if (!userChat.getIsDefaultChatName()){
+        // 기존 사용자
+        List<UserChat> userChatList = userChatRepository.findAllByChat_Id(chatId);
+
+
+        // 신규 사용자 update
+        String preUserNameList = userChatList.stream()
+                .map(userChat -> userChat.getUser().getProfile().getName())
+                .collect(Collectors.joining(", "));
+
+        log.info("preUserName : {}", preUserNameList);
+
+        List<UserChat> newUserChat = new ArrayList<>();
+        for (ChatRequestDTO.InviteDTO dto :  inviteUserList){
+
+            User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+            String collect = inviteUserList.stream()
+                    .filter(userInfo -> !userInfo.getUserId().equals(dto.getUserId()))
+                    .map(ChatRequestDTO.InviteDTO::getUsername)
+                    .collect(Collectors.joining(", "));
+
+            String joinChatName = preUserNameList + ", " + collect;
+
+            log.info("joinChatName : {}", joinChatName);
+            newUserChat.add(UserChatConverter.toNewUserChatInInvite(user, joinChatName, chat));
+        }
+        userChatRepository.saveAll(newUserChat);
+
+        // 기존 사용자 update
+        log.info("pre User Update");
+        for (UserChat userChat : userChatList) { // 기존 사용자의 user_chat 에 대해
+            if (!userChat.getIsDefaultChatName()){ // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
                 continue;
             }
 
             Long currentUserId = userChat.getUser().getId();
 
-            String otherName = userCHatList.stream()
+            String collect = newUserChat.stream()
                     .filter(other -> !other.getUser().getId().equals(currentUserId))
                     .map(otherUserChat -> otherUserChat.getUser().getProfile().getName())
                     .collect(Collectors.joining(", "));
+            String otherName = userChat.getChatName() + ", " + collect;
 
-            userChat.renameChat(otherName);
+            log.info("{}'s name = {}", userChat.getUser().getProfile().getName(),  otherName);
 
+            userChat.renameDefaultChatName(otherName);
         }
-
-        /*// 2. 사용자 id 에 대한 사용자 조회
-        List<Long> userIdList = inviteUserList.stream()
-                .map(ChatRequestDTO.InviteDTO::getUserId).toList(); //
-
-        // 기존 참여자
-        List<User> preUserList = userChatRepository.findAllByChat_Id(chatId).stream() // join fetch!
-                .map(userChat -> userChat.getUser()).toList();
-
-        // 초대 받는 사람
-        List<User> userList = userRepository.findAllByIdIn(userIdList); // need JOIN FETCH!
-
-        // 피초대자 = 기존 초대자 + 새 초대자 이름,
-        List<UserChat> newUserChatList = new ArrayList<>();
-        for (User user : userList) { /// 3. SAVE -> chat의 참여자 수 update 및 user_chat 저장 (일단 이름은 null로)
-            newUserChatList.add(UserChat.builder()
-                    .chat(chat)
-                    .user(user)
-                    .unReadMsg(0)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
-        }
-
-        // chat : participants 증가 시키기, 이름 변경
-        chat.updateParticipants(chat.getParticipants() + newUserChatList.size());
-        userChatRepository.saveAll(newUserChatList);*/
 
         // 이거 보단 다시 만드는 게...
         List<String> nameList = inviteUserList.stream()
@@ -239,10 +249,6 @@ public class ChatService {
             name += s + "님 ";
         }
         name = name.substring(0, name.length() - 1);
-
-        
-        // 기존 참여자의 채팅방 이름 변경
-
 
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";

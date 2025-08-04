@@ -27,14 +27,14 @@ public class ChatConverter {
         private String profileImage;
     }
 
-    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTOV2(List<Integer> unReadMsgCount,List<Long> chatIdList, Map<Long, List<UserChat>> userChatList) {
+    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTOV2(List<UserChat> userChatList,List<Integer> unReadMsgCount, List<Long> chatIdList, Map<Long, List<UserChat>> otherUserChatList) {
         List<ChatResponseDTO.GetChatListDTO> dto = new ArrayList<>();
 
-        for (int i = 0; i<chatIdList.size();i++) {
+        for (int i = 0; i < chatIdList.size(); i++) {
             Long chatId = chatIdList.get(i);
-            List<UserChat> participantsList = userChatList.get(chatId);
+            List<UserChat> participantsList = otherUserChatList.get(chatId);
 
-            UserChat anyUserChat = participantsList.get(0);
+            UserChat uc = userChatList.get(i);
 
             List<String> userNameList = participantsList.stream()
                     .map(userChat -> userChat.getUser().getProfile().getName()).toList();
@@ -44,13 +44,11 @@ public class ChatConverter {
 
             dto.add(ChatResponseDTO.GetChatListDTO.builder()
                     .chatId(chatId)
-                    .chatName(anyUserChat.getChatName())
-
+                    .chatName(uc.getChatName())
                     .usernameList(userNameList)
-
                     .userProfileList(userProfileList)
-
-                    .lastReceivedMsg(anyUserChat.getChat().getLastReceivedMsg())
+                    .participants(uc.getChat().getParticipants())
+                    .lastReceivedMsg(uc.getChat().getLastReceivedMsg())
                     .unReadMsgCount(unReadMsgCount.get(i))
                     .build());
         }

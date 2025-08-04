@@ -20,4 +20,19 @@ public class UserChatConverter {
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
+
+    ///  두 Converter 합칠 것!
+
+    public static UserChat toNewUserChatInInvite(User user, String chatName, Chat chat) {
+        return UserChat.builder()
+                .user(user)
+                .chat(chat)
+                .chatName(chatName)
+                .unReadMsg(0)
+                .isChatting(false)
+                .isDefaultChatName(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 }

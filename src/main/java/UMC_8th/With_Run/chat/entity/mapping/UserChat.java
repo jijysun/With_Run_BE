@@ -12,6 +12,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class UserChat {
 
     @Id
@@ -27,7 +29,7 @@ public class UserChat {
     @Column(nullable = false, columnDefinition = "BIGINT")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) // EAGER ?!?!
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
@@ -58,6 +60,10 @@ public class UserChat {
 
     public void renameChat (String newName){
         this.isDefaultChatName = false;
+        this.chatName = newName;
+    }
+
+    public void renameDefaultChatName(String newName){
         this.chatName = newName;
     }
 
