@@ -114,7 +114,7 @@ public class ChatService {
         User user = getUserByJWT(request, "renameChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId());
+        UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         userchat.renameChat(newName);
 
         return ChatResponseDTO.RenameChatDTO.builder()
@@ -254,7 +254,7 @@ public class ChatService {
     public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
         User user = getUserByJWT(request, "enterChat");
-        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId);
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() ->  new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
         userChat.setToChatting();
@@ -416,7 +416,7 @@ public class ChatService {
     @Transactional
     public void leaveChat (Long chatId, HttpServletRequest request){
         User user = getUserByJWT(request, "leaveChat");
-        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId);
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         userChat.setToNotChatting();
     }
 
@@ -424,8 +424,8 @@ public class ChatService {
     public void deleteChat(Long chatId, HttpServletRequest request) {
         User user = getUserByJWT(request, "leaveChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+
         userChatRepository.delete(userChat);
 
         Integer participants = chat.getParticipants();
@@ -443,7 +443,7 @@ public class ChatService {
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
 
-        log.info("ChatService:getUserByJWT - {} -> found User!", method);
+        log.info("ChatService.getUserByJWT() - {} -> found User!", method);
         return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
     }
 }
