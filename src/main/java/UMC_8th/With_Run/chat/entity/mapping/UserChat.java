@@ -12,6 +12,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class UserChat {
 
     @Id
@@ -38,9 +40,43 @@ public class UserChat {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Chat chat;
 
+    @Column(nullable = false)
+    private Boolean isDefaultChatName = true;
+
+    @Column(length = 15)
+    private String chatName;
+
+    @Column(nullable = false)
+    private Integer unReadMsg;
+
+    @Column(nullable = false)
+    private Boolean isChatting;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void renameChat (String newName){
+        this.isDefaultChatName = false;
+        this.chatName = newName;
+    }
+
+    public void renameDefaultChatName(String newName){
+        this.chatName = newName;
+    }
+
+    public void setToChatting() {
+        this.unReadMsg = 0;
+        this.isChatting = true;
+    }
+
+    public void setToNotChatting() {
+        this.isChatting = false;
+    }
+
+    public void updateUnReadMsg() {
+        this.unReadMsg ++;
+    }
 }
