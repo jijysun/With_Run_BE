@@ -14,6 +14,8 @@ public class UserChatConverter {
                 .chat(chat)
                 .chatName(targetUser.getProfile().getName())
                 .unReadMsg(0)
+                .isChatting(false)
+                .isDefaultChatName(true)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

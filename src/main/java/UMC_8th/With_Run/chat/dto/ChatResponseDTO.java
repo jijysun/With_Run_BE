@@ -34,6 +34,21 @@ public class ChatResponseDTO {
         private List<String> userProfileList; // 참여자 프로필, 최대 3개?
 
         private Integer participants;
+
+        private String lastReceivedMsg;
+
+        private Integer unReadMsgCount;
+
+        /* UserChatList
+
+        chatId chat
+        chatName userchat
+        userNameList -> profile
+        userProfiles profile
+        participants chat
+        lastMsgReceived -> message
+        unReadMsgCount user_chat
+        * */
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor

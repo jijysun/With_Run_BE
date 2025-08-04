@@ -5,25 +5,72 @@ import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ChatConverter {
 
-    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTO(List<UserChat> userChatList) {
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfo {
+        private String username;
+        private String profileImage;
+    }
+
+    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTOV2(List<Integer> unReadMsgCount,List<Long> chatIdList, Map<Long, List<UserChat>> userChatList) {
+        List<ChatResponseDTO.GetChatListDTO> dto = new ArrayList<>();
+
+        for (int i = 0; i<chatIdList.size();i++) {
+            Long chatId = chatIdList.get(i);
+            List<UserChat> participantsList = userChatList.get(chatId);
+
+            UserChat anyUserChat = participantsList.get(0);
+
+            List<String> userNameList = participantsList.stream()
+                    .map(userChat -> userChat.getUser().getProfile().getName()).toList();
+
+            List<String> userProfileList = participantsList.stream()
+                    .map(userChat -> userChat.getUser().getProfile().getProfileImage()).toList();
+
+            dto.add(ChatResponseDTO.GetChatListDTO.builder()
+                    .chatId(chatId)
+                    .chatName(anyUserChat.getChatName())
+
+                    .usernameList(userNameList)
+
+                    .userProfileList(userProfileList)
+
+                    .lastReceivedMsg(anyUserChat.getChat().getLastReceivedMsg())
+                    .unReadMsgCount(unReadMsgCount.get(i))
+                    .build());
+        }
+
+        return dto;
+    }
+
+    /*public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTO(List<UserChat> userChatList) {
         return userChatList.stream()
                 .map(userChat -> ChatResponseDTO.GetChatListDTO.builder()
                         .chatId(userChat.getChat().getId())
                         .chatName(userChat.getChatName())
+                        .usernameList()
+                        .userProfileList()
                         .participants(userChat.getChat().getParticipants())
                         .build())
                 .collect(Collectors.toList());
-    }
+    }*/
 
-    public static Chat toNewChatConverter () {
+    public static Chat toNewChatConverter() {
         return Chat.builder()
                 .userChatList(new ArrayList<>())
                 .messageList(new ArrayList<>())

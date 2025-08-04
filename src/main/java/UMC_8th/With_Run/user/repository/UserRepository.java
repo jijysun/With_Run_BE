@@ -18,9 +18,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByFollowerAndUserChatListNotInOrderById(User follower, Collection<List<UserChat>> userChatLists);
 
+    @Query("Select u From User u join fetch u.profile where u.id = :id")
+    Optional<User> findByIdWithProfile(@Param ("id")Long userId);
 
     // join fetch 를 통한 조회
-    @Query("Select u From User u join fetch u.profile where u.email = :email ")
+    @Query("Select u From User u join fetch u.profile where u.email = :email")
     Optional<User> findByEmailJoinFetch(@Param("email") String email);
 
 }

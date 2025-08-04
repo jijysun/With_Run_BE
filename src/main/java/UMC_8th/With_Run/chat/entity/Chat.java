@@ -25,16 +25,19 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*@Column(nullable = false, length = 15)
-    private String name;*/
 
     @Column(nullable = false)
     private Integer participants; // 참여자 수 입니다.
 
+    @Column(columnDefinition = "TEXT")
+    private String lastReceivedMsg;
+
     @CreatedDate
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)

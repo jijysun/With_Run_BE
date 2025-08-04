@@ -13,8 +13,6 @@ import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
 import UMC_8th.With_Run.chat.repository.UserChatRepository;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
-import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.CourseHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
@@ -36,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -58,21 +57,43 @@ public class ChatService {
     /// follower = 나를 팔로우!
 
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
-        User user = getUserByJWT(request, "getChatList");  // jwt
-        List<UserChat> userChatList = userChatRepository.findAllByUser_IdWithChat(user.getId());
 
-        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
+        // 질문, 해당 user가 참여하고 있는 채팅방을 user_chat 에서 chatList를 조회 후 해당 채팅방 별 다른 참여자를 조회하고 싶음
+        // chatList 의 chat 순서에 맞게 채팅방의 참여자를 조회하고 싶음. ohterUserListEachChat 이런 느낌으로
+        User user = getUserByJWT(request, "getChatList");  // jwt
+
+        List<UserChat> userChatList = userChatRepository.findAllByUserIdWithChatAndParticipants(user.getId());
+
+        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
+
+        List<Long> chatIdList = userChatList.stream()
+                .map(userChat -> userChat.getChat().getId())
+                .toList();
+
+        // 해당 채팅방에 참여하고 있는 user_chat 파싱
+        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdIn(chatIdList);
+
+        Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
+                .filter(userChat -> !userChat.getUser().getId().equals(user.getId()))
+                .collect(Collectors.groupingBy(userchat -> userchat.getChat().getId()));
+
+
+        // 여기서 문제, 저 채팅방 리스트 순서에 맞게 파싱할려면?
+        List<Integer> unReadMsgCountList = userChatList.stream()
+                .map(UserChat::getUnReadMsg)
+                .toList();
+
 
         log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
-
-        return ChatConverter.toGetChatListDTO(userChatList);
+        
+        return ChatConverter.toGetChatListDTOV2(unReadMsgCountList, chatIdList, participantsMap);
     }
 
     // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
         User user = getUserByJWT(request, "createChat"); // jwt
-        User targetUser = userRepository.findById(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
+        User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
 
         Chat chat = ChatConverter.toNewChatConverter();
 
@@ -153,6 +174,9 @@ public class ChatService {
     // 위 메소드에서 조회한 사용자 초대 메소드
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
+        
+        ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
+        
         // 1. 사용자를 초대 + 입력 받는다.
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
@@ -411,7 +435,7 @@ public class ChatService {
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
 
-        log.info("{} -> found User!", method);
+        log.info("ChatService:getUserByJWT - {} -> found User!", method);
         return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
     }
 }

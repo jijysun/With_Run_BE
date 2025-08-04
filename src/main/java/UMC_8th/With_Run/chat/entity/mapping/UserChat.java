@@ -41,10 +41,10 @@ public class UserChat {
     @Column(nullable = false)
     private Boolean isDefaultChatName = true;
 
-    @Column(nullable = false, length = 15)
+    @Column(length = 15)
     private String chatName;
 
-    @Column(columnDefinition = "unread_msg")
+    @Column(nullable = false)
     private Integer unReadMsg;
 
     @Column(nullable = false)
