@@ -31,19 +31,24 @@ public class Message {
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
+    @Column(nullable = false)
     private Boolean isCourse; // Enum Type 으로 변경해도 될 듯?
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String msg;
 
+
+    // course 와 1대1 연결
     private Long courseId;
 
     private String courseImage;
 
     @CreatedDate
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
 }

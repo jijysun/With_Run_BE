@@ -27,10 +27,21 @@ public class Pin {
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id", nullable = true)
     private Course course;
 
-    public void setCourseId(Long id) {
+    public Long getCourseId() {
+        return course != null ? course.getId() : null;
+    }
 
+    public void setCourseId(Long courseId) {
+        if (this.course == null) {
+            this.course = new Course();
+        }
+        this.course.setId(courseId);
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
     }
 }

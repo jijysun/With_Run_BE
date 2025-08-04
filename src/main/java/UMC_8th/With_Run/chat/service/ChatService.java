@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
-import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
 import UMC_8th.With_Run.chat.converter.UserChatConverter;
@@ -14,8 +13,6 @@ import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
 import UMC_8th.With_Run.chat.repository.UserChatRepository;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
-import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.CourseHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
@@ -30,16 +27,14 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,44 +57,75 @@ public class ChatService {
     /// follower = 나를 팔로우!
 
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
+
+        // 질문, 해당 user가 참여하고 있는 채팅방을 user_chat 에서 chatList를 조회 후 해당 채팅방 별 다른 참여자를 조회하고 싶음
+        // chatList 의 chat 순서에 맞게 채팅방의 참여자를 조회하고 싶음. ohterUserListEachChat 이런 느낌으로
         User user = getUserByJWT(request, "getChatList");  // jwt
-        List<UserChat> userChats = userChatRepository.findAllByUser_Id(user.getId());
 
-        if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
+        List<UserChat> userChatList = userChatRepository.findAllByUserIdWithChatAndParticipants(user.getId());
 
-        List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
-        log.info("'getChatList' - Chat.count that user is participating in : " + allByUserChatListIn.size());
+        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
 
-        return ChatConverter.toGetChatListDTO(allByUserChatListIn);
+        List<Long> chatIdList = userChatList.stream()
+                .map(userChat -> userChat.getChat().getId())
+                .toList();
+
+        // 해당 채팅방에 참여하고 있는 user_chat 파싱
+        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdIn(chatIdList);
+
+        Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
+                .filter(userChat -> !userChat.getUser().getId().equals(user.getId()))
+                .collect(Collectors.groupingBy(userchat -> userchat.getChat().getId()));
+
+
+        // 여기서 문제, 저 채팅방 리스트 순서에 맞게 파싱할려면?
+        List<Integer> unReadMsgCountList = userChatList.stream()
+                .map(UserChat::getUnReadMsg)
+                .toList();
+
+
+        log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
+        
+        return ChatConverter.toGetChatListDTOV2(userChatList, unReadMsgCountList, chatIdList, participantsMap);
     }
 
     // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
         User user = getUserByJWT(request, "createChat"); // jwt
-        Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
+        User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
 
-        User targetUser = userRepository.findById(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
-        Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
-
-        Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
+        Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
-        userChats.add(UserChatConverter.toNewUserChat(user, chat));
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, chat));
+        userChats.add(UserChatConverter.toNewUserChat(user, targetUser, chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user,chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
+
+        ///  메세지 보내기!!
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
     @Transactional
-    public void renameChat(Long roomId, String newName) {
-        Chat chat = chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        chat.renameChat(newName);
+    public ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, HttpServletRequest request) {
+        User user = getUserByJWT(request, "renameChat");
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+
+        UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        log.info("newName : " + newName);
+
+        userchat.renameChat(newName);
+
+        return ChatResponseDTO.RenameChatDTO.builder()
+                .chatId(chatId)
+                .chatName(newName)
+                .build();
     }
 
     // 채팅 초대 목록 조회 리스트
@@ -141,7 +167,6 @@ public class ChatService {
             canInviteList += userId.toString() + ", ";
         }
 
-
         List<Profile> canInviteUserProfileList = profileRepository.findAllByUser_IdIn(canInviteUserIdList);
 
         log.info("follow List : {}", idList);
@@ -151,20 +176,72 @@ public class ChatService {
     }
 
     // 위 메소드에서 조회한 사용자 초대 메소드
+
+    ///  TODO 업데이트 안되는 오류 수정할 것!
     @Transactional
-    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO) {
+    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
+        
+        ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
+        
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        if (chat.getParticipants() + reqDTO.getInviteUserList().size() > 4) {
+        List<ChatRequestDTO.InviteDTO> inviteUserList = reqDTO.getInviteUserList();
+
+        if (chat.getParticipants() + inviteUserList.size() > 4) {
             throw new ChatHandler(ErrorCode.CANT_INVITE);
         }
+        chat.updateParticipants(chat.getParticipants() + inviteUserList.size());
 
-        List<Long> userIdList = reqDTO.getInviteUserList().stream()
-                .map(ChatRequestDTO.InviteDTO::getUserId).toList();
+        // 기존 사용자
+        List<UserChat> userChatList = userChatRepository.findAllByChat_Id(chatId);
 
-        List<User> userList = userRepository.findAllByIdIn(userIdList);
 
-        List<String> nameList = reqDTO.getInviteUserList().stream()
+        // 신규 사용자 update
+        String preUserNameList = userChatList.stream()
+                .map(userChat -> userChat.getUser().getProfile().getName())
+                .collect(Collectors.joining(", "));
+
+        log.info("preUserName : {}", preUserNameList);
+
+        List<UserChat> newUserChat = new ArrayList<>();
+        for (ChatRequestDTO.InviteDTO dto :  inviteUserList){
+
+            User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+            String collect = inviteUserList.stream()
+                    .filter(userInfo -> !userInfo.getUserId().equals(dto.getUserId()))
+                    .map(ChatRequestDTO.InviteDTO::getUsername)
+                    .collect(Collectors.joining(", "));
+
+            String joinChatName = preUserNameList + ", " + collect;
+
+            log.info("joinChatName : {}", joinChatName);
+            newUserChat.add(UserChatConverter.toNewUserChatInInvite(user, joinChatName, chat));
+        }
+        userChatRepository.saveAll(newUserChat);
+
+        // 기존 사용자 update
+        log.info("pre User Update");
+        for (UserChat userChat : userChatList) { // 기존 사용자의 user_chat 에 대해
+            if (!userChat.getIsDefaultChatName()){ // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
+                continue;
+            }
+
+            Long currentUserId = userChat.getUser().getId();
+
+            String collect = newUserChat.stream()
+                    .filter(other -> !other.getUser().getId().equals(currentUserId))
+                    .map(otherUserChat -> otherUserChat.getUser().getProfile().getName())
+                    .collect(Collectors.joining(", "));
+            String otherName = userChat.getChatName() + ", " + collect;
+
+            log.info("{}'s name = {}", userChat.getUser().getProfile().getName(),  otherName);
+
+            userChat.renameDefaultChatName(otherName);
+        }
+
+        // 이거 보단 다시 만드는 게...
+        List<String> nameList = inviteUserList.stream()
                 .map(ChatRequestDTO.InviteDTO::getUsername).toList();
 
         String name = "";
@@ -173,37 +250,36 @@ public class ChatService {
         }
         name = name.substring(0, name.length() - 1);
 
-        // userChat 여러 개 저장
-        List<UserChat> newUserChatList = new ArrayList<>();
-        for (User user : userList) {
-            newUserChatList.add(UserChat.builder()
-                    .chat(chat)
-                    .user(user)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
-        }
-
-        // chat : participants 증가 시키기, 이름 변경
-        chat.updateParticipants(chat.getParticipants() + newUserChatList.size());
-        userChatRepository.saveAll(newUserChatList);
-
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
-        messageRepository.save(MessageConverter.toInviteMessage(chat, inviteMsg));
+        messageRepository.save(MessageConverter.toInviteMessage(getUserByJWT(request, "InviteUser"), chat, inviteMsg));
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
-    public List<Message> enterChat(Long roomId) {
-        // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
-        return messageRepository.findByChat(chatRepository.findById(roomId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT)));
+    @Transactional
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
+        ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
+        User user = getUserByJWT(request, "enterChat");
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() ->  new ChatHandler(ErrorCode.WRONG_CHAT));
+
+        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
+        userChat.setToChatting();
+
+        return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
+    @Transactional
     public ChatResponseDTO.BroadcastMsgDTO chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+        // 1. 메세지가 수신된다
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
+
+        // 2. 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
+        // select * From user_chat uc where chat_id = ? and isChatting = false;
+        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
+        userChatList.forEach(UserChat::updateUnReadMsg);
 
         // 메세지 저장
         messageRepository.save(msg);
@@ -251,11 +327,11 @@ public class ChatService {
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
-                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, privateChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, user,privateChat));
 
                 Chat saveChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
@@ -306,11 +382,11 @@ public class ChatService {
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
-                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, privateChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, user,privateChat));
 
                 Chat savedChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
@@ -342,22 +418,38 @@ public class ChatService {
         }
     }
 
+
     @Transactional
-    public void leaveChat(Long chatId, HttpServletRequest request) {
+    public void leaveChat (Long chatId, HttpServletRequest request){
+        User user = getUserByJWT(request, "leaveChat");
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        userChat.setToNotChatting();
+    }
+
+    @Transactional
+    public void deleteChat(Long chatId, HttpServletRequest request) {
         User user = getUserByJWT(request, "leaveChat");
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        userChatRepository.deleteUserChatByUserAndChat(user, chat);
+        userChatRepository.delete(userChat);
 
-        chat.updateParticipants(chat.getParticipants() - 1);
+        Integer participants = chat.getParticipants();
+
+        if (participants -1 == 0) {
+            chatRepository.deleteById(chatId);
+        }
+        else{
+            chat.updateParticipants(participants - 1);
+        }
     }
 
 
-    public User getUserByJWT(HttpServletRequest request, String method) {
+    public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
 
-        log.info("{} -> found User!", method);
-        return userRepository.findByEmail(email).orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+        log.info("ChatService.getUserByJWT() - {} -> found User!", method);
+        return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
     }
 }

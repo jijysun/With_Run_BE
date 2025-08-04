@@ -1,6 +1,11 @@
 package UMC_8th.With_Run.map.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 public class MapResponseDTO {
 
@@ -20,6 +25,12 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class PinResponseDto {
         private Long pinId;
+
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class GetPinDto {
+        private Long pinId;
         private Long courseId;
         private String name;
         private String detail;
@@ -31,6 +42,7 @@ public class MapResponseDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class CourseCreateResponseDto {
         private Long courseId;
+        private String overviewPolyline;
     }
 
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
@@ -41,11 +53,19 @@ public class MapResponseDTO {
         private Double longitude;
         private Double latitude;
         private String address;
-        private String closedDay;
-        private Integer runningTime;
-        private Boolean hasParking;
-        private String createdAt;
-        private String updatedAt;
-        private String deletedAt;
+        private String closed_day;
+        private String running_time;
+        private String has_parking;
+    }
+
+    @Builder @Getter @NoArgsConstructor @AllArgsConstructor
+    public static class PetFacilityPageResponseDto {
+        private List<PetFacilityResponseDto> content;
+        private long totalElements;
+        private int totalPages;
+        private int size;
+        private int number;
+        private boolean first;
+        private boolean last;
     }
 }

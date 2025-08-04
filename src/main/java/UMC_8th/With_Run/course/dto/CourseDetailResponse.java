@@ -13,7 +13,7 @@ public class CourseDetailResponse {
     private String imageUrl;
     private List<String> keywords;
     private String description;
-    private String time;
+    private Integer time;
 
     private List<PinResponse> pins;
 

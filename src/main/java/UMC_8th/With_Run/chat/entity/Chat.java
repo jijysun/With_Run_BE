@@ -25,16 +25,19 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 15)
-    private String name;
 
     @Column(nullable = false)
     private Integer participants; // 참여자 수 입니다.
 
+    @Column(columnDefinition = "TEXT")
+    private String lastReceivedMsg;
+
     @CreatedDate
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -43,9 +46,9 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messageList = new ArrayList<>();
 
-    public void renameChat (String newName){
-        this.name = newName;
-    }
+//    public void renameChat (String newName){
+//        this.name = newName;
+//    }
 
     public void updateParticipants (int participants){
         this.participants = participants;

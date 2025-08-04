@@ -25,7 +25,6 @@ public class RisingCourseService {
     private final ScrapsRepository scrapsRepository;
     private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ JSON 파서
 
-
     public List<CourseResponse> risingCourse() {
         List<Course> allCourses = courseRepository.findAll();
 
@@ -59,13 +58,12 @@ public class RisingCourseService {
                 .limit(50)
                 .collect(Collectors.toList());
 
-
         // 키워드 파싱 + 응답 매핑
         return filtered.stream()
                 .map(course -> {
                     List<String> parsedKeywords = new ArrayList<>();
                     try {
-                        parsedKeywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<>() {});
+                        parsedKeywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<List<String>>() {});
                     } catch (Exception e) {
                         System.err.println("키워드 파싱 오류 (떠오르는): " + e.getMessage());
                     }
@@ -74,7 +72,6 @@ public class RisingCourseService {
                     if (course.getRegionProvince() != null) fullLocation += course.getRegionProvince().getName() + " ";
                     if (course.getRegionsCity() != null) fullLocation += course.getRegionsCity().getName() + " ";
                     if (course.getRegionsTown() != null) fullLocation += course.getRegionsTown().getName();
-
 
                     return CourseResponse.builder()
                             .courseId(course.getId())
@@ -109,9 +106,4 @@ public class RisingCourseService {
                 })
                 .collect(Collectors.toList());
     }
-
-
-
-
-
 }

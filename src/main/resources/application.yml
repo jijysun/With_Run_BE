@@ -2,6 +2,7 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul
@@ -51,4 +52,4 @@ cloud:
 
 google:
   places:
-    key: ${GOOGLE_API_KEY}
+    key: ${GOOGLE-API-KEY}

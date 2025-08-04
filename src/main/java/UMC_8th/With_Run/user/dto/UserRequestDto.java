@@ -3,6 +3,7 @@ package UMC_8th.With_Run.user.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,9 +27,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class BreedProfileRequestDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
@@ -42,9 +43,9 @@ public class UserRequestDto {
     @Getter
     @Setter
     public static class UpdateProfileDTO {
-        private Long townId;
-        private Long cityId;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
         private String name;
         private String gender;
         private String birth;
@@ -55,30 +56,26 @@ public class UserRequestDto {
         private String introduction;
     }
 
-
     @Getter
     @Setter
-    public static class RegionRequestDTO{
-        private Long townId;
-        private Long cityId;
+    public static class RegionRequestDTO {
+        @NotNull(message = "provinceId는 필수입니다.")
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
     }
 
     @Getter
     @Setter
-    public static class UpdateCourseDTO{
-        private Long courseId;
-        //코스 엔티티 나오면 핀 데이터 추가할 예정
-        //private ArrayList<Pin> pinList;
-        private String courseName;
-        private String courseDescription;
-        private String courseImage;
-        private String keyword;
-        private Integer hour;
-        private Integer minute;
-        private Long townId;
-        private Long cityId;
+    public static class UpdateCourseDTO {
+        private String name;
+        private String description;
+        private Integer time;
+        private List<String> keyWords;
+        private List<Long> pinIds;
         private Long provinceId;
+        private Long cityId;
+        private Long townId;
     }
 
     @Getter

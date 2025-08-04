@@ -1,20 +1,28 @@
 package UMC_8th.With_Run.user.service;
 
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.map.entity.RegionProvince;
+import UMC_8th.With_Run.map.entity.RegionsCity;
+import UMC_8th.With_Run.map.entity.RegionsTown;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
+import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
 import UMC_8th.With_Run.user.dto.UserResponseDto.LoginResultDTO;
-import UMC_8th.With_Run.user.entity.Role;
+import UMC_8th.With_Run.user.dto.UserResponseDto.RegionResponseDTO;
+import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
+import UMC_8th.With_Run.user.repository.RegionCityRepository;
+import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
+import UMC_8th.With_Run.user.repository.RegionTownRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import java.time.LocalDate;
 import java.util.Collections;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +35,9 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final RegionProvinceRepository provinceRepository;
+    private final RegionCityRepository cityRepository;
+    private final RegionTownRepository townRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -74,13 +85,57 @@ public class UserServiceImpl implements UserService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         // soft delete
         user.delete();
         userRepository.save(user);
 
     }
+
+    @Override
+    public RegionResponseDTO setUserRegion(HttpServletRequest request, RegionRequestDTO dto) {
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        Profile profile = user.getProfile();
+
+        RegionProvince province = provinceRepository.findById(dto.getProvinceId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+
+        RegionsCity city = null;
+        if (dto.getCityId() != null) {
+            city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+        }
+
+        RegionsTown town = null;
+        if (dto.getTownId() != null) {
+            town = townRepository.findById(dto.getTownId())
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+        }
+
+        profile.setProvinceId(province.getId());
+        profile.setCityId(city != null ? city.getId() : null);
+        profile.setTownId(town != null ? town.getId() : null);
+
+        profileRepository.save(profile);
+
+        return RegionResponseDTO.builder()
+                .province(RegionResponseDTO.RegionDTO.builder()
+                        .id(province.getId())
+                        .name(province.getName())
+                        .build())
+                .city(city != null ? RegionResponseDTO.RegionDTO.builder()
+                        .id(city.getId()).name(city.getName()).build() : null)
+                .town(town != null ? RegionResponseDTO.RegionDTO.builder()
+                        .id(town.getId()).name(town.getName()).build() : null)
+                .build();
+    }
+
 
 }
 

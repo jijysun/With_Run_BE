@@ -11,7 +11,7 @@ public class CourseResponse {
     private Long courseId;
     private String name;
     private List<String> keyword;
-    private String time;
+    private Integer time;
     private String courseImage;
     private String location;
 }

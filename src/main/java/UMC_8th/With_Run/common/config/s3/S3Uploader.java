@@ -7,6 +7,8 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -82,9 +84,32 @@ public class S3Uploader {
 
     public void fileDelete(String s3Key) {
         try {
-            amazonS3.deleteObject(this.bucket, s3Key);
+            amazonS3.deleteObject(bucket, s3Key);
+            log.info("✅ S3 파일 삭제 완료: {}", s3Key);
         } catch (AmazonServiceException e) {
-            System.out.println(e.getErrorMessage());
+            log.error("❌ S3 삭제 실패");
+            log.error("에러 메시지: {}", e.getErrorMessage());
+            log.error("에러 코드: {}", e.getErrorCode());
+            log.error("상태 코드: {}", e.getStatusCode());
+            log.error("요청 ID: {}", e.getRequestId());
+            log.error("삭제 대상 key: {}", s3Key);
+            throw e;
         }
     }
+
+    // URL에서 S3 키 추출
+    public String extractKeyFromUrl(String fileUrl) {
+        // 예: https://with-run-bucket.s3.ap-northeast-2.amazonaws.com/profile/abc_말티즈2.jpg
+        // → 결과: profile/abc_말티즈2.jpg (URL 디코딩 필요)
+        try {
+            URI uri = new URI(fileUrl);
+            String path = uri.getPath();
+            return path.startsWith("/") ? path.substring(1) : path;
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("유효하지 않은 S3 URL입니다: " + fileUrl);
+        }
+    }
+
+
+
 }
