@@ -59,26 +59,22 @@ public class ChatService {
 
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
         User user = getUserByJWT(request, "getChatList");  // jwt
-        List<UserChat> userChats = userChatRepository.findAllByUser_Id(user.getId());
+        List<UserChat> userChatList = userChatRepository.findAllByUser_IdWithChat(user.getId());
 
-        if (userChats.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
+        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST);
 
-        List<Chat> allByUserChatListIn = chatRepository.findAllByUserChatListIn(userChats);
-        log.info("'getChatList' - Chat.count that user is participating in : " + allByUserChatListIn.size());
+        log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
 
-        return ChatConverter.toGetChatListDTO(allByUserChatListIn);
+        return ChatConverter.toGetChatListDTO(userChatList);
     }
 
     // 채팅 첫 생성 메소드
     @Transactional
     public void createChat(Long targetId, HttpServletRequest request) {
         User user = getUserByJWT(request, "createChat"); // jwt
-        Profile userProfile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
-
         User targetUser = userRepository.findById(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
-        Profile targetProfile = profileRepository.findByUserId(targetUser.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
-        Chat chat = ChatConverter.toNewChatConverter(userProfile, targetProfile);
+        Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
         userChats.add(UserChatConverter.toNewUserChat(user, targetUser, chat));
@@ -89,12 +85,6 @@ public class ChatService {
 
         chatRepository.save(chat);
         userChatRepository.saveAll(userChats);
-
-        ///  TODO 채팅방 이름 세팅 및 반환하기!!!
-
-        /*
-        * 1:1 갠톡에서는 채팅방 이름이 서로 다르다.
-        * */
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
@@ -307,7 +297,7 @@ public class ChatService {
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
-                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
                 ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
@@ -362,7 +352,7 @@ public class ChatService {
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null) {
                 log.info("'shareCourse'/toFriend - privateChat is Null!");
-                privateChat = ChatConverter.toNewChatConverter(user.getProfile(), targetUser.getProfile());
+                privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
                 ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
@@ -417,11 +407,11 @@ public class ChatService {
     }
 
 
-    public User getUserByJWT(HttpServletRequest request, String method) {
+    public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
 
         log.info("{} -> found User!", method);
-        return userRepository.findByEmail(email).orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+        return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
     }
 }
