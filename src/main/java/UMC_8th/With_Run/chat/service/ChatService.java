@@ -60,7 +60,7 @@ public class ChatService {
 
         User user = getUserByJWT(request, "getChatList");  // jwt
 
-        List<UserChat> userChatList = userChatRepository.findAllByUserIdWithChatAndParticipants(user.getId());
+        List<UserChat> userChatList = userChatRepository.findAllByUserIdJoinFetchChatUserAndProfile(user.getId());
 
         if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
 
@@ -69,7 +69,7 @@ public class ChatService {
                 .toList();
 
         // 해당 채팅방에 참여하고 있는 user_chat 파싱
-        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdIn(chatIdList);
+        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdInJoinFetchUserAndProfile(chatIdList);
 
         // chatIdList 순서에 맞게 userChat 파싱
         Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
@@ -83,7 +83,7 @@ public class ChatService {
 
         log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
         
-        return ChatConverter.toGetChatListDTOV2(userChatList, unReadMsgCountList, chatIdList, participantsMap);
+        return ChatConverter.toGetChatListDTO(userChatList, unReadMsgCountList, chatIdList, participantsMap);
     }
 
     // 채팅 첫 생성 메소드
@@ -148,7 +148,7 @@ public class ChatService {
         }
 
         // 채팅방에 참여하고 있지 않은 사용자,
-        List<Long> userChatList = userChatRepository.findAllByChat_Id(chatId).stream()
+        List<Long> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId).stream()
                 .map(UserChat -> UserChat.getUser().getId()).toList();
 
         String userChatIdList = userChatList.toString();
@@ -188,7 +188,7 @@ public class ChatService {
         chat.updateParticipants(chat.getParticipants() + inviteUserList.size());
 
         // 기존 사용자
-        List<UserChat> userChatList = userChatRepository.findAllByChat_Id(chatId);
+        List<UserChat> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId);
 
 
         // 신규 사용자 update

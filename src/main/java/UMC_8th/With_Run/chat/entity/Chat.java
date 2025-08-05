@@ -46,10 +46,6 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messageList = new ArrayList<>();
 
-//    public void renameChat (String newName){
-//        this.name = newName;
-//    }
-
     public void updateParticipants (int participants){
         this.participants = participants;
     }
