@@ -58,8 +58,6 @@ public class ChatService {
 
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
 
-        // 질문, 해당 user가 참여하고 있는 채팅방을 user_chat 에서 chatList를 조회 후 해당 채팅방 별 다른 참여자를 조회하고 싶음
-        // chatList 의 chat 순서에 맞게 채팅방의 참여자를 조회하고 싶음. ohterUserListEachChat 이런 느낌으로
         User user = getUserByJWT(request, "getChatList");  // jwt
 
         List<UserChat> userChatList = userChatRepository.findAllByUserIdWithChatAndParticipants(user.getId());
@@ -73,12 +71,11 @@ public class ChatService {
         // 해당 채팅방에 참여하고 있는 user_chat 파싱
         List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdIn(chatIdList);
 
+        // chatIdList 순서에 맞게 userChat 파싱
         Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
                 .filter(userChat -> !userChat.getUser().getId().equals(user.getId()))
                 .collect(Collectors.groupingBy(userchat -> userchat.getChat().getId()));
 
-
-        // 여기서 문제, 저 채팅방 리스트 순서에 맞게 파싱할려면?
         List<Integer> unReadMsgCountList = userChatList.stream()
                 .map(UserChat::getUnReadMsg)
                 .toList();
@@ -147,7 +144,7 @@ public class ChatService {
 
         String idList = "";
         for (User user1 : followList) {
-            idList += user1.getId() + ", ";  // loging
+            idList += user1.getId() + ", ";  // logging
         }
 
         // 채팅방에 참여하고 있지 않은 사용자,
@@ -176,8 +173,6 @@ public class ChatService {
     }
 
     // 위 메소드에서 조회한 사용자 초대 메소드
-
-    ///  TODO 업데이트 안되는 오류 수정할 것!
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
         
