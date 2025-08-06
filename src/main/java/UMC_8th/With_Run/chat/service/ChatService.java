@@ -16,6 +16,7 @@ import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.CourseHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
+import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
@@ -51,7 +52,7 @@ public class ChatService {
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
-//    private final RedisPublisher redisPublisher;
+    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -82,7 +83,7 @@ public class ChatService {
 
 
         log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
-        
+
         return ChatConverter.toGetChatListDTO(userChatList, unReadMsgCountList, chatIdList, participantsMap);
     }
 
@@ -96,7 +97,7 @@ public class ChatService {
 
         List<UserChat> userChats = new ArrayList<>();
         userChats.add(UserChatConverter.toNewUserChat(user, targetUser, chat));
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, user,chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -175,9 +176,9 @@ public class ChatService {
     // 위 메소드에서 조회한 사용자 초대 메소드
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
-        
+
         ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
-        
+
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         List<ChatRequestDTO.InviteDTO> inviteUserList = reqDTO.getInviteUserList();
@@ -199,7 +200,7 @@ public class ChatService {
         log.info("preUserName : {}", preUserNameList);
 
         List<UserChat> newUserChat = new ArrayList<>();
-        for (ChatRequestDTO.InviteDTO dto :  inviteUserList){
+        for (ChatRequestDTO.InviteDTO dto : inviteUserList) {
 
             User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
@@ -218,7 +219,7 @@ public class ChatService {
         // 기존 사용자 update
         log.info("pre User Update");
         for (UserChat userChat : userChatList) { // 기존 사용자의 user_chat 에 대해
-            if (!userChat.getIsDefaultChatName()){ // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
+            if (!userChat.getIsDefaultChatName()) { // 각 유저에 대해 커스텀 ChatName 이 아닌 경우 Update
                 continue;
             }
 
@@ -230,7 +231,7 @@ public class ChatService {
                     .collect(Collectors.joining(", "));
             String otherName = userChat.getChatName() + ", " + collect;
 
-            log.info("{}'s name = {}", userChat.getUser().getProfile().getName(),  otherName);
+            log.info("{}'s name = {}", userChat.getUser().getProfile().getName(), otherName);
 
             userChat.renameDefaultChatName(otherName);
         }
@@ -255,7 +256,7 @@ public class ChatService {
     public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
         User user = getUserByJWT(request, "enterChat");
-        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() ->  new ChatHandler(ErrorCode.WRONG_CHAT));
+        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
         userChat.setToChatting();
@@ -287,7 +288,11 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
-        // 메세지 저장, Redis...?
+        // 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
+        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
+        userChatList.forEach(UserChat::updateUnReadMsg);
+
+        // 메세지 저장
         messageRepository.save(msg);
 
         // redis 처리 전용 dto 변환,
@@ -296,7 +301,7 @@ public class ChatService {
                 .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
                 .build();
 
-//        redisPublisher.publishMsg("redis.chat."+chatId, payloadDTO);
+        redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
     }
 
 
@@ -325,8 +330,8 @@ public class ChatService {
                 privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, user,privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(user, targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, user, privateChat));
 
                 Chat saveChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
@@ -370,7 +375,7 @@ public class ChatService {
                     .build();
 
             // 메세지 BroadCast
-//            redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+            redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
         } else {
             // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
@@ -380,8 +385,8 @@ public class ChatService {
                 privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user,targetUser, privateChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, user,privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(user, targetUser, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, user, privateChat));
 
                 Chat savedChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
@@ -395,7 +400,7 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
             } else {
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
@@ -408,14 +413,14 @@ public class ChatService {
                         .build();
 
                 // 메세지 BroadCast
-//                redisPublisher.publishMsg("redis.chat."+reqDTO.getChatId(), payloadDTO);
+                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
             }
         }
     }
 
 
     @Transactional
-    public void leaveChat (Long chatId, HttpServletRequest request){
+    public void leaveChat(Long chatId, HttpServletRequest request) {
         User user = getUserByJWT(request, "leaveChat");
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         userChat.setToNotChatting();
@@ -431,10 +436,9 @@ public class ChatService {
 
         Integer participants = chat.getParticipants();
 
-        if (participants -1 == 0) {
+        if (participants - 1 == 0) {
             chatRepository.deleteById(chatId);
-        }
-        else{
+        } else {
             chat.updateParticipants(participants - 1);
         }
     }
