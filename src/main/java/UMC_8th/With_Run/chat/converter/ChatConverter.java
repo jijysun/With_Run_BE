@@ -4,30 +4,17 @@ import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.user.entity.Profile;
-import UMC_8th.With_Run.user.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 public class ChatConverter {
 
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UserInfo {
-        private String username;
-        private String profileImage;
-    }
-
-    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTOV2(List<UserChat> userChatList,List<Integer> unReadMsgCount, List<Long> chatIdList, Map<Long, List<UserChat>> otherUserChatList) {
+    public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTO(List<UserChat> userChatList, List<Integer> unReadMsgCount, List<Long> chatIdList, Map<Long, List<UserChat>> otherUserChatList) {
         List<ChatResponseDTO.GetChatListDTO> dto = new ArrayList<>();
 
         for (int i = 0; i < chatIdList.size(); i++) {
@@ -55,18 +42,6 @@ public class ChatConverter {
 
         return dto;
     }
-
-    /*public static List<ChatResponseDTO.GetChatListDTO> toGetChatListDTO(List<UserChat> userChatList) {
-        return userChatList.stream()
-                .map(userChat -> ChatResponseDTO.GetChatListDTO.builder()
-                        .chatId(userChat.getChat().getId())
-                        .chatName(userChat.getChatName())
-                        .usernameList()
-                        .userProfileList()
-                        .participants(userChat.getChat().getParticipants())
-                        .build())
-                .collect(Collectors.toList());
-    }*/
 
     public static Chat toNewChatConverter() {
         return Chat.builder()

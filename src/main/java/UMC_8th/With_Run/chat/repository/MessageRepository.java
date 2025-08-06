@@ -9,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    List<Message> findByChat(Chat chat);
-
     @Query("Select m From Message m JOIN fetch m.user u JOIN fetch u.profile where m.chat.id = :chatId") // Join Fetch!
     List<Message> findByChat_Id(@Param("chatId") Long chatId);
 }
