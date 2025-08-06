@@ -2,7 +2,7 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-      - classpath:api-key.yml
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul
@@ -49,3 +49,7 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+google:
+  places:
+    key: ${GOOGLE-API-KEY}

@@ -1,15 +1,21 @@
 package UMC_8th.With_Run.user.service;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.config.s3.S3Uploader;
-import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.map.entity.RegionProvince;
+import UMC_8th.With_Run.map.entity.RegionsCity;
+import UMC_8th.With_Run.map.entity.RegionsTown;
 import UMC_8th.With_Run.user.dto.UserRequestDto.BreedProfileRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateProfileDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
+import UMC_8th.With_Run.user.repository.RegionCityRepository;
+import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
+import UMC_8th.With_Run.user.repository.RegionTownRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +32,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
+    private final RegionProvinceRepository provinceRepository;
+    private final RegionCityRepository cityRepository;
+    private final RegionTownRepository townRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final S3Uploader s3Uploader;
@@ -36,17 +45,27 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
+
+        RegionProvince province = provinceRepository.findById(profile.getProvinceId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        RegionsCity city = cityRepository.findById(profile.getCityId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        RegionsTown town = townRepository.findById(profile.getTownId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
 
         return UserResponseDto.ProfileResultDTO.builder()
                 .id(profile.getId())
                 .userId(user.getId())
-                .townId(profile.getTownId())
-                .cityId(profile.getCityId())
-                .provinceId(profile.getProvinceId())
+                .provinceId(province.getId())
+                .provinceName(province.getName())
+                .cityId(city.getId())
+                .cityName(city.getName())
+                .townId(town.getId())
+                .townName(town.getName())
                 .name(profile.getName())
                 .gender(profile.getGender())
                 .birth(profile.getBirth())
@@ -64,17 +83,24 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        RegionProvince province = provinceRepository.findById(requestDTO.getProvinceId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        RegionsCity city = cityRepository.findById(requestDTO.getCityId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        RegionsTown town = townRepository.findById(requestDTO.getTownId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
 
         String charactersJson = convertToJson(requestDTO.getCharacters());
         String styleJson = convertToJson(requestDTO.getStyle());
 
         Profile profile = Profile.builder()
                 .user(user)
-                .townId(requestDTO.getTownId())
-                .cityId(requestDTO.getCityId())
-                .provinceId(requestDTO.getProvinceId())
                 .name(requestDTO.getName())
+                .provinceId(province.getId())
+                .cityId(city.getId())
+                .townId(town.getId())
                 .gender(requestDTO.getGender())
                 .birth(requestDTO.getBirth())
                 .breed(requestDTO.getBreed())
@@ -96,10 +122,10 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         // 업데이트
         profile.setTownId(dto.getTownId());
@@ -124,7 +150,7 @@ public class ProfileServiceImpl implements ProfileService {
         try {
             return new ObjectMapper().writeValueAsString(list != null ? list : Collections.emptyList());
         } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+            throw new UserHandler(ErrorCode.BAD_REQUEST);
         }
     }
 
@@ -133,10 +159,18 @@ public class ProfileServiceImpl implements ProfileService {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Profile profile = profileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
+
+
+
+        String oldImageUrl = profile.getProfileImage();
+        if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+            String s3Key = s3Uploader.extractKeyFromUrl(oldImageUrl);
+            s3Uploader.fileDelete(s3Key);
+        }
 
         String profileUrl = s3Uploader.upload(file, "profile");
         profile.setProfileImage(profileUrl);

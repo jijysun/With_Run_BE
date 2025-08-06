@@ -45,7 +45,7 @@ public class NearbyCourseService {
                 .map(course -> {
                     List<String> parsedKeywords = new ArrayList<>();
                     try {
-                        parsedKeywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<>() {});
+                        parsedKeywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<List<String>>() {});
                     } catch (Exception e) {
                         System.err.println("키워드 파싱 오류: " + e.getMessage());
                     }
@@ -54,7 +54,6 @@ public class NearbyCourseService {
                     if (course.getRegionProvince() != null) fullLocation += course.getRegionProvince().getName() + " ";
                     if (course.getRegionsCity() != null) fullLocation += course.getRegionsCity().getName() + " ";
                     if (course.getRegionsTown() != null) fullLocation += course.getRegionsTown().getName();
-
 
                     return CourseResponse.builder()
                             .courseId(course.getId())
@@ -74,7 +73,7 @@ public class NearbyCourseService {
                 .collect(Collectors.toList());
     }
 
-    public List<CourseResponse> nearbyCourseSearchResult(Long provinceId, Long cityId, Long townId,String keyword) {
+    public List<CourseResponse> nearbyCourseSearchResult(Long provinceId, Long cityId, Long townId, String keyword) {
         return nearbyCourse(provinceId, cityId, townId).stream()
                 .filter(course -> {
                     if (keyword == null || keyword.isBlank()) return true;
@@ -87,7 +86,4 @@ public class NearbyCourseService {
                 })
                 .collect(Collectors.toList());
     }
-
-
-
 }
