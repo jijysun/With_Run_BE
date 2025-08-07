@@ -107,4 +107,15 @@ public class ChatResponseDTO {
 
         private LocalDateTime createdAt;
     }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class BroadcastFirstChatDTO{
+        private Long userId;
+
+        private Long chatId;
+
+        private String msg;
+
+        private LocalDateTime createdAt;
+    }
 }

@@ -14,23 +14,23 @@ import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
+import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.FollowRepository;
 import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,6 +46,7 @@ public class ChatServiceImpl implements ChatService {
     private final JwtTokenProvider jwtTokenProvider;
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
+    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -95,8 +96,18 @@ public class ChatServiceImpl implements ChatService {
 
     // 채팅 첫 생성 메소드
     @Transactional
-    public void createChat(Long targetId, User user) {
-        User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
+    public List<ChatResponseDTO.BroadcastMsgDTO> createChat(Long targetId, User user) {
+        User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
+
+        if (privateChat.isPresent()){ // 이미 갠톡 존재하는 경우 해당 채팅 입장.
+            UserChat userChat = privateChat.get().get(0);
+            userChat.setToChatting();
+            Long chatId = userChat.getChat().getId();
+            return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
+        }
+
 
         Chat chat = ChatConverter.toNewChatConverter();
 
@@ -107,10 +118,16 @@ public class ChatServiceImpl implements ChatService {
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
 
-        chatRepository.save(chat);
+        Chat saveChat = chatRepository.save(chat);
+        Long chatId = saveChat.getId();
         userChatRepository.saveAll(userChats);
 
         ///  메세지 보내기!!
+        // redis 처리 전용 dto 변환,
+
+        messageRepository.save(MessageConverter.toFirstChatMessage(user, chat));
+
+        return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경

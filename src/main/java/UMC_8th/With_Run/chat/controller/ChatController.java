@@ -58,10 +58,9 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다. 파라미터 입니다")
     })
-    public StndResponse<Object> createChat(@RequestParam("id") Long targetId, User user) {
-        // userId = Jwt로 해결이 되니,
-        chatService.createChat(targetId, user);
-        return StndResponse.onSuccess(null, SuccessCode.CHAT_CREATE_SUCCESS);
+    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> createChat(@RequestParam("id") Long targetId, User user) {
+        List<ChatResponseDTO.BroadcastMsgDTO> chatHistory = chatService.createChat(targetId, user);
+        return StndResponse.onSuccess(chatHistory, SuccessCode.CHAT_CREATE_SUCCESS);
     }
 
     @PatchMapping("/{chatId}/rename")
