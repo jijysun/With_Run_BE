@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.service.impl;
+package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 

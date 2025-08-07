@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.service;
+package UMC_8th.With_Run.chat.service.impl;
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
@@ -10,7 +10,7 @@ import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
 import UMC_8th.With_Run.chat.repository.UserChatRepository;
-import UMC_8th.With_Run.chat.service.impl.MessageService;
+import UMC_8th.With_Run.chat.service.MessageService;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.CourseHandler;

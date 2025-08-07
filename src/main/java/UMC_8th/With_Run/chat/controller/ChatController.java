@@ -4,8 +4,8 @@ package UMC_8th.With_Run.chat.controller;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
-import UMC_8th.With_Run.chat.service.ChatService;
-import UMC_8th.With_Run.chat.service.impl.MessageService;
+import UMC_8th.With_Run.chat.service.impl.ChatServiceImpl;
+import UMC_8th.With_Run.chat.service.MessageService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +33,7 @@ import java.util.List;
 @Tag(name = "채팅 API")
 public class ChatController {
 
-    private final ChatService chatService;
+    private final ChatServiceImpl chatService;
     private final MessageService messageService;
 
     /// followee = 내가 팔로우
@@ -120,8 +119,6 @@ public class ChatController {
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
     @ApiResponse(responseCode = "CHAT2008", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     public void chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-//        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
-//        chatService.chattingWithRedis(chatId, reqDTO);
         messageService.chatting(chatId, reqDTO);
 
     }
@@ -130,8 +127,6 @@ public class ChatController {
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
     @ApiResponse(responseCode = "CHAT2009", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
     public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
-//        chatService.shareCourse(reqDTO);
-//        chatService.shareCourseWithRedis(reqDTO);
         messageService.shareCourse(reqDTO);
     }
 
