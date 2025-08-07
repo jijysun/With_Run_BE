@@ -20,7 +20,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/api/ws").setAllowedOrigins("*");
     }
 
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
 

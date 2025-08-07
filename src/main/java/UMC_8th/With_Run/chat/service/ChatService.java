@@ -57,6 +57,19 @@ public class ChatService {
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
 
+
+    /*
+    * COMMON
+    * 1. ChatService 분리 (ChatService, MessageService, ~~~)
+    * 2. Code Refactoring
+    *
+    * CHAT
+    * 1. EnterChat -> 메세지 조회 페이징 도입
+    * 2. Chatting -> 읽지 않은 메세지 수 최적화
+    * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
+    * 4.
+    */
+
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
 
         User user = getUserByJWT(request, "getChatList");  // jwt
@@ -282,6 +295,7 @@ public class ChatService {
         return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg);
     }
 
+    @Transactional
     public void chattingWithRedis(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
