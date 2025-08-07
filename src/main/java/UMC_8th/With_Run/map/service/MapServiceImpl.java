@@ -28,13 +28,15 @@ public class MapServiceImpl implements MapService {
     private final CourseService courseService;
 
     @Override
-    public MapResponseDTO.PetFacilityPageResponseDto getPetFacilityByCategory(String category, int page, int size) {
+    public MapResponseDTO.PetFacilityPageResponseDto getPetFacilityByCategory(String category, String region_province, String regions_city, String regions_town, int page, int size) {
         validatePagingParameters(page, size);
-        
-        Pageable pageable = PageRequest.of(page, size);
-        Page<PetFacility> facilities = petFacilityRepository.findByCategoryContainingIgnoreCase(category, pageable);
 
-        // 페이지 범위 검증
+        Pageable pageable = PageRequest.of(page, size);
+
+        String searchAddress = parseAddress(region_province, regions_city, regions_town);
+
+        Page<PetFacility> facilities = petFacilityRepository.findByCategoryContainingIgnoreCaseAndAddressContaining(category, searchAddress, pageable);
+
         if (page >= facilities.getTotalPages() && facilities.getTotalPages() > 0) {
             throw new MapHandler(ErrorCode.PAGE_OUT_OF_RANGE);
         }
@@ -64,22 +66,47 @@ public class MapServiceImpl implements MapService {
                 .build();
     }
 
+    // 이 메서드를 통해 주소 파싱 로직을 공통화했습니다.
+    private String parseAddress(String region_province, String regions_city, String regions_town) {
+        if ("전체".equals(region_province)) {
+            return "";
+        } else if (region_province != null && region_province.contains("서울")) {
+            if ("전체".equals(regions_city)) {
+                return region_province;
+            } else if ("전체".equals(regions_town)) {
+                return regions_city;
+            } else {
+                return regions_town;
+            }
+        } else {
+            if ("전체".equals(regions_city)) {
+                return region_province;
+            } else if ("전체".equals(regions_town)) {
+                return region_province + " " + regions_city;
+            } else {
+                return regions_city;
+            }
+        }
+    }
+
     private void validatePagingParameters(int page, int size) {
-        // 페이지 번호 검증
         if (page < 0) {
             throw new MapHandler(ErrorCode.WRONG_PAGE);
         }
-        
-        // 페이지 크기 검증
         if (size < 1 || size > 100) {
             throw new MapHandler(ErrorCode.WRONG_PAGE_SIZE);
         }
     }
 
+    // getPetFacilityById 메서드 시그니처를 인터페이스에 맞게 수정
     @Override
-    public MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id) {
+    public MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id, String region_province, String regions_city, String regions_town) {
         PetFacility petFacility = petFacilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pet facility not found with id: " + id));
+                .orElseThrow(() -> new MapHandler(ErrorCode.BAD_REQUEST));
+
+        String searchAddress = parseAddress(region_province, regions_city, regions_town);
+
+
 
         return MapResponseDTO.PetFacilityResponseDto.builder()
                 .id(petFacility.getId())
@@ -93,6 +120,7 @@ public class MapServiceImpl implements MapService {
                 .has_parking(petFacility.getHas_parking())
                 .build();
     }
+
 
     @Override
     @Transactional
@@ -133,14 +161,14 @@ public class MapServiceImpl implements MapService {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
 
-        pinRepository.deleteById(pinId); // 물리적 삭제
+        pinRepository.deleteById(pinId);
 
-        return pin.getId(); // 삭제된 핀의 ID를 반환
+        return pin.getId();
     }
 
 
     @Override
-    @Transactional(readOnly = true) // 데이터 조회만 하므로 readOnly=true 설정
+    @Transactional(readOnly = true)
     public MapResponseDTO.GetPinDto getPinById(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
@@ -156,6 +184,45 @@ public class MapServiceImpl implements MapService {
                 .color(pin.getColor())
                 .latitude(pin.getLatitude())
                 .longitude(pin.getLongitude())
+                .build();
+    }
+
+    @Override
+    public MapResponseDTO.PetFacilityPageResponseDto getPetFacilitiesByLocation(String region_province, String regions_city, String regions_town, int page, int size) {
+        validatePagingParameters(page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        String searchAddress = parseAddress(region_province, regions_city, regions_town);
+
+        Page<PetFacility> facilities = petFacilityRepository.findByAddressContaining(searchAddress, pageable);
+
+        if (page >= facilities.getTotalPages() && facilities.getTotalPages() > 0) {
+            throw new MapHandler(ErrorCode.PAGE_OUT_OF_RANGE);
+        }
+
+        List<MapResponseDTO.PetFacilityResponseDto> content = facilities.getContent().stream()
+                .map(facility -> MapResponseDTO.PetFacilityResponseDto.builder()
+                        .id(facility.getId())
+                        .name(facility.getName())
+                        .category(facility.getCategory())
+                        .longitude(facility.getLongitude())
+                        .latitude(facility.getLatitude())
+                        .address(facility.getAddress())
+                        .closed_day(facility.getClosed_day())
+                        .running_time(facility.getRunning_time())
+                        .has_parking(facility.getHas_parking())
+                        .build())
+                .collect(Collectors.toList());
+
+        return MapResponseDTO.PetFacilityPageResponseDto.builder()
+                .content(content)
+                .totalElements(facilities.getTotalElements())
+                .totalPages(facilities.getTotalPages())
+                .size(facilities.getSize())
+                .number(facilities.getNumber())
+                .first(facilities.isFirst())
+                .last(facilities.isLast())
                 .build();
     }
 }
