@@ -5,6 +5,7 @@ import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.service.ChatService;
+import UMC_8th.With_Run.chat.service.impl.MessageService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
-    private final SimpMessagingTemplate template;
+    private final MessageService messageService;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -120,7 +121,9 @@ public class ChatController {
     @ApiResponse(responseCode = "CHAT2008", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     public void chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
 //        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
-        chatService.chattingWithRedis(chatId, reqDTO);
+//        chatService.chattingWithRedis(chatId, reqDTO);
+        messageService.chatting(chatId, reqDTO);
+
     }
 
     @PostMapping("/share")
@@ -128,7 +131,8 @@ public class ChatController {
     @ApiResponse(responseCode = "CHAT2009", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
     public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
 //        chatService.shareCourse(reqDTO);
-        chatService.shareCourseWithRedis(reqDTO);
+//        chatService.shareCourseWithRedis(reqDTO);
+        messageService.shareCourse(reqDTO);
     }
 
     @PatchMapping ("/{chatId}")

@@ -70,6 +70,7 @@ public class ChatService {
     * 4.
     */
 
+
     public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
 
         User user = getUserByJWT(request, "getChatList");  // jwt
@@ -295,28 +296,10 @@ public class ChatService {
         return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg);
     }
 
-    @Transactional
+    /*@Transactional
     public void chattingWithRedis(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
-        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
-        // 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
-        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
-        userChatList.forEach(UserChat::updateUnReadMsg);
-
-        // 메세지 저장
-        messageRepository.save(msg);
-
-        // redis 처리 전용 dto 변환,
-        PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                .type("chat")
-                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
-                .build();
-
-        redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
-    }
+    }*/
 
 
     public void shareCourse(ChatRequestDTO.ShareReqDTO reqDTO) {
@@ -371,66 +354,11 @@ public class ChatService {
             }
         }
     }
+/*
 
     public void shareCourseWithRedis(ChatRequestDTO.ShareReqDTO reqDTO) {
-        /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
-
-        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
-
-        if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
-            Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-
-            messageRepository.save(MessageConverter.toShareMessage(user, chat, course));
-
-            PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                    .type("share")
-                    .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), chat.getId(), course))
-                    .build();
-
-            // 메세지 BroadCast
-            redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
-        } else {
-            // 친구를 통한 공유, 채팅이 없는 경우 추가
-            User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-            Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
-            if (privateChat == null) {
-                log.info("'shareCourse'/toFriend - privateChat is Null!");
-                privateChat = ChatConverter.toNewChatConverter();
-
-                List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, targetUser, privateChat));
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, user, privateChat));
-
-                Chat savedChat = chatRepository.save(privateChat);
-                userChatRepository.saveAll(ucList);
-
-                // Save And Broadcast
-                messageRepository.save(MessageConverter.toShareMessage(user, savedChat, course));
-
-                PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                        .type("share")
-                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), savedChat.getId(), course))
-                        .build();
-
-                // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
-            } else {
-                log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
-
-                // Save And Broadcast
-                messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));
-
-                PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                        .type("share")
-                        .payload(MessageConverter.toBroadCastCourseDTO(user.getId(), privateChat.getId(), course))
-                        .build();
-
-                // 메세지 BroadCast
-                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
-            }
-        }
     }
+*/
 
 
     @Transactional
