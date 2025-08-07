@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.common.config;
+package UMC_8th.With_Run.common.config.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
