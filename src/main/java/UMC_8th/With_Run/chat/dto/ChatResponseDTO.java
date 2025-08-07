@@ -9,10 +9,17 @@ import java.util.List;
 
 public class ChatResponseDTO {
 
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    /*@Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class CreateChatDTO {
         private Long chatId;
+    }*/
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class CreateChatDTOV2 {
+        private Long chatId;
+        private List<ChatResponseDTO.BroadcastMsgDTO> messageList;
     }
+
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class GetInviteUserDTO {

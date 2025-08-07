@@ -6,6 +6,7 @@ import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
+import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
@@ -96,7 +97,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 채팅 첫 생성 메소드
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> createChat(Long targetId, User user) {
+    public ChatResponseDTO.CreateChatDTOV2 createChat(Long targetId, User user) {
         User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
@@ -105,7 +106,8 @@ public class ChatServiceImpl implements ChatService {
             UserChat userChat = privateChat.get().get(0);
             userChat.setToChatting();
             Long chatId = userChat.getChat().getId();
-            return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
+            List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
+            return ChatConverter.toCreateChatDTO(chatId, chatHistoryDTO); // join fetch!
         }
 
 
@@ -126,8 +128,7 @@ public class ChatServiceImpl implements ChatService {
         // redis 처리 전용 dto 변환,
 
         messageRepository.save(MessageConverter.toFirstChatMessage(user, chat));
-
-        return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
+        return ChatConverter.toCreateChatDTO(chatId, MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId));
     }
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경

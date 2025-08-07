@@ -43,6 +43,13 @@ public class ChatConverter {
         return dto;
     }
 
+    public static ChatResponseDTO.CreateChatDTOV2 toCreateChatDTO (Long chatId, List<ChatResponseDTO.BroadcastMsgDTO> chatHistory) {
+        return ChatResponseDTO.CreateChatDTOV2.builder()
+                .chatId(chatId)
+                .messageList(chatHistory)
+                .build();
+    }
+
     public static Chat toNewChatConverter() {
         return Chat.builder()
                 .userChatList(new ArrayList<>())
