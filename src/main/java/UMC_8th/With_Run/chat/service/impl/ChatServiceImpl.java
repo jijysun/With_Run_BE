@@ -64,9 +64,7 @@ public class ChatServiceImpl implements ChatService {
     */
 
 
-    public List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request) {
-
-        User user = getUserByJWT(request, "getChatList");  // jwt
+    public List<ChatResponseDTO.GetChatListDTO> getChatList(User user) {
 
         List<UserChat> userChatList = userChatRepository.findAllByUserIdJoinFetchChatUserAndProfile(user.getId());
 

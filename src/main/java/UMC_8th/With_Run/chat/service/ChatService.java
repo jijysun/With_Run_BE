@@ -2,12 +2,13 @@ package UMC_8th.With_Run.chat.service;
 
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
+import UMC_8th.With_Run.user.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
 public interface ChatService {
-    List<ChatResponseDTO.GetChatListDTO> getChatList(HttpServletRequest request);
+    List<ChatResponseDTO.GetChatListDTO> getChatList(User user);
 
     void createChat(Long targetId, HttpServletRequest request);
 

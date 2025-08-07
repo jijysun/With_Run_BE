@@ -8,6 +8,7 @@ import UMC_8th.With_Run.chat.service.impl.ChatServiceImpl;
 import UMC_8th.With_Run.chat.service.MessageService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
+import UMC_8th.With_Run.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -30,7 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
-@Tag(name = "채팅 API")
+@Tag(name = "채팅 API", description = "모든 API는 JWT 를 담아 보내주시기 바랍니다!")
 public class ChatController {
 
     private final ChatServiceImpl chatService;
@@ -44,11 +45,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "CHAT2006", content = @Content(schema = @Schema(implementation = ChatResponseDTO.GetChatListDTO.class))) // 성공 DTO Response 클래스
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다, PathVariable로 주시면 합니다.")
-    })
-    public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(HttpServletRequest request) {
-        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(request);
+    public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(User user) {
+        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(user);
         return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
     }
 
