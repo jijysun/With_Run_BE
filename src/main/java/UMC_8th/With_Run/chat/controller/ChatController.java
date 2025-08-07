@@ -4,7 +4,7 @@ package UMC_8th.With_Run.chat.controller;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
-import UMC_8th.With_Run.chat.service.impl.ChatServiceImpl;
+import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.chat.service.MessageService;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
@@ -34,7 +34,7 @@ import java.util.List;
 @Tag(name = "채팅 API", description = "모든 API는 JWT 를 담아 보내주시기 바랍니다!")
 public class ChatController {
 
-    private final ChatServiceImpl chatService;
+    private final ChatService chatService;
     private final MessageService messageService;
 
     /// followee = 내가 팔로우
@@ -58,9 +58,9 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다. 파라미터 입니다")
     })
-    public StndResponse<Object> createChat(@RequestParam("id") Long targetId, HttpServletRequest request) {
+    public StndResponse<Object> createChat(@RequestParam("id") Long targetId, User user) {
         // userId = Jwt로 해결이 되니,
-        chatService.createChat(targetId, request);
+        chatService.createChat(targetId, user);
         return StndResponse.onSuccess(null, SuccessCode.CHAT_CREATE_SUCCESS);
     }
 
@@ -73,8 +73,8 @@ public class ChatController {
             @Parameter(name = "chatId", description = "채팅방 id 입니다."),
             @Parameter(name = "name", description = "바꿀 채팅방 이름입니다.")
     })
-    public StndResponse<ChatResponseDTO.RenameChatDTO> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("name") String newName, HttpServletRequest request) {
-        ChatResponseDTO.RenameChatDTO renameChatDTO = chatService.renameChat(chatId, newName, request);
+    public StndResponse<ChatResponseDTO.RenameChatDTO> renameChat(@PathVariable("chatId") Long chatId, @RequestParam("name") String newName, User user) {
+        ChatResponseDTO.RenameChatDTO renameChatDTO = chatService.renameChat(chatId, newName, user);
         // 변경 이름 & id 반환하기
         return StndResponse.onSuccess(renameChatDTO, SuccessCode.RENAME_SUCCESS);
     }
@@ -87,8 +87,8 @@ public class ChatController {
             @Parameter(name = "id", description = "채팅방 id 입니다, PathVariable 로 부탁드립니다!"),
             @Parameter(name = "userId", description = "초대할 사용자들의 ID 입니다"),
     })
-    public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("chatId") Long chatId, HttpServletRequest request) {
-        List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, request);
+    public StndResponse<List<ChatResponseDTO.GetInviteUserDTO>> getInviteUser(@PathVariable ("chatId") Long chatId, User user) {
+        List<ChatResponseDTO.GetInviteUserDTO> canInviteUserList = chatService.getInviteUser(chatId, user);
         return StndResponse.onSuccess(canInviteUserList, SuccessCode.GET_INVITE_SUCCESS);
     }
 
@@ -98,8 +98,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "CHAT2002", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    public StndResponse<Object> inviteUser(@PathVariable("chatId") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
-        chatService.inviteUser(chatId, reqDTO, request);
+    public StndResponse<Object> inviteUser(@PathVariable("chatId") Long chatId, @RequestBody ChatRequestDTO.InviteUserReqDTO reqDTO, User user) {
+        chatService.inviteUser(chatId, reqDTO, user);
         return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
     }
 
@@ -108,8 +108,8 @@ public class ChatController {
     @ApiResponses({
             @ApiResponse(responseCode = "CHAT2004", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     })
-    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> enterChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
-        return StndResponse.onSuccess(chatService.enterChat(chatId, request), SuccessCode.ENTER_CHAT_SUCCESS);
+    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> enterChat(@PathVariable("chatId") Long chatId, User user) {
+        return StndResponse.onSuccess(chatService.enterChat(chatId, user), SuccessCode.ENTER_CHAT_SUCCESS);
     }
 
     // 메세지 채팅
@@ -131,8 +131,8 @@ public class ChatController {
     @PatchMapping ("/{chatId}")
     @Operation(summary = "채팅방 떠나기 API", description = "참여 채팅방 화면에서 잠시 떠나는 API 입니다. 읽지 않은 메세지 수 계산을 위한 API 입니다!")
     @ApiResponse(responseCode = "CHAT2005", content = @Content(schema = @Schema(implementation = StndResponse.class)))
-    public StndResponse<ChatResponseDTO.RenameChatDTO> leaveChat (@PathVariable ("chatId") Long chatId, HttpServletRequest request){
-        chatService.leaveChat(chatId, request);
+    public StndResponse<ChatResponseDTO.RenameChatDTO> leaveChat (@PathVariable ("chatId") Long chatId, User user){
+        chatService.leaveChat(chatId, user);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
 
@@ -144,8 +144,8 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "chatId", description = "떠나는 채팅방 id 입니다.")
     })
-    public StndResponse<Object> deleteChat(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
-        chatService.deleteChat(chatId, request);
+    public StndResponse<Object> deleteChat(@PathVariable("chatId") Long chatId, User user) {
+        chatService.deleteChat(chatId, user);
         return StndResponse.onSuccess(null, SuccessCode.LEAVE_CHAT_SUCCESS);
     }
 

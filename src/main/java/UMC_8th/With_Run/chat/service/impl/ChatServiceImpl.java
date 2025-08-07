@@ -60,7 +60,8 @@ public class ChatServiceImpl implements ChatService {
     * 1. EnterChat -> 메세지 조회 페이징 도입
     * 2. Chatting -> 읽지 않은 메세지 수 최적화
     * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
-    * 4.
+    * 4. CreateChat -> 갠톡 있는 경우 개인톡 바로 입장.
+    * 5. ShareCourse -> 바로 입장.
     */
 
 
@@ -94,8 +95,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 채팅 첫 생성 메소드
     @Transactional
-    public void createChat(Long targetId, HttpServletRequest request) {
-        User user = getUserByJWT(request, "createChat"); // jwt
+    public void createChat(Long targetId, User user) {
         User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER)); // targetUser는 비영속 상태이다, targetUser에 대한 update, save는 필요
 
         Chat chat = ChatConverter.toNewChatConverter();
@@ -115,8 +115,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 채팅방 이름 변경 메소드, 전체 공통 변경
     @Transactional
-    public ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, HttpServletRequest request) {
-        User user = getUserByJWT(request, "renameChat");
+    public ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, User user) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         UserChat userchat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chat.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
@@ -132,7 +131,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // 채팅 초대 목록 조회 리스트
-    public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request) {
+    public List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, User user) {
 
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
@@ -140,8 +139,6 @@ public class ChatServiceImpl implements ChatService {
         if (chat.getParticipants() >= 4) {
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
-
-        User user = getUserByJWT(request, "getInviteUser");
 
         /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
         // 사용자가 팔로우 하는 다른 사용자, targetUser.id
@@ -180,7 +177,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 위 메소드에서 조회한 사용자 초대 메소드
     @Transactional
-    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request) {
+    public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, User user) {
 
         ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
 
@@ -206,8 +203,6 @@ public class ChatServiceImpl implements ChatService {
 
         List<UserChat> newUserChat = new ArrayList<>();
         for (ChatRequestDTO.InviteDTO dto : inviteUserList) {
-
-            User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
             String collect = inviteUserList.stream()
                     .filter(userInfo -> !userInfo.getUserId().equals(dto.getUserId()))
@@ -253,14 +248,13 @@ public class ChatServiceImpl implements ChatService {
 
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
-        messageRepository.save(MessageConverter.toInviteMessage(getUserByJWT(request, "InviteUser"), chat, inviteMsg));
+        messageRepository.save(MessageConverter.toInviteMessage(user, chat, inviteMsg));
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
         ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
-        User user = getUserByJWT(request, "enterChat");
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
@@ -271,15 +265,13 @@ public class ChatServiceImpl implements ChatService {
 
 
     @Transactional
-    public void leaveChat(Long chatId, HttpServletRequest request) {
-        User user = getUserByJWT(request, "leaveChat");
+    public void leaveChat(Long chatId,User user) {
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         userChat.setToNotChatting();
     }
 
     @Transactional
-    public void deleteChat(Long chatId, HttpServletRequest request) {
-        User user = getUserByJWT(request, "leaveChat");
+    public void deleteChat(Long chatId, User user) {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
@@ -295,11 +287,11 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
-    public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
+    /*public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
 
         log.info("ChatService.getUserByJWT() - {} -> found User!", method);
         return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-    }
+    }*/
 }

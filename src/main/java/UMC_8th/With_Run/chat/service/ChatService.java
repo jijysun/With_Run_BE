@@ -10,17 +10,17 @@ import java.util.List;
 public interface ChatService {
     List<ChatResponseDTO.GetChatListDTO> getChatList(User user);
 
-    void createChat(Long targetId, HttpServletRequest request);
+    void createChat(Long targetId, User user);
 
-    ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, HttpServletRequest request);
+    ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, User user);
 
-    List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, HttpServletRequest request);
+    List<ChatResponseDTO.GetInviteUserDTO> getInviteUser(Long chatId, User user);
 
-    void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, HttpServletRequest request);
+    void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, User user);
 
-    List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, HttpServletRequest request);
+    List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user);
 
-    void leaveChat(Long chatId, HttpServletRequest request);
+    void leaveChat(Long chatId, User user);
 
-    void deleteChat(Long chatId, HttpServletRequest request);
+    void deleteChat(Long chatId, User user);
 }
