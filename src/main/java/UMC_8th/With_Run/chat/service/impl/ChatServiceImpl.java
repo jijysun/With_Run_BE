@@ -55,14 +55,12 @@ public class ChatServiceImpl implements ChatService {
 
     /*
     * COMMON
-    * 1. ChatService 분리 (ChatService, MessageService, ~~~)
-    * 2. Code Refactoring
+    * - x
     *
     * CHAT
     * 1. EnterChat -> 메세지 조회 페이징 도입
     * 2. Chatting -> 읽지 않은 메세지 수 최적화
     * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
-    * 4. CreateChat -> 갠톡 있는 경우 개인톡 바로 입장.
     * 5. ShareCourse -> 바로 입장.
     */
 
@@ -114,7 +112,9 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
-        userChats.add(UserChatConverter.toNewUserChat(user, targetUser, chat));
+        UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, chat);
+        newUserChat.setToChatting();
+        userChats.add(newUserChat);
         userChats.add(UserChatConverter.toNewUserChat(targetUser, user, chat));
 
         chat.addUserChat(userChats.get(0));
