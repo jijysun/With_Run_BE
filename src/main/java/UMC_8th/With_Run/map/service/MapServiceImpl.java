@@ -33,9 +33,19 @@ public class MapServiceImpl implements MapService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        String searchAddress = parseAddress(region_province, regions_city, regions_town);
+        Page<PetFacility> facilities;
 
-        Page<PetFacility> facilities = petFacilityRepository.findByCategoryContainingIgnoreCaseAndAddressContaining(category, searchAddress, pageable);
+        // "전체" 또는 null인 경우를 처리하여 검색 로직을 단순화
+        if ("전체".equals(region_province) || region_province == null) {
+            facilities = petFacilityRepository.findByCategoryContainingIgnoreCase(category, pageable);
+        } else if ("전체".equals(regions_city) || regions_city == null) {
+            facilities = petFacilityRepository.findByCategoryContainingIgnoreCaseAndProvinceContaining(category, region_province, pageable);
+        } else if ("전체".equals(regions_town) || regions_town == null) {
+            facilities = petFacilityRepository.findByCategoryContainingIgnoreCaseAndProvinceContainingAndCityContaining(category, region_province, regions_city, pageable);
+        } else {
+            facilities = petFacilityRepository.findByCategoryContainingIgnoreCaseAndProvinceContainingAndCityContainingAndTownContaining(category, region_province, regions_city, regions_town, pageable);
+        }
+
 
         if (page >= facilities.getTotalPages() && facilities.getTotalPages() > 0) {
             throw new MapHandler(ErrorCode.PAGE_OUT_OF_RANGE);
@@ -66,29 +76,6 @@ public class MapServiceImpl implements MapService {
                 .build();
     }
 
-    // 이 메서드를 통해 주소 파싱 로직을 공통화했습니다.
-    private String parseAddress(String region_province, String regions_city, String regions_town) {
-        if ("전체".equals(region_province)) {
-            return "";
-        } else if (region_province != null && region_province.contains("서울")) {
-            if ("전체".equals(regions_city)) {
-                return region_province;
-            } else if ("전체".equals(regions_town)) {
-                return regions_city;
-            } else {
-                return regions_town;
-            }
-        } else {
-            if ("전체".equals(regions_city)) {
-                return region_province;
-            } else if ("전체".equals(regions_town)) {
-                return region_province + " " + regions_city;
-            } else {
-                return regions_city;
-            }
-        }
-    }
-
     private void validatePagingParameters(int page, int size) {
         if (page < 0) {
             throw new MapHandler(ErrorCode.WRONG_PAGE);
@@ -103,10 +90,6 @@ public class MapServiceImpl implements MapService {
     public MapResponseDTO.PetFacilityResponseDto getPetFacilityById(Long id, String region_province, String regions_city, String regions_town) {
         PetFacility petFacility = petFacilityRepository.findById(id)
                 .orElseThrow(() -> new MapHandler(ErrorCode.BAD_REQUEST));
-
-        String searchAddress = parseAddress(region_province, regions_city, regions_town);
-
-
 
         return MapResponseDTO.PetFacilityResponseDto.builder()
                 .id(petFacility.getId())
@@ -192,10 +175,18 @@ public class MapServiceImpl implements MapService {
         validatePagingParameters(page, size);
 
         Pageable pageable = PageRequest.of(page, size);
+        Page<PetFacility> facilities;
 
-        String searchAddress = parseAddress(region_province, regions_city, regions_town);
+        if ("전체".equals(region_province) || region_province == null) {
+            facilities = petFacilityRepository.findAll(pageable);
+        } else if ("전체".equals(regions_city) || regions_city == null) {
+            facilities = petFacilityRepository.findByProvinceContaining(region_province, pageable);
+        } else if ("전체".equals(regions_town) || regions_town == null) {
+            facilities = petFacilityRepository.findByProvinceContainingAndCityContaining(region_province, regions_city, pageable);
+        } else {
+            facilities = petFacilityRepository.findByProvinceContainingAndCityContainingAndTownContaining(region_province, regions_city, regions_town, pageable);
+        }
 
-        Page<PetFacility> facilities = petFacilityRepository.findByAddressContaining(searchAddress, pageable);
 
         if (page >= facilities.getTotalPages() && facilities.getTotalPages() > 0) {
             throw new MapHandler(ErrorCode.PAGE_OUT_OF_RANGE);
