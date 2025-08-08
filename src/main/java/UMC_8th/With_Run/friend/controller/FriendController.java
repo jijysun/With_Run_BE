@@ -1,6 +1,6 @@
 package UMC_8th.With_Run.friend.controller;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.friend.dto.FriendsResponse;
@@ -45,7 +45,7 @@ public class FriendController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         Long userId = user.getId();
 
         return recommendedFriendsService.recommendedFriends(provinceId, cityId, townId, userId);
@@ -70,7 +70,7 @@ public class FriendController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         Long userId = user.getId();
 
         return allFriendsService.findUsersByRegion(provinceId, cityId, townId, userId);
@@ -83,7 +83,7 @@ public class FriendController {
         String email = authentication.getName();
 
         User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         followFriendService.followUser(currentUser.getId(), userId);
 
@@ -98,7 +98,7 @@ public class FriendController {
         String email = authentication.getName();
 
         User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         blockFriendService.blockUser(currentUser.getId(), userId);
 
@@ -124,7 +124,7 @@ public class FriendController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         Long userId = user.getId();
 
         return searchFriendsService.searchFriends(provinceId, cityId, townId, userId, keyword);
