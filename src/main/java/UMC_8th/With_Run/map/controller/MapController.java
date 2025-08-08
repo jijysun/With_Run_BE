@@ -24,13 +24,13 @@ public class MapController {
 
     // 수정: 위치 정보를 요청 파라미터에 추가했습니다.
     @Operation(
-            summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
-            description = "카테고리와 위치를 기준으로 반려동물 시설을 페이징 형태로 검색합니다.",
+            summary = "카테고리 기반 반려동물 시설 검색",
+            description = "카테고리와 위치를 기준으로 반려동물 시설을 페이징 형태로 검색합니다. 전체(또는 null) 검색 가능",
             parameters = {
                     @Parameter(name = "type", description = "카테고리 타입 (예: 동물약국)", required = true, example = "동물약국"),
-                    @Parameter(name = "region_province", description = "시/도", required = true, example = "서울특별시"),
-                    @Parameter(name = "regions_city", description = "시/군/구", required = false, example = "종로구"),
-                    @Parameter(name = "regions_town", description = "읍/면/동", required = false, example = "청운효자동"),
+                    @Parameter(name = "region_province", description = "시/도", required = true, example = "서울"),
+                    @Parameter(name = "regions_city", description = "시/군/구", required = false, example = "강남구"),
+                    @Parameter(name = "regions_town", description = "읍/면/동", required = false, example = "개포동"),
                     @Parameter(name = "page", description = "페이지 번호 (0부터 시작, 최소 0)", required = false, example = "0"),
                     @Parameter(name = "size", description = "한 페이지당 항목 수 (1-100)", required = false, example = "20")
             }
