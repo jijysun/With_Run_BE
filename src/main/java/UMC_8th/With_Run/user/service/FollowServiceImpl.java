@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.user.service;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
@@ -97,11 +96,11 @@ public class FollowServiceImpl implements FollowService {
 
         // 본인이 자기 자신을 unfollow 시도하는 경우 방지
         if (user.getId().equals(targetUserId)) {
-            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+            throw new GeneralException(ErrorCode.BAD_REQUEST);
         }
 
         Follow follow = followRepository.findByUserIdAndTargetUserId(user.getId(), targetUserId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
 
         followRepository.delete(follow);
     }
@@ -112,13 +111,13 @@ public class FollowServiceImpl implements FollowService {
         String myEmail = authentication.getName();
 
         User me = userRepository.findByEmail(myEmail)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         User follower = userRepository.findById(followerId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         Follow follow = followRepository.findByUserIdAndTargetUserId(follower.getId(), me.getId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
 
         followRepository.delete(follow);
     }
