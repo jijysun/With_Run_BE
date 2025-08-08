@@ -31,7 +31,7 @@ public class CourseDetailService {
 
         List<String> keywords;
         try {
-            keywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<>() {});
+            keywords = objectMapper.readValue(course.getKeyWord(), new TypeReference<List<String>>() {});
         } catch (Exception e) {
             keywords = Collections.emptyList();
         }

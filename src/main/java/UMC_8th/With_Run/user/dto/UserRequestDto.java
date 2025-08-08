@@ -70,7 +70,7 @@ public class UserRequestDto {
     public static class UpdateCourseDTO {
         private String name;
         private String description;
-        private String time;
+        private Integer time;
         private List<String> keyWords;
         private List<Long> pinIds;
         private Long provinceId;
