@@ -32,6 +32,9 @@ public enum ErrorCode implements BaseErrorCode {
     INVALID_TOKEN (HttpStatus.BAD_REQUEST, "MEMBER4007", "만료된 토큰 입니다."),
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
 
+    // Profile
+    WRONG_PROFILE (HttpStatus.INTERNAL_SERVER_ERROR, "PROFILE5001", "프로필을 찾을 수 없습니다."),
+
     // Friend
     BANNED_USER(HttpStatus.BAD_REQUEST , "FRIEND4001", "차단된 사용자 입니다."),
     ALREADY_REPORTED(HttpStatus.BAD_REQUEST , "FRIEND4002", "이미 신고한 사용자 입니다."),
@@ -43,7 +46,11 @@ public enum ErrorCode implements BaseErrorCode {
     WRONG_CHAT_NAME(HttpStatus.BAD_REQUEST , "CHAT4002", "잘못된 채팅방 이름 입니다."),
     EMPTY_CHAT_LIST(HttpStatus.BAD_REQUEST, "CHAT4003", "참여하고 있는 채팅방이 없습니다."),
     CHAT_IS_FULL(HttpStatus.BAD_REQUEST, "CHAT4004", "해당 채탕방은 꽉 찼습니다."),
-    WRONG_CHAT(HttpStatus.BAD_REQUEST, "CHAT4005", "잘못된 채팅방 입니다."),
+    CANT_INVITE(HttpStatus.BAD_REQUEST, "CHAT4006", "채팅방에는 최대 4명까지 존재 가능합니다."),
+    WRONG_CHAT(HttpStatus.BAD_REQUEST, "CHAT4007", "잘못된 채팅방 입니다."),
+    MSG_SERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5001", "메세지 변환에 실패했습니다"),
+    REDIS_CANT_LISTEN_MSG(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5002", "Redis - 메세지 발행에 실패했습니다"),
+
 
 
     // Course

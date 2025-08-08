@@ -9,8 +9,9 @@ import UMC_8th.With_Run.map.entity.Pin;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
 import UMC_8th.With_Run.map.repository.PinRepository;
-import UMC_8th.With_Run.map.repository.RegionProvinceRepository;
+import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
 import UMC_8th.With_Run.map.repository.RegionsCityRepository;
+
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final PinRepository pinRepository;
+
     private final RegionProvinceRepository regionProvinceRepository;
     private final RegionsCityRepository regionsCityRepository;
     private final UserRepository userRepository;
@@ -56,6 +58,7 @@ public class CourseServiceImpl implements CourseService {
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.USER_NOT_FOUND));
 
+
         // 1. DTO에서 받은 ID로 RegionProvince 엔티티를 조회
         RegionProvince regionProvince = regionProvinceRepository.findById(requestDto.getRegionProvinceId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.REGION_PROVINCE_NOT_FOUND));
@@ -69,6 +72,7 @@ public class CourseServiceImpl implements CourseService {
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
                 .keyWord(keywordsString)
+
                 .time(time)
                 .user(user)
                 .createdAt(LocalDateTime.now())

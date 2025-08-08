@@ -126,7 +126,7 @@ public class MapServiceImpl implements MapService {
     @Transactional
     public Long updatePin(Long pinId, MapRequestDTO.PinRequestDto requestDto) {
         Pin pin = pinRepository.findById(pinId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
+                .orElseThrow(() -> new MapHandler(ErrorCode.PIN_NOT_FOUND));
         pin.setName(requestDto.getName());
         pin.setDetail(requestDto.getDetail());
         pin.setColor(requestDto.getColor());
@@ -142,19 +142,18 @@ public class MapServiceImpl implements MapService {
     @Transactional
     public Long deletePin(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
+                .orElseThrow(() -> new MapHandler(ErrorCode.PIN_NOT_FOUND));
 
         pinRepository.deleteById(pinId);
 
         return pin.getId();
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public MapResponseDTO.GetPinDto getPinById(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 핀 없음"));
+                .orElseThrow(() -> new MapHandler(ErrorCode.PIN_NOT_FOUND));
         return fromEntity(pin);
     }
 
