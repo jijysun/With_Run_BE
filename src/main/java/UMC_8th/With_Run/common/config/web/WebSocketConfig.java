@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.common.config;
+package UMC_8th.With_Run.common.config.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,7 +19,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // front 측에서 Back 과 연결하고 싶은 경우 이로 요청, Not Http!
         registry.addEndpoint("/api/ws").setAllowedOrigins("*");
     }
-
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {

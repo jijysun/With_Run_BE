@@ -63,6 +63,18 @@ public class MessageConverter {
                 .build();
     }
 
+    public static Message toFirstChatMessage (User user, Chat chat){
+        return Message.builder()
+                .user(user)
+                .chat(chat)
+                .isCourse(false)
+                .msg("상대방과 나누는 첫 대화입니다!")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+    }
+
     public static ChatResponseDTO.BroadcastMsgDTO toBroadCastMsgDTO(Long userId, Long chatId, Profile profile, Message message) {
         return ChatResponseDTO.BroadcastMsgDTO.builder()
                 .userId(userId)
@@ -84,6 +96,15 @@ public class MessageConverter {
                 .courseId(course.getId())
                 .courseImage(course.getCourseImage())
                 .keyword(course.getKeyWord())
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static ChatResponseDTO.BroadcastFirstChatDTO toBroadCastFirstChatDTO(Long userId, Long chatId) {
+        return ChatResponseDTO.BroadcastFirstChatDTO.builder()
+                .userId(userId)
+                .chatId(chatId)
+                .msg("상대방과 나누는 첫 대화입니다!")
                 .createdAt(LocalDateTime.now())
                 .build();
     }

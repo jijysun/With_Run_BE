@@ -43,7 +43,7 @@ public class UserChat {
     @Column(nullable = false)
     private Boolean isDefaultChatName = true;
 
-    @Column(length = 15)
+    @Column(length = 255)
     private String chatName;
 
     @Column(nullable = false)
