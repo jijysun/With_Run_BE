@@ -3,10 +3,13 @@ package UMC_8th.With_Run.course.service;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
+import UMC_8th.With_Run.notice.entity.NoticeType;
+import UMC_8th.With_Run.notice.service.NoticeService;
 import UMC_8th.With_Run.user.entity.Likes;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.LikesRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
+import UMC_8th.With_Run.user.service.UserService;
 import com.amazonaws.services.kms.model.NotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +22,7 @@ public class LikeCourseService {
     private final LikesRepository likesRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-
+    private final NoticeService noticeService;
     @Transactional
     public void likeCourse(Long userId, Long courseId) {
         User user = userRepository.findById(userId)
@@ -34,6 +37,7 @@ public class LikeCourseService {
 
         Likes likes = new Likes(user, course);
         likesRepository.save(likes);
+        noticeService.createNotice(user, course.getUser(), courseId, NoticeType.LIKE);
     }
 
     @Transactional
