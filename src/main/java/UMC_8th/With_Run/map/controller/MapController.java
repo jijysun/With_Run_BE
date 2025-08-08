@@ -22,11 +22,15 @@ public class MapController {
     private final MapService mapService;
     private final CourseService courseService;
 
+    // 수정: 위치 정보를 요청 파라미터에 추가했습니다.
     @Operation(
             summary = "카테고리 기반 반려동물 시설 검색 (페이징)",
-            description = "카테고리로 반려동물 시설을 페이징 형태로 검색합니다.",
+            description = "카테고리와 위치를 기준으로 반려동물 시설을 페이징 형태로 검색합니다.",
             parameters = {
-                    @Parameter(name = "type", description = "카테고리 타입 (예: 동물약국, 미술관)", required = true, example = "동물약국"),
+                    @Parameter(name = "type", description = "카테고리 타입 (예: 동물약국)", required = true, example = "동물약국"),
+                    @Parameter(name = "region_province", description = "시/도", required = true, example = "서울특별시"),
+                    @Parameter(name = "regions_city", description = "시/군/구", required = false, example = "종로구"),
+                    @Parameter(name = "regions_town", description = "읍/면/동", required = false, example = "청운효자동"),
                     @Parameter(name = "page", description = "페이지 번호 (0부터 시작, 최소 0)", required = false, example = "0"),
                     @Parameter(name = "size", description = "한 페이지당 항목 수 (1-100)", required = false, example = "20")
             }
@@ -34,11 +38,15 @@ public class MapController {
     @GetMapping("/search/categories")
     public StndResponse<MapResponseDTO.PetFacilityPageResponseDto> searchByCategory(
             @RequestParam String type,
+            @RequestParam(required = false) String region_province,
+            @RequestParam(required = false) String regions_city,
+            @RequestParam(required = false) String regions_town,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        MapResponseDTO.PetFacilityPageResponseDto result = 
-                mapService.getPetFacilityByCategory(type, page, size);
+        // 수정: mapService 메서드 호출 시 위치 정보 파라미터를 추가했습니다.
+        MapResponseDTO.PetFacilityPageResponseDto result =
+                mapService.getPetFacilityByCategory(type, region_province, regions_city, regions_town, page, size);
 
         return StndResponse.onSuccess(result, SuccessCode.INQUIRY_SUCCESS);
     }
@@ -53,10 +61,9 @@ public class MapController {
     )
     @GetMapping("/search/{id}")
     public StndResponse<MapResponseDTO.PetFacilityResponseDto> getPetFacilityById(@PathVariable Long id) {
-        MapResponseDTO.PetFacilityResponseDto facility = mapService.getPetFacilityById(id);
+        MapResponseDTO.PetFacilityResponseDto facility = mapService.getPetFacilityById(id, null, null, null);
         return StndResponse.onSuccess(facility, SuccessCode.INQUIRY_SUCCESS);
     }
-
 
 
     @Operation(
