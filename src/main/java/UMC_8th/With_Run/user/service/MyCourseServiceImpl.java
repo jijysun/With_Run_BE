@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.user.service;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
@@ -86,11 +85,11 @@ public class MyCourseServiceImpl implements MyCourseService {
 
         // 2. 지역 정보 수정
         RegionProvince province = provinceRepository.findById(dto.getProvinceId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
         RegionsCity city = cityRepository.findById(dto.getCityId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
         RegionsTown town = townRepository.findById(dto.getTownId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
 
         course.setRegionProvince(province);
         course.setRegionsCity(city);
@@ -109,7 +108,7 @@ public class MyCourseServiceImpl implements MyCourseService {
         try {
             return objectMapper.writeValueAsString(list != null ? list : Collections.emptyList());
         } catch (JsonProcessingException e) {
-            throw new GeneralException(ErrorStatus.BAD_REQUEST);
+            throw new GeneralException(ErrorCode.BAD_REQUEST);
         }
     }
 }

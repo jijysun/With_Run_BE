@@ -1,7 +1,6 @@
 package UMC_8th.With_Run.user.service;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
@@ -104,18 +103,18 @@ public class UserServiceImpl implements UserService {
         Profile profile = user.getProfile();
 
         RegionProvince province = provinceRepository.findById(dto.getProvinceId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
 
         RegionsCity city = null;
         if (dto.getCityId() != null) {
             city = cityRepository.findById(dto.getCityId())
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                    .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
         }
 
         RegionsTown town = null;
         if (dto.getTownId() != null) {
             town = townRepository.findById(dto.getTownId())
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.BAD_REQUEST));
+                    .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
         }
 
         profile.setProvinceId(province.getId());
