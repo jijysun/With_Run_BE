@@ -26,9 +26,11 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -68,6 +70,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void shareCourse(ChatRequestDTO.ShareReqDTO reqDTO) {
         /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
 
@@ -76,6 +79,9 @@ public class MessageServiceImpl implements MessageService {
 
         if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
             Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+
+            UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+            userChat.setToChatting();
 
             messageRepository.save(MessageConverter.toShareMessage(user, chat, course));
 
@@ -86,7 +92,8 @@ public class MessageServiceImpl implements MessageService {
 
             // 메세지 BroadCast
             redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
-        } else {
+        }
+        else {
             // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
@@ -95,7 +102,10 @@ public class MessageServiceImpl implements MessageService {
                 privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                ucList.add(UserChatConverter.toNewUserChat(user, targetUser, privateChat));
+                UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, privateChat);
+                newUserChat.setToChatting();
+
+                ucList.add(newUserChat);
                 ucList.add(UserChatConverter.toNewUserChat(targetUser, user, privateChat));
 
                 Chat savedChat = chatRepository.save(privateChat);
@@ -113,6 +123,9 @@ public class MessageServiceImpl implements MessageService {
                 redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
             } else {
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
+
+                UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+                userChat.setToChatting();
 
                 // Save And Broadcast
                 messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));

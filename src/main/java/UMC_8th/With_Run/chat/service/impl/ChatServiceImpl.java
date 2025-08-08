@@ -61,7 +61,6 @@ public class ChatServiceImpl implements ChatService {
     * 1. EnterChat -> 메세지 조회 페이징 도입
     * 2. Chatting -> 읽지 않은 메세지 수 최적화
     * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
-    * 5. ShareCourse -> 바로 입장.
     */
 
 
