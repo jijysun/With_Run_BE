@@ -37,8 +37,7 @@ public class Message {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String msg;
 
-
-    // course 와 1대1 연결
+    // course 와 1대1 연결?
     private Long courseId;
 
     private String courseImage;

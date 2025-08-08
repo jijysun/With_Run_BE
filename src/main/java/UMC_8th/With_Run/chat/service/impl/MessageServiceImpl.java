@@ -47,8 +47,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
-        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
+//        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        User user = userRepository.findByIdWithProfile(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+//        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
@@ -62,7 +63,7 @@ public class MessageServiceImpl implements MessageService {
         // redis 처리 전용 dto 변환,
         PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
                 .type("chat")
-                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg))
+                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), msg))
                 .build();
 
         redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
@@ -80,6 +81,7 @@ public class MessageServiceImpl implements MessageService {
         if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
             Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
+            // join fetch 가능하지 않을까?
             UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
             userChat.setToChatting();
 
