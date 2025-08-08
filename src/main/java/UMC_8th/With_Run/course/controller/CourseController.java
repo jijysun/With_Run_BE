@@ -1,11 +1,10 @@
 package UMC_8th.With_Run.course.controller;
 
-import UMC_8th.With_Run.common.apiResponse.status.ErrorStatus;
 import UMC_8th.With_Run.common.exception.GeneralException;
 import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.course.dto.CourseDetailResponse;
 import UMC_8th.With_Run.course.dto.CourseResponse;
-import UMC_8th.With_Run.course.entity.Course;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.course.repository.CourseRepository;
 import UMC_8th.With_Run.course.service.*;
 import UMC_8th.With_Run.user.entity.User;
@@ -99,7 +98,7 @@ public class CourseController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         Long userId = user.getId();
 
         likeCourseService.likeCourse(userId, courseId);
@@ -115,7 +114,7 @@ public class CourseController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         Long userId = user.getId();
 
         likeCourseService.unlikeCourse(userId, courseId);
@@ -129,7 +128,7 @@ public class CourseController {
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         scrapCourseService.scrapCourse(user.getId(), courseId);
 
@@ -142,7 +141,7 @@ public class CourseController {
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.WRONG_USER));
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
         scrapCourseService.unscrapCourse(user.getId(), courseId);
 
