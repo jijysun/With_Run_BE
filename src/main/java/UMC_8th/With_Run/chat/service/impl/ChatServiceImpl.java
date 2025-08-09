@@ -79,34 +79,6 @@ public class ChatServiceImpl implements ChatService {
 
     }
 
-    /*public List<ChatResponseDTO.GetChatListDTO> getChatList(User user) {
-
-        List<UserChat> userChatList = userChatRepository.findAllByUserIdJoinFetchChatUserAndProfile(user.getId());
-
-        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
-
-        List<Long> chatIdList = userChatList.stream()
-                .map(userChat -> userChat.getChat().getId())
-                .toList();
-
-        // 해당 채팅방에 참여하고 있는 user_chat 파싱
-        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdInJoinFetchUserAndProfile(chatIdList);
-
-        // chatIdList 순서에 맞게 userChat 파싱
-        Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
-                .filter(userChat -> !userChat.getUser().getId().equals(user.getId()))
-                .collect(Collectors.groupingBy(userchat -> userchat.getChat().getId()));
-
-        List<Integer> unReadMsgCountList = userChatList.stream()
-                .map(UserChat::getUnReadMsg)
-                .toList();
-
-
-        log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
-
-        return ChatConverter.toGetChatListDTO(userChatList, unReadMsgCountList, chatIdList, participantsMap);
-    }*/
-
     // 채팅 첫 생성 메소드
     @Transactional
     public ChatResponseDTO.CreateChatDTO createChat(Long targetId, User user) {

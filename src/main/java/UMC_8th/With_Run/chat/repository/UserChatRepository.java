@@ -12,10 +12,6 @@ import java.util.Optional;
 
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
-    @Query("Select uc From UserChat uc JOIN FETCH uc.chat JOIN FETCH uc.user u LEFT JOIN FETCH u.profile where uc.user.id = :userId")
-    List<UserChat> findAllByUserIdJoinFetchChatUserAndProfile(@Param("userId") Long userId);
-
-
     @Query(value = "SELECT " +
             "c.id AS chatId, uc.chat_name AS chatName, c.last_received_msg AS lastReceivedMsg, c.participants AS participants, uc.un_read_msg AS unReadMsg, " +
             " GROUP_CONCAT(p.name ORDER BY other_u.id) AS usernames, " +
@@ -41,9 +37,5 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
-
-
-    @Query("select uc From UserChat uc JOIN FETCH uc.user u JOIN FETCH u.profile where uc.chat.id IN :chatIdList")
-    List<UserChat> findAllByChat_IdInJoinFetchUserAndProfile(@Param("chatIdList") Collection<Long> chatIdList);
-
+    
 }
