@@ -46,8 +46,6 @@ public class ChatController {
     })
     public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(User user) {
         List<ChatResponseDTO.GetChatListDTO> chatList = chatService.getChatList(user);
-
-
         return StndResponse.onSuccess(chatList, SuccessCode.GET_LIST_SUCCESS);
     }
 

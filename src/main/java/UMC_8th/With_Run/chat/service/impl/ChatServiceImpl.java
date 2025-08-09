@@ -52,8 +52,8 @@ public class ChatServiceImpl implements ChatService {
      * CHAT
      * 1. EnterChat -> 메세지 조회 페이징 도입
      * 2. Chatting -> 읽지 않은 메세지 수 최적화
-     * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
      */
+
     @Transactional(readOnly = true)
     public List<ChatResponseDTO.GetChatListDTO> getChatList(User user) {
         List<ChatResponseDTO.GetChatListSQLDTO> chatList = userChatRepository.getChatList(user.getId());
@@ -76,7 +76,6 @@ public class ChatServiceImpl implements ChatService {
                             .build();
                 })
                 .collect(Collectors.toList());
-
     }
 
     // 채팅 첫 생성 메소드
@@ -183,15 +182,22 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, User user) {
 
-        ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
-
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         List<ChatRequestDTO.InviteDTO> inviteUserList = reqDTO.getInviteUserList();
 
         if (chat.getParticipants() + inviteUserList.size() > 4) {
-            throw new ChatHandler(ErrorCode.CANT_INVITE);
+            throw new ChatHandler(ErrorCode.CANT_INVITE_MORE_FOUR);
         }
+
+        List<Long> invitedUserIdList = inviteUserList.stream()
+                .map(ChatRequestDTO.InviteDTO::getUserId)
+                .toList();
+
+        if (userChatRepository.findAlreadyInvited(chatId, invitedUserIdList)) {
+            throw new UserHandler(ErrorCode.ALREADY_PARTICIPATING);
+        }
+
         chat.updateParticipants(chat.getParticipants() + inviteUserList.size());
 
         // 기존 사용자
@@ -257,8 +263,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
-        ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true

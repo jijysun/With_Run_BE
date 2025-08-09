@@ -5,6 +5,7 @@ import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,5 +38,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
-    
+
+    @Query("SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList")
+    Boolean findAlreadyInvited (@Param("chatId") Long chatId, @Param("idList") List<Long> idList);
 }
