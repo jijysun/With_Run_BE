@@ -65,15 +65,7 @@ public class ChatServiceImpl implements ChatService {
                     List<String> usernameList = Arrays.asList(result.getUsernames().split(","));
                     List<String> profileList = Arrays.asList(result.getProfileImages().split(","));
 
-                    return ChatResponseDTO.GetChatListDTO.builder()
-                            .chatId(result.getChatId())
-                            .chatName(result.getChatName())
-                            .unReadMsgCount(result.getUnReadMsg())
-                            .lastReceivedMsg(result.getLastReceivedMsg())
-                            .usernameList(usernameList)
-                            .userProfileList(profileList)
-                            .participants(result.getParticipants())
-                            .build();
+                    return ChatConverter.toGetChatListDTO(result, usernameList, profileList);
                 })
                 .collect(Collectors.toList());
     }
@@ -97,10 +89,10 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
-        UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, chat);
+        UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, chat);
         newUserChat.setToChatting();
         userChats.add(newUserChat);
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null,  chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -222,7 +214,7 @@ public class ChatServiceImpl implements ChatService {
             String joinChatName = preUserNameList + ", " + collect;
 
             log.info("joinChatName : {}", joinChatName);
-            newUserChat.add(UserChatConverter.toNewUserChatInInvite(user, joinChatName, chat));
+            newUserChat.add(UserChatConverter.toNewUserChat(user, null, joinChatName, chat));
         }
         userChatRepository.saveAll(newUserChat);
 
