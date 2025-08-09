@@ -264,7 +264,7 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatResponseDTO.BroadcastMsgDTO chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+    public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         // 1. 메세지가 수신된다
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
@@ -278,7 +278,9 @@ public class ChatService {
 
         // 메세지 저장
         messageRepository.save(msg);
-        return MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg);
+        ChatResponseDTO.BroadcastMsgDTO broadCastMsgDTO = MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, profile, msg);
+
+        template.convertAndSend("/sub/" + chatId + "/msg" , broadCastMsgDTO);
     }
 
     public void chattingWithRedis(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {

@@ -11,4 +11,6 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("Select m From Message m JOIN fetch m.user u JOIN fetch u.profile where m.chat.id = :chatId") // Join Fetch!
     List<Message> findByChat_Id(@Param("chatId") Long chatId);
+
+    long countMessageByChat_Id(Long chatId);
 }

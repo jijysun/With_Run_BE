@@ -119,7 +119,8 @@ public class ChatController {
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
     @ApiResponse(responseCode = "CHAT2008", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     public void chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
-        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
+        chatService.chatting(chatId, reqDTO);
+//        template.convertAndSend("/sub/" + chatId + "/msg" , chatService.chatting(chatId, reqDTO));
 //        chatService.chattingWithRedis(chatId, reqDTO);
     }
 
