@@ -2,10 +2,13 @@ package UMC_8th.With_Run.course.service;
 
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
+import UMC_8th.With_Run.notice.entity.NoticeType;
+import UMC_8th.With_Run.notice.service.NoticeService;
 import UMC_8th.With_Run.user.entity.Scraps;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.ScrapsRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
+import UMC_8th.With_Run.user.service.ScrapService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ public class ScrapCourseService {
     private final ScrapsRepository scrapsRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final NoticeService noticeService;
 
     @Transactional
     public void scrapCourse(Long userId, Long courseId) {
@@ -31,6 +35,7 @@ public class ScrapCourseService {
 
         Scraps scrap = new Scraps(user, course);
         scrapsRepository.save(scrap);
+        noticeService.createNotice(course.getUser(), user, courseId, NoticeType.SCRAP);
     }
 
     @Transactional

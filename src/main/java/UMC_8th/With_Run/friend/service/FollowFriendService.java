@@ -1,5 +1,7 @@
 package UMC_8th.With_Run.friend.service;
 
+import UMC_8th.With_Run.notice.entity.NoticeType;
+import UMC_8th.With_Run.notice.service.NoticeService;
 import UMC_8th.With_Run.user.entity.Follow;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.friend.repository.FollowFriendRepository;
@@ -16,6 +18,7 @@ public class FollowFriendService {
 
     private final FollowFriendRepository followFriendRepository;
     private final UserRepository userRepository;
+    private final NoticeService noticeService;
 
     @Transactional
     public void followUser(Long userId, Long targetUserId) {
@@ -42,6 +45,8 @@ public class FollowFriendService {
                 .build();
 
         followFriendRepository.save(follow);
+        noticeService.createNotice(targetUser, user, null, NoticeType.FOLLOW);
+
     }
 
 }

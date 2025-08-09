@@ -9,7 +9,7 @@ import java.util.List;
 public interface ChatService {
     List<ChatResponseDTO.GetChatListDTO> getChatList(User user);
 
-    ChatResponseDTO.CreateChatDTOV2 createChat(Long targetId, User user);
+    ChatResponseDTO.CreateChatDTO createChat(Long targetId, User user);
 
     ChatResponseDTO.RenameChatDTO renameChat(Long chatId, String newName, User user);
 

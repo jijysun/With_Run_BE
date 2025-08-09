@@ -52,13 +52,13 @@ public class ChatController {
     @PostMapping("/hello")
     @Operation(summary = "채팅방 생성 API", description = "상대방과 채팅 생성하는 API 입니다. 상대방과 첫 채팅 시에만 호출되고, 이후 다수 초대는 분리하였습니다")
     @ApiResponses({
-            @ApiResponse(responseCode = "CHAT2000", content = @Content(schema = @Schema(implementation = ChatResponseDTO.CreateChatDTOV2.class)))
+            @ApiResponse(responseCode = "CHAT2000", content = @Content(schema = @Schema(implementation = ChatResponseDTO.CreateChatDTO.class)))
     })
     @Parameters({
             @Parameter(name = "targetId", description = "상대방 사용자 id 입니다, 초대할 사용자 id 입니다. 파라미터 입니다")
     })
-    public StndResponse<ChatResponseDTO.CreateChatDTOV2> createChat(@RequestParam("id") Long targetId, User user) {
-        ChatResponseDTO.CreateChatDTOV2 chatHistory = chatService.createChat(targetId, user);
+    public StndResponse<ChatResponseDTO.CreateChatDTO> createChat(@RequestParam("id") Long targetId, User user) {
+        ChatResponseDTO.CreateChatDTO chatHistory = chatService.createChat(targetId, user);
         return StndResponse.onSuccess(chatHistory, SuccessCode.CHAT_CREATE_SUCCESS);
     }
 
