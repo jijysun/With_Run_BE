@@ -5,12 +5,35 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
+
 public class ChatResponseDTO {
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class CreateChatDTO {
         private Long chatId;
         private List<ChatResponseDTO.BroadcastMsgDTO> messageList;
+    }
+
+    public interface GetChatListSQLDTO {
+        Long getChatId();
+        String getChatName();
+        Integer getUnReadMsg();
+        String getLastReceivedMsg();
+        Integer getParticipants();
+        String getUsernames();
+        String getProfileImages();
+    }
+
+    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class GetChatListDTO {
+        private Long chatId;
+        private String chatName;
+        private Integer unReadMsgCount;
+        private String lastReceivedMsg;
+        private Integer participants;
+        private List<String> usernameList;
+        private List<String> userProfileList;
     }
 
 
@@ -21,23 +44,6 @@ public class ChatResponseDTO {
         private String name;
 
         private String profileImage;
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class GetChatListDTO {
-        private Long chatId;
-
-        private String chatName;
-
-        private List<String> usernameList; // 참여자 이름은 배열로
-
-        private List<String> userProfileList; // 참여자 프로필, 최대 3개?
-
-        private Integer participants;
-
-        private String lastReceivedMsg;
-
-        private Integer unReadMsgCount;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor

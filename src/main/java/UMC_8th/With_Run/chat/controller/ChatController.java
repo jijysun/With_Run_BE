@@ -45,8 +45,10 @@ public class ChatController {
             @ApiResponse(responseCode = "CHAT2006", content = @Content(schema = @Schema(implementation = ChatResponseDTO.GetChatListDTO.class))) // 성공 DTO Response 클래스
     })
     public StndResponse<List<ChatResponseDTO.GetChatListDTO>> getChatList(User user) {
-        List<ChatResponseDTO.GetChatListDTO> chatListDTO = chatService.getChatList(user);
-        return StndResponse.onSuccess(chatListDTO, SuccessCode.GET_LIST_SUCCESS);
+        List<ChatResponseDTO.GetChatListDTO> chatList = chatService.getChatList(user);
+
+
+        return StndResponse.onSuccess(chatList, SuccessCode.GET_LIST_SUCCESS);
     }
 
     @PostMapping("/hello")
