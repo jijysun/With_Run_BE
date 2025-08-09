@@ -258,7 +258,7 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
+        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
         userChat.setToChatting();
 
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
@@ -268,7 +268,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void leaveChat(Long chatId, User user) {
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        userChat.setToNotChatting();
+        userChat.setToNotChatting(); // -> redis
     }
 
     @Transactional
@@ -276,6 +276,8 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
+        
+        // redis 삭제 로직 추가
         userChatRepository.delete(userChat);
 
         Integer participants = chat.getParticipants();
