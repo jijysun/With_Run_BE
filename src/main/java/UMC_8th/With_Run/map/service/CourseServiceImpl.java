@@ -11,7 +11,6 @@ import UMC_8th.With_Run.map.entity.RegionsCity;
 import UMC_8th.With_Run.map.repository.PinRepository;
 import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
 import UMC_8th.With_Run.map.repository.RegionsCityRepository;
-
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +28,6 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final PinRepository pinRepository;
-
     private final RegionProvinceRepository regionProvinceRepository;
     private final RegionsCityRepository regionsCityRepository;
     private final UserRepository userRepository;
@@ -43,61 +41,62 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public Long createCourse(Long userId, MapRequestDTO.CourseCreateRequestDto requestDto) {
-        List<Long> pinIds = requestDto.getPinIds();
 
-        List<Pin> foundPins = pinRepository.findAllById(pinIds);
-
-        if (foundPins.size() != pinIds.size()) {
-            throw new MapHandler(ErrorCode.PIN_NOT_FOUND);
-        }
-
+        // 기존 핀 ID를 조회하는 로직은 제거했습니다.
         String keywordsString = String.join(",", requestDto.getKeyWords());
-        int time = requestDto.getTime();
 
-        // DTO에서 userId를 가져와 User 엔티티를 조회
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.USER_NOT_FOUND));
 
-
-        // 1. DTO에서 받은 ID로 RegionProvince 엔티티를 조회
         RegionProvince regionProvince = regionProvinceRepository.findById(requestDto.getRegionProvinceId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.REGION_PROVINCE_NOT_FOUND));
 
-        // 2. DTO에서 받은 ID로 RegionsCity 엔티티를 조회
         RegionsCity regionsCity = regionsCityRepository.findById(requestDto.getRegionsCityId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
 
-        // 3. 빌더를 통해 Course 엔티티 생성 시, 조회한 엔티티를 할당
+        // Course 엔티티 생성
         Course course = Course.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
                 .keyWord(keywordsString)
-
-                .time(time)
+                .time(requestDto.getTime())
                 .user(user)
                 .createdAt(LocalDateTime.now())
-                .regionProvince(regionProvince) // 조회한 엔티티 할당
+                .regionProvince(regionProvince)
                 .regionsCity(regionsCity)
                 .overviewPolyline(requestDto.getOverviewPolyline())
                 .build();
 
-        courseRepository.save(course);
+        // 1. 코스를 먼저 저장하여 ID를 할당받습니다.
+        Course savedCourse = courseRepository.save(course);
 
-        Map<Long, Pin> pinMap = foundPins.stream()
-                .collect(Collectors.toMap(Pin::getId, pin -> pin));
-
-        for (Long pinId : pinIds) {
-            Pin pin = pinMap.get(pinId);
-
-            if (pin == null) {
-                throw new MapHandler(ErrorCode.PIN_NOT_FOUND);
-            }
-            pin.setCourseId(course.getId());
-            pin.setUpdatedAt(LocalDateTime.now());
+        // 2. DTO에 담긴 핀 객체 리스트를 이용하여 실제 Pin 엔티티를 생성합니다.
+        List<Pin> pins = new ArrayList<>();
+        for (MapRequestDTO.PinRequestDto pinDto : requestDto.getPins()) {
+            Pin newPin = Pin.builder()
+                    .name(pinDto.getName())
+                    .detail(pinDto.getDetail())
+                    .color(pinDto.getColor())
+                    .latitude(pinDto.getLatitude())
+                    .longitude(pinDto.getLongitude())
+                    .pinOrder(pinDto.getPinOrder()) // DTO의 pinOrder 값을 사용
+                    .course(savedCourse) // Course 엔티티를 직접 설정
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            pins.add(newPin);
         }
 
-        pinRepository.saveAll(foundPins);
+        // 3. 생성된 핀 엔티티 리스트를 한 번에 저장합니다.
+        pinRepository.saveAll(pins);
 
-        return course.getId();
+        // regionsData를 활용한 로직이 필요하다면 여기에 추가
+        // 예: 코스와 지역 간의 관계를 관리하는 중간 테이블에 저장하는 로직
+        // List<RegionsCity> regions = regionsCityRepository.findAllById(
+        //     requestDto.getRegionsData().stream().map(MapRequestDTO.RegionRequestDto::getId).collect(Collectors.toList())
+        // );
+        // savedCourse.setRegions(regions);
+
+        return savedCourse.getId();
     }
 }
