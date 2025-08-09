@@ -67,7 +67,6 @@ public class MessageServiceImpl implements MessageService {
                 .build();
 
         redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
-
     }
 
     @Override

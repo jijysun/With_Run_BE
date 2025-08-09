@@ -25,10 +25,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,42 +46,36 @@ public class ChatServiceImpl implements ChatService {
 
 
     /*
-    * COMMON
-    * - x
-    *
-    * CHAT
-    * 1. EnterChat -> 메세지 조회 페이징 도입
-    * 2. Chatting -> 읽지 않은 메세지 수 최적화
-    * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
-    */
+     * COMMON
+     * - x
+     *
+     * CHAT
+     * 1. EnterChat -> 메세지 조회 페이징 도입
+     * 2. Chatting -> 읽지 않은 메세지 수 최적화
+     */
 
-
+    @Transactional(readOnly = true)
     public List<ChatResponseDTO.GetChatListDTO> getChatList(User user) {
+        List<ChatResponseDTO.GetChatListSQLDTO> chatList = userChatRepository.getChatList(user.getId());
 
-        List<UserChat> userChatList = userChatRepository.findAllByUserIdJoinFetchChatUserAndProfile(user.getId());
+        if (chatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
 
-        if (userChatList.isEmpty()) throw new ChatHandler(ErrorCode.EMPTY_CHAT_LIST); // 성공 코드로 전환?
+        return chatList.stream()
+                .map(result -> {
+                    List<String> usernameList = Arrays.asList(result.getUsernames().split(","));
+                    List<String> profileList = Arrays.asList(result.getProfileImages().split(","));
 
-        List<Long> chatIdList = userChatList.stream()
-                .map(userChat -> userChat.getChat().getId())
-                .toList();
-
-        // 해당 채팅방에 참여하고 있는 user_chat 파싱
-        List<UserChat> otherUserChatList = userChatRepository.findAllByChat_IdInJoinFetchUserAndProfile(chatIdList);
-
-        // chatIdList 순서에 맞게 userChat 파싱
-        Map<Long, List<UserChat>> participantsMap = otherUserChatList.stream()
-                .filter(userChat -> !userChat.getUser().getId().equals(user.getId()))
-                .collect(Collectors.groupingBy(userchat -> userchat.getChat().getId()));
-
-        List<Integer> unReadMsgCountList = userChatList.stream()
-                .map(UserChat::getUnReadMsg)
-                .toList();
-
-
-        log.info("'getChatList' - Chat.count that user is participating in : " + userChatList.size());
-
-        return ChatConverter.toGetChatListDTO(userChatList, unReadMsgCountList, chatIdList, participantsMap);
+                    return ChatResponseDTO.GetChatListDTO.builder()
+                            .chatId(result.getChatId())
+                            .chatName(result.getChatName())
+                            .unReadMsgCount(result.getUnReadMsg())
+                            .lastReceivedMsg(result.getLastReceivedMsg())
+                            .usernameList(usernameList)
+                            .userProfileList(profileList)
+                            .participants(result.getParticipants())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     // 채팅 첫 생성 메소드
@@ -94,7 +85,7 @@ public class ChatServiceImpl implements ChatService {
 
         Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
 
-        if (privateChat.isPresent()){ // 이미 갠톡 존재하는 경우 해당 채팅 입장.
+        if (privateChat.isPresent()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
             UserChat userChat = privateChat.get().get(0);
             userChat.setToChatting();
             Long chatId = userChat.getChat().getId();
@@ -191,15 +182,22 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void inviteUser(Long chatId, ChatRequestDTO.InviteUserReqDTO reqDTO, User user) {
 
-        ///  초대한 사람이 초대자의 팔로우 리스트에 있는 지 검사 로직 추가
-
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         List<ChatRequestDTO.InviteDTO> inviteUserList = reqDTO.getInviteUserList();
 
         if (chat.getParticipants() + inviteUserList.size() > 4) {
-            throw new ChatHandler(ErrorCode.CANT_INVITE);
+            throw new ChatHandler(ErrorCode.CANT_INVITE_MORE_FOUR);
         }
+
+        List<Long> invitedUserIdList = inviteUserList.stream()
+                .map(ChatRequestDTO.InviteDTO::getUserId)
+                .toList();
+
+        if (userChatRepository.findAlreadyInvited(chatId, invitedUserIdList)) {
+            throw new UserHandler(ErrorCode.ALREADY_PARTICIPATING);
+        }
+
         chat.updateParticipants(chat.getParticipants() + inviteUserList.size());
 
         // 기존 사용자
@@ -265,8 +263,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...?
-        ///  TODO 사용자에 대한 읽지 않은 메세지 수 0으로 세팅
+    public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
@@ -277,7 +274,7 @@ public class ChatServiceImpl implements ChatService {
 
 
     @Transactional
-    public void leaveChat(Long chatId,User user) {
+    public void leaveChat(Long chatId, User user) {
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         userChat.setToNotChatting();
     }
