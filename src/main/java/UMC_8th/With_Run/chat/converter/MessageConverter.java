@@ -9,7 +9,6 @@ import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MessageConverter {
@@ -96,15 +95,6 @@ public class MessageConverter {
                 .courseId(course.getId())
                 .courseImage(course.getCourseImage())
                 .keyword(course.getKeyWord())
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
-    public static ChatResponseDTO.BroadcastFirstChatDTO toBroadCastFirstChatDTO(Long userId, Long chatId) {
-        return ChatResponseDTO.BroadcastFirstChatDTO.builder()
-                .userId(userId)
-                .chatId(chatId)
-                .msg("상대방과 나누는 첫 대화입니다!")
                 .createdAt(LocalDateTime.now())
                 .build();
     }

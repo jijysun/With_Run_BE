@@ -1,21 +1,14 @@
 package UMC_8th.With_Run.chat.dto;
 
-import UMC_8th.With_Run.chat.entity.Message;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ChatResponseDTO {
 
-    /*@Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class CreateChatDTO {
-        private Long chatId;
-    }*/
-
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class CreateChatDTOV2 {
+    public static class CreateChatDTO {
         private Long chatId;
         private List<ChatResponseDTO.BroadcastMsgDTO> messageList;
     }
@@ -45,38 +38,12 @@ public class ChatResponseDTO {
         private String lastReceivedMsg;
 
         private Integer unReadMsgCount;
-
-        /* UserChatList
-
-        chatId chat
-        chatName userchat
-        userNameList -> profile
-        userProfiles profile
-        participants chat
-        lastMsgReceived -> message
-        unReadMsgCount user_chat
-        * */
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
     public static class RenameChatDTO{
         private Long chatId;
         private String chatName;
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class BroadcastInviteUserDTO {
-        private Long userId;
-
-        private LocalDateTime createdAt;
-
-        private String msg;
-
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class ChatHistoryDTO {
-        private ArrayList<Message> messages;
     }
 
     @Getter @Builder @NoArgsConstructor @AllArgsConstructor
@@ -111,17 +78,6 @@ public class ChatResponseDTO {
         private String courseImage;
 
         private String keyword;
-
-        private LocalDateTime createdAt;
-    }
-
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
-    public static class BroadcastFirstChatDTO{
-        private Long userId;
-
-        private Long chatId;
-
-        private String msg;
 
         private LocalDateTime createdAt;
     }

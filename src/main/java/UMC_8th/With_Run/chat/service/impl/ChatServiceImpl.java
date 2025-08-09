@@ -6,7 +6,6 @@ import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
-import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
@@ -15,8 +14,6 @@ import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
-import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
-import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.FollowRepository;
@@ -44,10 +41,8 @@ public class ChatServiceImpl implements ChatService {
     private final UserChatRepository userChatRepository;
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final SimpMessagingTemplate template;
     private final FollowRepository followRepository;
-    private final RedisPublisher redisPublisher;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -61,7 +56,6 @@ public class ChatServiceImpl implements ChatService {
     * 1. EnterChat -> 메세지 조회 페이징 도입
     * 2. Chatting -> 읽지 않은 메세지 수 최적화
     * 3. GetChatList -> 너무 많고 이상한 Stream 최적화. DTO Projection?
-    * 5. ShareCourse -> 바로 입장.
     */
 
 
@@ -95,7 +89,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 채팅 첫 생성 메소드
     @Transactional
-    public ChatResponseDTO.CreateChatDTOV2 createChat(Long targetId, User user) {
+    public ChatResponseDTO.CreateChatDTO createChat(Long targetId, User user) {
         User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
         Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
