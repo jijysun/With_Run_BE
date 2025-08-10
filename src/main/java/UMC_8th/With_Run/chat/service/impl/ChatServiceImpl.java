@@ -53,7 +53,6 @@ public class ChatServiceImpl implements ChatService {
      * - x
      *
      * CHAT
-     * 1. EnterChat -> 메세지 조회 페이징 도입
      * 2. Chatting -> 읽지 않은 메세지 수 최적화
      */
 
@@ -280,10 +279,9 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatResponseDTO.BroadcastMsgDTO> getChatHistory(Long chatId, Long cursor, User user) {
 
         UserChat uc = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-
         uc.setToChatting();
 
-        PageRequest page = PageRequest.of(0, 20);
+        PageRequest page = PageRequest.of(0, 30);
 
         if (cursor == null) {
             List<Message> lastestMessageList = messageRepository.getLastestMessagesByChatId(chatId, uc.getCreatedAt(), page);
@@ -291,6 +289,9 @@ public class ChatServiceImpl implements ChatService {
         }
         else {
             List<Message> previousMessageList = messageRepository.getPreviousMessagesByChatId(chatId, uc.getCreatedAt(), cursor, page);
+
+            if (previousMessageList.isEmpty())
+                throw new ChatHandler(ErrorCode.NO_MORE_MESSAGE);
             return MessageConverter.toChatHistoryDTO(previousMessageList, chatId);
         }
     }

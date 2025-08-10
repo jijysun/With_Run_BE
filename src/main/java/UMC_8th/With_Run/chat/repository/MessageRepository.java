@@ -20,7 +20,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Page<Message> findByChat_IdAndIdLessThan(Long chatId, Integer idIsLessThan, Pageable pageable);
 
 
-    @Query("SELECT m From Message m join fetch m.user u WHERE m.chat.id = :chatId AND m.createdAt >= :joinTime ORDER BY m.id DESC")
+    @Query("SELECT m From Message m join fetch m.user u WHERE m.chat.id = :chatId AND m.createdAt >= :joinTime ORDER BY m.id DESC ")
     List<Message> getLastestMessagesByChatId (@Param("chatId") Long chatId, @Param("joinTime") LocalDateTime joinTime, Pageable pageable);
 
     @Query ("SELECT m From Message m JOIN FETCH m.user u WHERE m.chat.id = :chatId AND m.createdAt >= :joinTime AND m.id < :cursorId ORDER BY m.id DESC")
