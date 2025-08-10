@@ -6,6 +6,7 @@ import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
+import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
@@ -21,6 +22,8 @@ import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +53,6 @@ public class ChatServiceImpl implements ChatService {
      * - x
      *
      * CHAT
-     * 1. EnterChat -> 메세지 조회 페이징 도입
      * 2. Chatting -> 읽지 않은 메세지 수 최적화
      */
 
@@ -83,10 +85,10 @@ public class ChatServiceImpl implements ChatService {
     public ChatResponseDTO.CreateChatDTO createChat(Long targetId, User user) {
         User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
-        Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
+        List<UserChat> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
 
-        if (privateChat.isPresent()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
-            UserChat userChat = privateChat.get().get(0);
+        if (!privateChat.isEmpty()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
+            UserChat userChat = privateChat.get(0);
             userChat.setToChatting();
             Long chatId = userChat.getChat().getId();
             List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
@@ -270,6 +272,28 @@ public class ChatServiceImpl implements ChatService {
         userChat.setToChatting();
 
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
+    }
+
+    @Override
+    @Transactional
+    public List<ChatResponseDTO.BroadcastMsgDTO> getChatHistory(Long chatId, Long cursor, User user) {
+
+        UserChat uc = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+        uc.setToChatting();
+
+        PageRequest page = PageRequest.of(0, 30);
+
+        if (cursor == null) {
+            List<Message> lastestMessageList = messageRepository.getLastestMessagesByChatId(chatId, uc.getCreatedAt(), page);
+            return MessageConverter.toChatHistoryDTO(lastestMessageList, chatId);
+        }
+        else {
+            List<Message> previousMessageList = messageRepository.getPreviousMessagesByChatId(chatId, uc.getCreatedAt(), cursor, page);
+
+            if (previousMessageList.isEmpty())
+                throw new ChatHandler(ErrorCode.NO_MORE_MESSAGE);
+            return MessageConverter.toChatHistoryDTO(previousMessageList, chatId);
+        }
     }
 
 

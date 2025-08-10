@@ -33,6 +33,7 @@ public class MessageConverter {
                         .msg(message.getMsg())
                         .isCourse(false)
                         .chatId(chatId)
+                        .messageId(message.getId())
                         .createdAt(message.getCreatedAt())
                         .build())
                 .toList();
