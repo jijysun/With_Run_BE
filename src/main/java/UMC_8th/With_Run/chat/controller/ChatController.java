@@ -118,7 +118,7 @@ public class ChatController {
     @Parameters({
             @Parameter(name = "cursor", description = "커서 번호 입니다")
     })
-    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> getChatHistory(@PathVariable("chatId") Long chatId, @RequestParam("cursor") Long cursor, User user) {
+    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> getChatHistory(@PathVariable("chatId") Long chatId, @RequestParam(value = "cursor", required = false) Long cursor, User user) {
         return StndResponse.onSuccess(chatService.getChatHistory(chatId, cursor, user), SuccessCode.ENTER_CHAT_SUCCESS);
     }
 
