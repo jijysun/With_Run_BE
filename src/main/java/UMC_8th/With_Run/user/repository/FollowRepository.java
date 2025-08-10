@@ -16,5 +16,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     // Eager Loading!
     @Query("select f From Follow f JOIN FETCH f.targetUser where f.user.id = :userId order by f.targetUser.id")
     List<Follow> findAllByUserIdWithTargetUser (@Param("userId") Long userId);
+
+    void deleteByUserIdAndTargetUserId(Long followerId, Long followingId);
+
 }
 
