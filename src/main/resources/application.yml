@@ -53,3 +53,7 @@ cloud:
 google:
   places:
     key: ${GOOGLE-API-KEY}
+
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL}
