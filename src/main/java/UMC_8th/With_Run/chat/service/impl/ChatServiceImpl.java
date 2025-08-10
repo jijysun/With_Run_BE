@@ -6,6 +6,7 @@ import UMC_8th.With_Run.chat.converter.UserChatConverter;
 import UMC_8th.With_Run.chat.dto.ChatRequestDTO;
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
+import UMC_8th.With_Run.chat.entity.Message;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.chat.repository.ChatRepository;
 import UMC_8th.With_Run.chat.repository.MessageRepository;
@@ -21,6 +22,8 @@ import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -270,6 +273,26 @@ public class ChatServiceImpl implements ChatService {
         userChat.setToChatting();
 
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
+    }
+
+    @Override
+    @Transactional
+    public List<ChatResponseDTO.BroadcastMsgDTO> getChatHistory(Long chatId, Long cursor, User user) {
+
+        UserChat uc = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
+
+        uc.setToChatting();
+
+        PageRequest page = PageRequest.of(0, 20);
+
+        if (cursor == null) {
+            List<Message> lastestMessageList = messageRepository.getLastestMessagesByChatId(chatId, uc.getCreatedAt(), page);
+            return MessageConverter.toChatHistoryDTO(lastestMessageList, chatId);
+        }
+        else {
+            List<Message> previousMessageList = messageRepository.getPreviousMessagesByChatId(chatId, uc.getCreatedAt(), cursor, page);
+            return MessageConverter.toChatHistoryDTO(previousMessageList, chatId);
+        }
     }
 
 

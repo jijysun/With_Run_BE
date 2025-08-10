@@ -101,13 +101,25 @@ public class ChatController {
         return StndResponse.onSuccess(null, SuccessCode.INVITE_SUCCESS); // 초대 성공 코드 만들기
     }
 
-    @GetMapping("/{chatId}")
+    /*@GetMapping("/{chatId}")
     @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 메세지 내역 확인 API 입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "CHAT2004", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     })
     public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> enterChat(@PathVariable("chatId") Long chatId, User user) {
         return StndResponse.onSuccess(chatService.enterChat(chatId, user), SuccessCode.ENTER_CHAT_SUCCESS);
+    }*/
+
+    @GetMapping("/{chatId}")
+    @Operation(summary = "채팅방 진입 API", description = "채팅반 진입 후 이전 메세지 내역 확인 API 입니다, 채팅방 번호와 커서 번호가 필요합니다!")
+    @ApiResponses({
+            @ApiResponse(responseCode = "CHAT2004", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
+    })
+    @Parameters({
+            @Parameter(name = "cursor", description = "커서 번호 입니다")
+    })
+    public StndResponse<List<ChatResponseDTO.BroadcastMsgDTO>> getChatHistory(@PathVariable("chatId") Long chatId, @RequestParam("cursor") Long cursor, User user) {
+        return StndResponse.onSuccess(chatService.getChatHistory(chatId, cursor, user), SuccessCode.ENTER_CHAT_SUCCESS);
     }
 
     // 메세지 채팅
