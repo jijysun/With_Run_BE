@@ -83,10 +83,10 @@ public class ChatServiceImpl implements ChatService {
     public ChatResponseDTO.CreateChatDTO createChat(Long targetId, User user) {
         User targetUser = userRepository.findByIdWithProfile(targetId).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
-        Optional<List<UserChat>> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
+        List<UserChat> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
 
-        if (privateChat.isPresent()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
-            UserChat userChat = privateChat.get().get(0);
+        if (!privateChat.isEmpty()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
+            UserChat userChat = privateChat.get(0);
             userChat.setToChatting();
             Long chatId = userChat.getChat().getId();
             List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
