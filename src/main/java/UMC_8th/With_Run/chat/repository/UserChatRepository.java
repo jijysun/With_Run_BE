@@ -30,7 +30,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     @Query ("select uc From UserChat uc join fetch uc.chat where uc.chat.id IN (" +
             "Select c.id From Chat c JOIN c.userChatList uc2 Where c.participants = 2 AND uc2.user.id in (:id1, :id2)" +
               " GROUP BY c.id having count (uc2.chat.id) = 2)")
-    Optional<List<UserChat>> findByTwoUserId(@Param("id1")Long userId1, @Param("id2") Long userId2);
+    List<UserChat> findByTwoUserId(@Param("id1")Long userId1, @Param("id2") Long userId2);
 
     @Query ("Select uc From UserChat uc join fetch uc.user u join u.profile where uc.chat.id = :chatId ")
     List<UserChat> findAllByChat_IdJoinFetchUserAndProfile(@Param("chatId") Long chatId);

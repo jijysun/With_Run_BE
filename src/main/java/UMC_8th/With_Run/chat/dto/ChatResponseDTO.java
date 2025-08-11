@@ -62,6 +62,8 @@ public class ChatResponseDTO {
 
         private String userProfileImage;
 
+        private Long messageId;
+
         private String msg;
 
         private boolean isCourse;

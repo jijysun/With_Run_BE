@@ -49,6 +49,7 @@ public enum ErrorCode implements BaseErrorCode {
     CANT_INVITE_MORE_FOUR(HttpStatus.BAD_REQUEST, "CHAT4006", "채팅방에는 최대 4명까지 존재 가능합니다."),
     WRONG_CHAT(HttpStatus.BAD_REQUEST, "CHAT4007", "잘못된 채팅방 입니다."),
     ALREADY_PARTICIPATING(HttpStatus.BAD_REQUEST, "CHAT4008", "이미 참여중인 사용자를 초대하였습니다."),
+    NO_MORE_MESSAGE(HttpStatus.BAD_REQUEST, "CHAT4009", "더 이상 조회할 메세지가 없습니다."),
     MSG_SERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5001", "메세지 변환에 실패했습니다"),
     REDIS_CANT_LISTEN_MSG(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5002", "Redis - 메세지 발행에 실패했습니다"),
 
@@ -77,7 +78,8 @@ public enum ErrorCode implements BaseErrorCode {
     // PAGING 오류
     WRONG_PAGE (HttpStatus.BAD_REQUEST, "PAGE4001", "올바르지 않은 페이지 번호 입니다."),
     WRONG_PAGE_SIZE (HttpStatus.BAD_REQUEST, "PAGE4002", "페이지 크기는 1-100 사이여야 합니다."),
-    PAGE_OUT_OF_RANGE (HttpStatus.BAD_REQUEST, "PAGE4003", "페이지 번호가 범위를 벗어났습니다.");
+    PAGE_OUT_OF_RANGE (HttpStatus.BAD_REQUEST, "PAGE4003", "페이지 번호가 범위를 벗어났습니다."),
+    REPORT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REPORT5001" , "사용자 신고 중 오류가 발생했습니다." );
 
 
     private final HttpStatus httpStatus;
