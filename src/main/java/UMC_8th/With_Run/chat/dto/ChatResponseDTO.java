@@ -81,6 +81,8 @@ public class ChatResponseDTO {
 
         private boolean isCourse;
 
+        private boolean isSystem;
+
         private Long courseId;
 
         private String courseImage;
