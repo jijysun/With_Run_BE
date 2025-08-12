@@ -19,9 +19,7 @@ import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
 import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
-import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
-import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service

@@ -19,11 +19,6 @@ public class ChatRequestDTO {
         private Long courseId;
     }
 
-    /*@Builder @Getter @NoArgsConstructor @AllArgsConstructor
-    public static class InviteUserReqDTO {
-        private List<Long> userIds;
-    }*/
-
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteUserReqDTO {
         private String username; // 초대한 사용자 이름
