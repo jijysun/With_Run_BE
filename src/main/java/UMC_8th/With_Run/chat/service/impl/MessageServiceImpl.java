@@ -19,9 +19,7 @@ import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
 import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
-import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
-import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,14 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
 
-    private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
     private final UserChatRepository userChatRepository;
     private final CourseRepository courseRepository;
@@ -47,9 +43,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
-//        User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         User user = userRepository.findByIdWithProfile(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-//        Profile profile = profileRepository.findByUserId(user.getId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, reqDTO);
 
@@ -94,8 +88,7 @@ public class MessageServiceImpl implements MessageService {
             // 메세지 BroadCast
             redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
         }
-        else {
-            // 친구를 통한 공유, 채팅이 없는 경우 추가
+        else { // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
             Chat privateChat = chatRepository.findPrivateChat(user.getId(), targetUser.getId());
             if (privateChat == null) {
@@ -103,11 +96,11 @@ public class MessageServiceImpl implements MessageService {
                 privateChat = ChatConverter.toNewChatConverter();
 
                 List<UserChat> ucList = new ArrayList<>();
-                UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, privateChat);
+                UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null,  privateChat);
                 newUserChat.setToChatting();
 
                 ucList.add(newUserChat);
-                ucList.add(UserChatConverter.toNewUserChat(targetUser, user, privateChat));
+                ucList.add(UserChatConverter.toNewUserChat(targetUser, user, null,  privateChat));
 
                 Chat savedChat = chatRepository.save(privateChat);
                 userChatRepository.saveAll(ucList);
@@ -122,7 +115,8 @@ public class MessageServiceImpl implements MessageService {
 
                 // 메세지 BroadCast
                 redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
-            } else {
+            } 
+            else { // 친구 공유, 채팅이 존재하는 경우
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
                 UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
