@@ -107,16 +107,20 @@ public class UserController {
     }
 
 
-    @PostMapping("/alarm")
-    @Operation(summary = "알람 끄기 API", description = "사용자의 알람을 끄는 API입니다.")
+    @PatchMapping("/alarm")
+    @Operation(summary = "알림 설정 API", description = "사용자의 전체 알림 수신 여부를 설정하는 API입니다. true로 보내면 켜기, false는 끄기입니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "TestSuccessCode", content = @Content(schema = @Schema(implementation = StndResponse.class)))
+            @ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = StndResponse.class)))
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "사용자 id 입니다.")
-    })
-    public SuccessCode turnOffAlarm(){
-        return SuccessCode.REQUEST_SUCCESS;
+    public StndResponse<SimpleUserResultDTO> updateAlarmSettings(
+            HttpServletRequest request,
+            @RequestBody UserRequestDto.UpdateNoticeSettingsDTO updateNoticeSettingsDTO) {
+
+        userService.updateNoticeSettings(request, updateNoticeSettingsDTO);
+        return StndResponse.onSuccess(
+                new SimpleUserResultDTO("알림 설정이 완료되었습니다."),
+                SuccessCode.REQUEST_SUCCESS
+        );
     }
 
     @PatchMapping("/")

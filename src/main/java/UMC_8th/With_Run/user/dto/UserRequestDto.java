@@ -85,5 +85,10 @@ public class UserRequestDto {
         private MultipartFile file;
     }
 
+    @Getter
+    public static class UpdateNoticeSettingsDTO {
+        private Boolean enabled;
+    }
+
 
 }
