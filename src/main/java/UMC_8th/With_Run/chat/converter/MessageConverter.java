@@ -93,6 +93,7 @@ public class MessageConverter {
                 .chatId(chatId)
                 .msg("산책 코스를 공유하였습니다")
                 .isCourse(true)
+                .isSystem(true)
                 .courseId(course.getId())
                 .courseImage(course.getCourseImage())
                 .keyword(course.getKeyWord())

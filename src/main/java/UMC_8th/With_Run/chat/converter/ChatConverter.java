@@ -2,17 +2,28 @@ package UMC_8th.With_Run.chat.converter;
 
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
-import UMC_8th.With_Run.chat.entity.mapping.UserChat;
 import UMC_8th.With_Run.user.entity.Profile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class ChatConverter {
+
+    public static ChatResponseDTO.GetChatListDTO toGetChatListDTO(ChatResponseDTO.GetChatListSQLDTO getChatListSQLDTO, List<String> usernameList, List<String> profileList) {
+        return ChatResponseDTO.GetChatListDTO.builder()
+                .chatId(getChatListSQLDTO.getChatId())
+                .chatName(getChatListSQLDTO.getChatName())
+                .unReadMsgCount(getChatListSQLDTO.getUnReadMsg())
+                .lastReceivedMsg(getChatListSQLDTO.getLastReceivedMsg())
+                .usernameList(usernameList)
+                .userProfileList(profileList)
+                .participants(getChatListSQLDTO.getParticipants())
+                .build();
+
+    }
 
     public static ChatResponseDTO.CreateChatDTO toCreateChatDTO (Long chatId, List<ChatResponseDTO.BroadcastMsgDTO> chatHistory) {
         return ChatResponseDTO.CreateChatDTO.builder()

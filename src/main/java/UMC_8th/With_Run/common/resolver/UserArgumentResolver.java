@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.resolver;
+package UMC_8th.With_Run.common.resolver;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;

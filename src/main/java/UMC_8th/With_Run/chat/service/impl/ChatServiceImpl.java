@@ -67,15 +67,7 @@ public class ChatServiceImpl implements ChatService {
                     List<String> usernameList = Arrays.asList(result.getUsernames().split(","));
                     List<String> profileList = Arrays.asList(result.getProfileImages().split(","));
 
-                    return ChatResponseDTO.GetChatListDTO.builder()
-                            .chatId(result.getChatId())
-                            .chatName(result.getChatName())
-                            .unReadMsgCount(result.getUnReadMsg())
-                            .lastReceivedMsg(result.getLastReceivedMsg())
-                            .usernameList(usernameList)
-                            .userProfileList(profileList)
-                            .participants(result.getParticipants())
-                            .build();
+                    return ChatConverter.toGetChatListDTO(result, usernameList, profileList);
                 })
                 .collect(Collectors.toList());
     }
@@ -99,10 +91,10 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
-        UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, chat);
+        UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, chat);
         newUserChat.setToChatting();
         userChats.add(newUserChat);
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null,  chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -196,6 +188,12 @@ public class ChatServiceImpl implements ChatService {
                 .map(ChatRequestDTO.InviteDTO::getUserId)
                 .toList();
 
+        for (Long l : invitedUserIdList) {
+            log.info("inviterUserId: {}", l);
+        }
+
+        List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
+
         if (userChatRepository.findAlreadyInvited(chatId, invitedUserIdList)) {
             throw new UserHandler(ErrorCode.ALREADY_PARTICIPATING);
         }
@@ -204,7 +202,6 @@ public class ChatServiceImpl implements ChatService {
 
         // 기존 사용자
         List<UserChat> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId);
-
 
         // 신규 사용자 update
         String preUserNameList = userChatList.stream()
@@ -224,9 +221,12 @@ public class ChatServiceImpl implements ChatService {
             String joinChatName = preUserNameList + ", " + collect;
 
             log.info("joinChatName : {}", joinChatName);
-            newUserChat.add(UserChatConverter.toNewUserChatInInvite(user, joinChatName, chat));
+
+            User thisUser = allInvitedUserList.stream().filter(invitedUser -> invitedUser.getId().equals(dto.getUserId()))
+                    .findFirst()
+                    .orElse(null);
+            newUserChat.add(UserChatConverter.toNewUserChat(thisUser, null, joinChatName, chat));
         }
-        userChatRepository.saveAll(newUserChat);
 
         // 기존 사용자 update
         log.info("pre User Update");
@@ -268,7 +268,7 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatResponseDTO.BroadcastMsgDTO> enterChat(Long chatId, User user) { // 메세지에 대한 대량의 입출력, MySQL 로는 무겁지 않을까요...
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true
+        // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
         userChat.setToChatting();
 
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
@@ -300,7 +300,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void leaveChat(Long chatId, User user) {
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        userChat.setToNotChatting();
+        userChat.setToNotChatting(); // -> redis
     }
 
     @Transactional
@@ -308,6 +308,8 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
+        
+        // redis 삭제 로직 추가
         userChatRepository.delete(userChat);
 
         Integer participants = chat.getParticipants();

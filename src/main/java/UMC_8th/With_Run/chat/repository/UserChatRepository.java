@@ -32,13 +32,13 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
               " GROUP BY c.id having count (uc2.chat.id) = 2)")
     List<UserChat> findByTwoUserId(@Param("id1")Long userId1, @Param("id2") Long userId2);
 
-    @Query ("Select uc From UserChat uc join fetch uc.user u join fetch u.profile where uc.chat.id = :chatId ")
+    @Query ("Select uc From UserChat uc join fetch uc.user u join u.profile where uc.chat.id = :chatId ")
     List<UserChat> findAllByChat_IdJoinFetchUserAndProfile(@Param("chatId") Long chatId);
 
     Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
 
-    @Query("SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList")
+    @Query("SELECT EXISTS (SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList)")
     Boolean findAlreadyInvited (@Param("chatId") Long chatId, @Param("idList") List<Long> idList);
 }
