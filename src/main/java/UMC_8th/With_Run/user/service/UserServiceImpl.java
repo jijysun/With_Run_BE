@@ -7,6 +7,7 @@ import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
 import UMC_8th.With_Run.map.entity.RegionsTown;
+import UMC_8th.With_Run.user.dto.UserRequestDto.UpdateNoticeSettingsDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.LoginRequestDTO;
 import UMC_8th.With_Run.user.dto.UserRequestDto.RegionRequestDTO;
 import UMC_8th.With_Run.user.dto.UserResponseDto;
@@ -133,6 +134,22 @@ public class UserServiceImpl implements UserService {
                 .town(town != null ? RegionResponseDTO.RegionDTO.builder()
                         .id(town.getId()).name(town.getName()).build() : null)
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public void updateNoticeSettings(HttpServletRequest request, UpdateNoticeSettingsDTO dto) {
+
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+
+        if(dto.getEnabled() != null){
+            user.updateNoticeEnabled(dto.getEnabled());
+        }
+
     }
 
 
