@@ -39,6 +39,6 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
 
-    @Query("SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList")
+    @Query("SELECT EXISTS (SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList)")
     Boolean findAlreadyInvited (@Param("chatId") Long chatId, @Param("idList") List<Long> idList);
 }

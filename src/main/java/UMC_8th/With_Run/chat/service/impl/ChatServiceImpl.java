@@ -188,6 +188,12 @@ public class ChatServiceImpl implements ChatService {
                 .map(ChatRequestDTO.InviteDTO::getUserId)
                 .toList();
 
+        for (Long l : invitedUserIdList) {
+            log.info("inviterUserId: {}", l);
+        }
+
+        List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
+
         if (userChatRepository.findAlreadyInvited(chatId, invitedUserIdList)) {
             throw new UserHandler(ErrorCode.ALREADY_PARTICIPATING);
         }
@@ -196,7 +202,6 @@ public class ChatServiceImpl implements ChatService {
 
         // 기존 사용자
         List<UserChat> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId);
-
 
         // 신규 사용자 update
         String preUserNameList = userChatList.stream()
@@ -216,9 +221,12 @@ public class ChatServiceImpl implements ChatService {
             String joinChatName = preUserNameList + ", " + collect;
 
             log.info("joinChatName : {}", joinChatName);
-            newUserChat.add(UserChatConverter.toNewUserChat(user, null, joinChatName, chat));
+
+            User thisUser = allInvitedUserList.stream().filter(invitedUser -> invitedUser.getId().equals(dto.getUserId()))
+                    .findFirst()
+                    .orElse(null);
+            newUserChat.add(UserChatConverter.toNewUserChat(thisUser, null, joinChatName, chat));
         }
-        userChatRepository.saveAll(newUserChat);
 
         // 기존 사용자 update
         log.info("pre User Update");
