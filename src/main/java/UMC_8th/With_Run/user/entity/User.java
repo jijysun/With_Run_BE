@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity
@@ -61,6 +62,13 @@ public class User {
         this.deletedAt = LocalDate.now();
     }
 
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    private boolean noticeEnabled = true;
+
+    public void updateNoticeEnabled(boolean noticeEnabled) {
+        this.noticeEnabled = noticeEnabled;
+    }
 
     @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserChat> userChatList = new ArrayList<>();
