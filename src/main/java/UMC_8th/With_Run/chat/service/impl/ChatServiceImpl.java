@@ -15,10 +15,7 @@ import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
-import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
-import UMC_8th.With_Run.user.repository.FollowRepository;
-import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +35,8 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final UserChatRepository userChatRepository;
-    private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate template;
-    private final FollowRepository followRepository;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -136,39 +131,12 @@ public class ChatServiceImpl implements ChatService {
             throw new ChatHandler(ErrorCode.CHAT_IS_FULL);
         }
 
-        /// 쿼리를 2번 날리자, JPQL 에서는 서브쿼리가 제한적이다.
-        // 사용자가 팔로우 하는 다른 사용자, targetUser.id
-        List<User> followList = followRepository.findAllByUserId(user.getId()).stream()
-                .map(Follow -> Follow.getTargetUser()).toList();
-
-        String idList = "";
-        for (User user1 : followList) {
-            idList += user1.getId() + ", ";  // logging
+        log.info("canInviteUser!");
+        List<ChatResponseDTO.GetInviteUserDTO> canInviteUser = userChatRepository.getCanInviteUser(user.getId(), chatId);
+        for (ChatResponseDTO.GetInviteUserDTO getInviteUserDTO : canInviteUser) {
+            log.info("{}, {}", getInviteUserDTO.getUserId(), getInviteUserDTO.getName());
         }
-
-        // 채팅방에 참여하고 있지 않은 사용자,
-        List<Long> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId).stream()
-                .map(UserChat -> UserChat.getUser().getId()).toList();
-
-        String userChatIdList = userChatList.toString();
-
-        // 팔로잉 리스트에서 채팅방 참여자 제외 추출
-        List<Long> canInviteUserIdList = followList.stream()
-                .filter(u -> !userChatList.contains(u.getId()))
-                .map(u -> u.getId())
-                .toList();
-
-        String canInviteList = "";
-        for (Long userId : canInviteUserIdList) { // logging
-            canInviteList += userId.toString() + ", ";
-        }
-
-        List<Profile> canInviteUserProfileList = profileRepository.findAllByUser_IdIn(canInviteUserIdList);
-
-        log.info("follow List : {}", idList);
-        log.info("in Chat, userIdList : {}", userChatIdList);
-        log.info("canInviteList : {}", canInviteList);
-        return ChatConverter.toGetInviteUserDTO(canInviteUserIdList, canInviteUserProfileList);
+        return canInviteUser;
     }
 
     // 위 메소드에서 조회한 사용자 초대 메소드
@@ -318,13 +286,4 @@ public class ChatServiceImpl implements ChatService {
             chat.updateParticipants(participants - 1);
         }
     }
-
-
-    /*public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
-        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
-        String email = authentication.getName();
-
-        log.info("ChatService.getUserByJWT() - {} -> found User!", method);
-        return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-    }*/
 }

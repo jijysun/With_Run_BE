@@ -57,3 +57,9 @@ google:
 discord:
   webhook:
     url: ${DISCORD_WEBHOOK_URL}
+
+chatgpt:
+  api:
+    uri: ${AI_API_URI}
+    key: ${AI_API_KEY}
+
