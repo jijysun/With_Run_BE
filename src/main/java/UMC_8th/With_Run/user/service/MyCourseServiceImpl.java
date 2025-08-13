@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -86,19 +87,48 @@ public class MyCourseServiceImpl implements MyCourseService {
         // 2. 지역 정보 수정
         RegionProvince province = provinceRepository.findById(dto.getProvinceId())
                 .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
-        RegionsCity city = cityRepository.findById(dto.getCityId())
-                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
-        RegionsTown town = townRepository.findById(dto.getTownId())
-                .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
+        RegionsCity city = null;
+        if (dto.getCityId() != null) {
+            city = cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
+        }
+        RegionsTown town = null;
+        if (dto.getTownId() != null) {
+            town = townRepository.findById(dto.getTownId())
+                    .orElseThrow(() -> new GeneralException(ErrorCode.BAD_REQUEST));
+        }
 
         course.setRegionProvince(province);
         course.setRegionsCity(city);
         course.setRegionsTown(town);
 
         // 3. 핀 정보 업데이트
-        List<Pin> pins = pinRepository.findAllById(dto.getPinIds());
-        pins.forEach(pin -> pin.setCourse(course)); // course 연관관계 갱신
+        // 3-1. 기존에 코스와 연관된 핀들을 모두 삭제합니다.
+        // PinRepository에 findAllByCourse(Course course) 메서드가 필요합니다.
+        List<Pin> existingPins = pinRepository.findAllByCourse(course);
+        pinRepository.deleteAll(existingPins);
 
+        // 3-2. DTO에 담겨온 핀 정보를 바탕으로 새로운 Pin 엔티티를 생성하고 저장합니다.
+        if (dto.getPins() != null && !dto.getPins().isEmpty()) {
+            List<Pin> newPins = IntStream.range(0, dto.getPins().size())
+                    .mapToObj(i -> {
+                        // DTO에서 i번째 PinRequest를 가져옵니다.
+                        UserRequestDto.PinRequest pinResponse = dto.getPins().get(i);
+                        // Pin 엔티티를 생성하고 pinOrder를 설정합니다.
+                        return Pin.builder()
+                                .name(pinResponse.getName())
+                                .color(pinResponse.getColor())
+                                .latitude(pinResponse.getLatitude())
+                                .longitude(pinResponse.getLongitude())
+                                .detail(pinResponse.getDetail())
+                                .pinOrder(i + 1)
+                                .course(course)
+                                .build();
+                    })
+                    .toList();
+
+            pinRepository.saveAll(newPins); // 생성된 핀 목록을 한 번에 저장합니다.
+        }
         // 저장은 @Transactional 로 자동 반영
 
         return dto;

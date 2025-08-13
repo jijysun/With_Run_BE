@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface PinRepository extends JpaRepository<Pin, Long> {
     List<Pin> findByCourseOrderByPinOrderAsc(Course course);
+    List<Pin> findAllByCourse(Course course);
 }
