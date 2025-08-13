@@ -23,11 +23,14 @@ import UMC_8th.With_Run.user.entity.User;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,6 +43,35 @@ public class MessageServiceImpl implements MessageService {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
     private final RedisPublisher redisPublisher;
+
+    @Value("${chatgpt.api.key}")
+    private static String API_KEY;
+
+    @Value("${chatgpt.api.uri}")
+    private static String API_URI;
+
+
+    public void chattingWithChatGPT (Long chatId, ChatRequestDTO.ChattingReqDTO dto){
+        User user = userRepository.findByIdWithProfile(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
+        Message msg = MessageConverter.toMessage(user, chat, dto);
+
+        // 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
+        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
+        userChatList.forEach(UserChat::updateUnReadMsg);
+
+        // 메세지 저장
+        messageRepository.save(msg);
+
+        // redis 처리 전용 dto 변환,
+        PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
+                .type("chat")
+                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), msg))
+                .build();
+
+        redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
+
+    }
 
     @Override
     public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
