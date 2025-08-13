@@ -9,5 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface FriendsRepository extends JpaRepository<User, Long>, FriendsRepositoryCustom {
+    List<Long> findFollowingUserIds(Long userId);
 }
 
