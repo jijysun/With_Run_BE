@@ -36,17 +36,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto) {
-        return createCourse(requestDto.getUserId(), requestDto);
-    }
-
-    @Override
-    @Transactional
     public Long createCourse(Long userId, MapRequestDTO.CourseCreateRequestDto requestDto) {
 
         // 키워드는 이미 JSON 형태로 받음
 
-        User user = userRepository.findById(requestDto.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MapHandler(ErrorCode.USER_NOT_FOUND));
 
         RegionProvince regionProvince = regionProvinceRepository.findById(requestDto.getRegionProvinceId())

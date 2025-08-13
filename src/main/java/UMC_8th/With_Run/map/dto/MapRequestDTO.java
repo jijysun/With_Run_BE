@@ -29,7 +29,7 @@ public class MapRequestDTO {
         private Integer time;
         private String keyWords; // JSON 형태의 키워드 문자열
         private List<PinRequestDto> pins;
-        private Long userId;
+        // userId는 JWT 토큰에서 자동 추출하므로 제거
         private Long regionProvinceId;
         private Long regionsCityId;
         private Long regionsTownId;
