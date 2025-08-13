@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,6 @@ public class CourseServiceImpl implements CourseService {
     private final RegionsCityRepository regionsCityRepository;
     private final RegionsTownRepository regionsTownRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     @Transactional
@@ -46,13 +44,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public Long createCourse(Long userId, MapRequestDTO.CourseCreateRequestDto requestDto) {
 
-        // 키워드를 JSON 형태로 변환
-        String keywordsJson;
-        try {
-            keywordsJson = objectMapper.writeValueAsString(requestDto.getKeyWords());
-        } catch (Exception e) {
-            throw new MapHandler(ErrorCode.BAD_REQUEST);
-        }
+        // 키워드는 이미 JSON 형태로 받음
 
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.USER_NOT_FOUND));
@@ -74,7 +66,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = Course.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
-                .keyWord(keywordsJson)
+                .keyWord(requestDto.getKeyWords())
                 .time(requestDto.getTime())
                 .user(user)
                 .createdAt(LocalDateTime.now())
