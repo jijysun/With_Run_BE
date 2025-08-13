@@ -29,7 +29,16 @@ public class NoticeService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
+    private boolean isNoticeOn(Long userId) {
+        return userRepository.existsByIdAndNoticeEnabledTrue(userId);
+    }
+
     public void createNotice(User receiver, User actor, Long targetId, NoticeType type) {
+
+        // 수신자 알림 설정 먼저 확인
+        if (!isNoticeOn(receiver.getId())) {
+            return; // 알림 저장하지 않음
+        }
         String actorName = actor.getProfile().getName();
         String courseName = "";
 

@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("Select u From User u join fetch u.profile where u.id = :id")
     Optional<User> findByIdWithProfile(@Param ("id")Long userId);
+
+    boolean existsByIdAndNoticeEnabledTrue(Long userId);
 }
