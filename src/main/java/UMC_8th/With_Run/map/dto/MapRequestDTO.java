@@ -27,7 +27,7 @@ public class MapRequestDTO {
         private String name;
         private String description;
         private Integer time;
-        private List<String> keyWords;
+        private List<String> keyWords; // 키워드 배열
         private List<PinRequestDto> pins;
         private Long userId;
         private Long regionProvinceId;
