@@ -1,3 +1,4 @@
+/*
 package UMC_8th.With_Run.common.redis.pub_sub;
 
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
@@ -27,3 +28,4 @@ public class RedisPublisher {
 }
 
 //public class RedisPublisher {}
+*/

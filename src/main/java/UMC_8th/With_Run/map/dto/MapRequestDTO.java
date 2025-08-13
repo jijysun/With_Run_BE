@@ -1,6 +1,5 @@
 package UMC_8th.With_Run.map.dto;
 
-import UMC_8th.With_Run.user.dto.UserRequestDto;
 import lombok.*;
 
 import java.util.List;
@@ -28,14 +27,12 @@ public class MapRequestDTO {
         private String name;
         private String description;
         private Integer time;
-        private List<String> keyWords;
-        private List<String> regions;
+        private String keyWords; // JSON 형태의 키워드 문자열
         private List<PinRequestDto> pins;
-        private List<RegionRequestDto> regionsData;
-        private Long userId;
+        // userId는 JWT 토큰에서 자동 추출하므로 제거
         private Long regionProvinceId;
         private Long regionsCityId;
+        private Long regionsTownId;
         private String overviewPolyline;
-
     }
 }

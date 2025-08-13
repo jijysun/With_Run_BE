@@ -9,8 +9,15 @@ import UMC_8th.With_Run.map.service.MapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
+import UMC_8th.With_Run.common.exception.GeneralException;
+import UMC_8th.With_Run.common.security.jwt.JwtTokenProvider;
+import UMC_8th.With_Run.user.entity.User;
+import UMC_8th.With_Run.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "지도 API", description = "Swagger 테스트용 지도 관련 API")
@@ -21,6 +28,8 @@ public class MapController {
 
     private final MapService mapService;
     private final CourseService courseService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     // 수정: 위치 정보를 요청 파라미터에 추가했습니다.
     @Operation(
@@ -141,8 +150,17 @@ public class MapController {
     )
     @PostMapping("/courses")
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
-            @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto) {
-        Long courseId = courseService.createCourse(requestDto);
+            @RequestBody @Valid MapRequestDTO.CourseCreateRequestDto requestDto,
+            HttpServletRequest request) {
+        
+        // CourseController와 동일한 방식으로 사용자 인증 정보 추출
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+        
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
+        
+        Long courseId = courseService.createCourse(user.getId(), requestDto);
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
                 .build();
