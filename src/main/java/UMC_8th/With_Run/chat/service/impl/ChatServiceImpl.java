@@ -15,10 +15,7 @@ import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.common.apiResponse.status.ErrorCode;
 import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
-import UMC_8th.With_Run.user.entity.Profile;
 import UMC_8th.With_Run.user.entity.User;
-import UMC_8th.With_Run.user.repository.FollowRepository;
-import UMC_8th.With_Run.user.repository.ProfileRepository;
 import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +35,8 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final UserChatRepository userChatRepository;
-    private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate template;
-    private final FollowRepository followRepository;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -291,13 +286,4 @@ public class ChatServiceImpl implements ChatService {
             chat.updateParticipants(participants - 1);
         }
     }
-
-
-    /*public User getUserByJWT(HttpServletRequest request, String method) { // join fetch 를 통한 조회
-        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
-        String email = authentication.getName();
-
-        log.info("ChatService.getUserByJWT() - {} -> found User!", method);
-        return userRepository.findByEmailJoinFetch(email).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-    }*/
 }
