@@ -39,6 +39,9 @@ public class RecommendedFriendsService {
                 .map(Block::getUserId)
                 .toList();
 
+        // ✅ 이미 팔로우하고 있는 친구 ID 조회
+        List<Long> followingUserIds = friendsRepository.findFollowingUserIds(userId);
+
         List<User> nearbyUsers = friendsRepository.findUsersByRegion(
                 provinceId, cityId, townId, userId
         );
@@ -54,6 +57,9 @@ public class RecommendedFriendsService {
 
             // 2. 차단 관계 제외
             if (blockedUserIds.contains(user.getId()) || blockedMeUserIds.contains(user.getId())) continue;
+
+            // 3. ✅ 이미 팔로우한 사용자 제외
+            if (followingUserIds.contains(user.getId())) continue;
 
             Profile otherProfile = user.getProfile();
             if (otherProfile == null) continue;
