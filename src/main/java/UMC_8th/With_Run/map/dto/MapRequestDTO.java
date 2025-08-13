@@ -27,7 +27,7 @@ public class MapRequestDTO {
         private String name;
         private String description;
         private Integer time;
-        private String keyWords; // JSON 형태의 키워드 문자열
+        private List<String> keywords; // 키워드 배열 (JSON 필드명과 일치)
         private List<PinRequestDto> pins;
         // userId는 JWT 토큰에서 자동 추출하므로 제거
         private Long regionProvinceId;
