@@ -1,6 +1,5 @@
 package UMC_8th.With_Run.map.dto;
 
-import UMC_8th.With_Run.user.dto.UserRequestDto;
 import lombok.*;
 
 import java.util.List;
