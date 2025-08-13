@@ -1,4 +1,3 @@
-/*
 package UMC_8th.With_Run.common.redis.pub_sub;
 
 import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
@@ -58,4 +57,3 @@ public class RedisSubscriber implements MessageListener {
 }
 
 //public class RedisSubscriber{}
-*/
