@@ -27,6 +27,15 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
             nativeQuery = true)
     List<ChatResponseDTO.GetChatListSQLDTO> getChatList(@Param("userId") Long userId);
 
+
+    @Query("Select new UMC_8th.With_Run.chat.dto.ChatResponseDTO$GetInviteUserDTO (f.targetUser.id, p.name, p.profileImage) " +
+            "From Follow f " +
+            "Join f.targetUser otherU Join otherU.profile p " +
+            "where f.user.id = :userId AND f.targetUser.id NOT IN ( " +
+                "SELECT uc.user.id From UserChat uc WHERE uc.chat.id = :chatId) " +
+            "ORDER BY f.targetUser.id")
+    List<ChatResponseDTO.GetInviteUserDTO> getCanInviteUser(@Param("userId") Long userId, @Param("chatId") Long chatId);
+
     @Query ("select uc From UserChat uc join fetch uc.chat where uc.chat.id IN (" +
             "Select c.id From Chat c JOIN c.userChatList uc2 Where c.participants = 2 AND uc2.user.id in (:id1, :id2)" +
               " GROUP BY c.id having count (uc2.chat.id) = 2)")
