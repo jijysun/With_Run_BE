@@ -8,7 +8,9 @@ import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.entity.Pin;
 import UMC_8th.With_Run.map.entity.RegionProvince;
 import UMC_8th.With_Run.map.entity.RegionsCity;
+import UMC_8th.With_Run.map.entity.RegionsTown;
 import UMC_8th.With_Run.map.repository.PinRepository;
+import UMC_8th.With_Run.map.repository.RegionsTownRepository;
 import UMC_8th.With_Run.user.repository.RegionProvinceRepository;
 import UMC_8th.With_Run.map.repository.RegionsCityRepository;
 import UMC_8th.With_Run.user.entity.User;
@@ -20,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,22 +31,16 @@ public class CourseServiceImpl implements CourseService {
     private final PinRepository pinRepository;
     private final RegionProvinceRepository regionProvinceRepository;
     private final RegionsCityRepository regionsCityRepository;
+    private final RegionsTownRepository regionsTownRepository;
     private final UserRepository userRepository;
-
-    @Override
-    @Transactional
-    public Long createCourse(MapRequestDTO.CourseCreateRequestDto requestDto) {
-        return createCourse(requestDto.getUserId(), requestDto);
-    }
 
     @Override
     @Transactional
     public Long createCourse(Long userId, MapRequestDTO.CourseCreateRequestDto requestDto) {
 
-        // 기존 핀 ID를 조회하는 로직은 제거했습니다.
-        String keywordsString = String.join(",", requestDto.getKeyWords());
+        // 키워드는 이미 JSON 형태로 받음
 
-        User user = userRepository.findById(requestDto.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MapHandler(ErrorCode.USER_NOT_FOUND));
 
         RegionProvince regionProvince = regionProvinceRepository.findById(requestDto.getRegionProvinceId())
@@ -54,16 +49,24 @@ public class CourseServiceImpl implements CourseService {
         RegionsCity regionsCity = regionsCityRepository.findById(requestDto.getRegionsCityId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
 
+        // RegionsTown 처리 - 선택사항이므로 null 체크
+        RegionsTown regionsTown = null;
+        if (requestDto.getRegionsTownId() != null) {
+            regionsTown = regionsTownRepository.findById(requestDto.getRegionsTownId())
+                    .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
+        }
+
         // Course 엔티티 생성
         Course course = Course.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
-                .keyWord(keywordsString)
+                .keyWord(requestDto.getKeyWords())
                 .time(requestDto.getTime())
                 .user(user)
                 .createdAt(LocalDateTime.now())
                 .regionProvince(regionProvince)
                 .regionsCity(regionsCity)
+                .regionsTown(regionsTown)
                 .overviewPolyline(requestDto.getOverviewPolyline())
                 .build();
 
