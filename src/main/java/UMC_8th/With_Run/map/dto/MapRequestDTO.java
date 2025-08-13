@@ -29,13 +29,11 @@ public class MapRequestDTO {
         private String description;
         private Integer time;
         private List<String> keyWords;
-        private List<String> regions;
         private List<PinRequestDto> pins;
-        private List<RegionRequestDto> regionsData;
         private Long userId;
         private Long regionProvinceId;
         private Long regionsCityId;
+        private Long regionsTownId;
         private String overviewPolyline;
-
     }
 }
