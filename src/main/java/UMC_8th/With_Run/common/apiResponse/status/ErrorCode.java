@@ -54,6 +54,7 @@ public enum ErrorCode implements BaseErrorCode {
     MSG_SERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5001", "메세지 변환에 실패했습니다"),
     REDIS_CANT_LISTEN_MSG(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5002", "Redis - 메세지 발행에 실패했습니다"),
     CANT_GENERATE_AI_MSG(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5003", "AI 메세지 생성에 오류가 발생했습니다"),
+    CANT_PARSING_AI_MAG(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT5004", "AI 메세지 파싱에 실패했습니다"),
 
 
 
