@@ -122,7 +122,7 @@ public class MessageServiceImpl implements MessageService {
                 .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), msg))
                 .build();
 
-        //redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
+        redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
     }
 
     @Override
@@ -148,7 +148,7 @@ public class MessageServiceImpl implements MessageService {
                     .build();
 
             // 메세지 BroadCast
-            //redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
+            redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
         }
         else { // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
@@ -176,7 +176,7 @@ public class MessageServiceImpl implements MessageService {
                         .build();
 
                 // 메세지 BroadCast
-                //redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
+                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
             } 
             else { // 친구 공유, 채팅이 존재하는 경우
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
@@ -193,7 +193,7 @@ public class MessageServiceImpl implements MessageService {
                         .build();
 
                 // 메세지 BroadCast
-                //redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
+                redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
             }
         }
 
