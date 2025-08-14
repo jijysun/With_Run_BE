@@ -6,6 +6,7 @@ import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.chat.service.MessageService;
+import UMC_8th.With_Run.chat.service.impl.MessageServiceImpl;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import UMC_8th.With_Run.user.entity.User;
@@ -35,6 +36,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final MessageService messageService;
+    private final MessageServiceImpl messageServiceImpl;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -130,7 +132,7 @@ public class ChatController {
     @ApiResponse(responseCode = "CHAT2008", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
     public void chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
         messageService.chatting(chatId, reqDTO);
-
+//        messageServiceImpl.chattingWithChatGPT(chatId, reqDTO);
     }
 
     @PostMapping("/share")

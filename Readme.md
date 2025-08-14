@@ -1,61 +1,64 @@
-# 프로젝트 소개
+# 같이, 달려갈개 ! : 지역 기반 반려견 산책 메이트 [ BE ]
 
-## 👩‍💻구성원
+![1.png](./assets/project/1.png)
 
-| 김석현 | 김수민 | 문지현 | 장예린 | 황서진 |
-| --- | --- | --- | --- | --- |
-| 팀장 | 팀원 | 팀원 | 팀원 | 팀원 |
+## 🚀 프로젝트 소개
 
+![2.png](./assets/project/2.png)
 
-## 🛠 BE 기술 스택
+- [같이, 달려갈개!] 는 반려견 산책 친구 및 산책 코스 추천을 통해 반려견과 더 즐거운 시간을 보낼 수 있도록 돕는 어플리케이션입니다.
 
-1. Spring
-2. Web, Data JPA, Security, Apache Kafka (채팅)
-3. Java Email Sender (일반 로그인 구현 시)
-4. Lombok
-5. WebSocket (채팅)
-6. DB Driver - MySQL
-7. Swagger
-   
+### 🌟 핵심 기능
 
-## 🌳 브랜치 전략
+![3.png](./assets/project/3.png)
 
-### 브랜치 구조
+- 국토교통부 자료를 통한 지역 변경 시스템 구현
+- 산책 스타일이 비슷한 반려견과 매칭
+- Redis Pub/Sub을 활용한 타 사용자와 실시간 채팅 서비스
+- DTO Projection 과 페이징을 활용한 조회 로직 최적화
 
-- FE, BE 레포지토리 분리
-- `main`: 배포용 브랜치
-- `develop`: 테스트 및 개발 브랜치 → PR용 브랜치
-- 개별 브랜치: 기능별로 생성
+![4.png](./assets/project/4.png)
 
-### 패키지 구조
+- 온보딩 시 저장된 산책 스타일을 기반으로 산책 코스 추천
+- 사용자 지정 핀을 통한 산책 코스 저장 및 제작 기능
+- 사용자 지정 핀과 최적 경로에 대한 효율적인 저장
 
-- **도메인형**: 기능별 패키지 분리
+![5.png](./assets/project/5.png)
 
-## 📐 코딩 컨벤션
+- 공공데이터포털의 CSV 데이터를 사용하여 파싱 및 활용
 
-### 커밋 스타일
+## 🧱 프로젝트 구조 및 스택
 
-- `[CREATE]` : API 첫 생성, 기능 추가
-- `[UPDATE]` : 버그 및 API 수정, 추가 구현 중
-- `[REFAC]` : 오타 수정, 디렉토리 변경 등 소규모 수정
-- `[CHORE]` : 코드 변경 없는 환경설정 등 수정 (예: setup)
-- `[DOCS]` : 문서 작업
-- `[DEPLOY]` : 배포 관련 작업
+### 🛰️ 서버 아키텍쳐
 
-## 📝 PR 템플릿
+![architecture.png](./assets/project/architecture.png)
 
-### 📝 변경사항 요약
+### ✨ 사용 기술 스택
 
-어떤 작업을 했는지 요약해 주세요.
+![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white)
+![Gradle](https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)
 
-### 🔍 변경사항 상세 설명
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring Data Redis](https://img.shields.io/badge/Spring%20Data%20Redis-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
 
-주요 변경 코드나 구조 설명이 필요하면 작성해주세요.
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
-### ✅ 체크리스트
+![Amazon EC2](https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
+![Amazon RDS](https://img.shields.io/badge/Amazon%20RDS-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white)
+![Amazon S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)
 
-[ ] 테스트를 거쳤나요?
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white)
+![k6](https://img.shields.io/badge/k6-8C59C3?style=for-the-badge&logo=k6&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)
 
-### 🙋🏻‍♀️ 도와주세요
+### 🧑‍💻 팀원 소개 (BE Team)
 
-팀원에게 도움을 요청합니다. 예: "리뷰 부탁드립니다", "확인 필요합니다"
+| [김석현 (TL)](https://github.com/jijysun) | [황서진](https://github.com/HwangSeo) | [문지현](https://github.com/dxxrjh) | [장예린](https://github.com/yelin1197) | [김수민](https://github.com/sooominie) |
+|:--------------------------------------:|:----------------------------------:|:--------------------------------:|:-----------------------------------:|:-----------------------------------:|
+|               **채팅 서비스**               |        **사용자, 온보딩, 마이페이지**         |         **친구, 산책코스, 공통**         |          **지도, 반려견 동반 시설**          |          **지도, 반려견 동반 시설**          |
