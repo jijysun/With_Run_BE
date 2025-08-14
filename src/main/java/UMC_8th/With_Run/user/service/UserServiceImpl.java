@@ -45,12 +45,12 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto.LoginResultDTO login(LoginRequestDTO request) {
 
         // 이메일로 사용자 찾기
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailAndLoginId(request.getEmail(), request.getLoginId())
                 .orElseGet(() -> {
                     // 없으면 회원가입 (가입 처리)
                     User newUser = User.builder()
                             .email(request.getEmail())
-                            .naverId(request.getNaverId())
+                            .loginId(request.getLoginId())
                             .build();
 
                     return userRepository.save(newUser);
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
         String accessToken = jwtTokenProvider.generateToken(authentication);
 
         return LoginResultDTO.builder()
-                .memberId(user.getId())
+                .userId(user.getId())
                 .accessToken(accessToken)
                 .build();
     }
