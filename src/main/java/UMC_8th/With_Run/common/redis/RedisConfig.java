@@ -1,4 +1,3 @@
-/*
 package UMC_8th.With_Run.common.redis;
 
 import UMC_8th.With_Run.common.redis.pub_sub.RedisSubscriber;
@@ -51,8 +50,3 @@ public class RedisConfig {
         return new MessageListenerAdapter(subscriber, "onMessage");
     }
 }
-/*
-public class RedisConfig{
-
-}*/
-
