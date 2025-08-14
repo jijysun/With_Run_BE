@@ -21,4 +21,6 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
     @Query("select p From Profile p where p.user.id in :userIdList")
     List<Profile> findAllByUser_IdIn(List<Long> userIdList);
+
+
 }

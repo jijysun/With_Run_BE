@@ -85,6 +85,10 @@ public class ProfileServiceImpl implements ProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
+        profileRepository.findByUserId(user.getId()).ifPresent(profile -> {
+            throw new UserHandler(ErrorCode.PROFILE_ALREADY_EXISTS);
+        });
+
         RegionProvince province = provinceRepository.findById(requestDTO.getProvinceId())
                 .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         RegionsCity city = cityRepository.findById(requestDTO.getCityId())
