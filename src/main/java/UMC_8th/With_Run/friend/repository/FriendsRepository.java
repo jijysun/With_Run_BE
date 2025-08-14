@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface FriendsRepository extends JpaRepository<User, Long>, FriendsRepositoryCustom {
-    @Query("SELECT f.targetUser.id FROM Follow f WHERE f.targetUser.id = :userId")
-    List<Long> findFollowingUserIds(Long userId);
+    @Query("SELECT f.targetUser.id FROM Follow f WHERE f.user.id = :userId")
+    List<Long> findTargetUserIds(@Param("userId") Long userId);
 }
 
