@@ -24,8 +24,10 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +45,7 @@ public class MessageServiceImpl implements MessageService {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
     private final RedisPublisher redisPublisher;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${chatgpt.api.key}")
     private static String API_KEY;
@@ -63,7 +66,8 @@ public class MessageServiceImpl implements MessageService {
         * 4. 펫코노미 고려, isPetConomy -> AI
         * */
 
-        boolean isPrivacy = false, isUpToMeet = false;
+        String aiResponse;
+        boolean isPrivacy = false, isUpToMeet = false, isMeetAgain = false, isPetconomy = false;
 
         List<String> privacy = List.of(
                 "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b", // Email
@@ -75,11 +79,31 @@ public class MessageServiceImpl implements MessageService {
                 .anyMatch(pattern -> dto.getMessage().matches(pattern))){
             isPrivacy = true;
         }
+        else{
+            // request to AI!
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(API_KEY);
 
-        // request to AI!
+            Map<String, Object> body = new HashMap<>();
+            body.put("model", "gpt-5");
+            body.put("messages", List.of(
+                    Map.of("role", "system", "content", "테스트 프롬프트 튜닝"),
+                    Map.of("role", "user", "content", "테스트 사용자 응답")
+            ));
+            body.put("max_tokens", 50);
 
-        if (isUpToMeet){
-            //
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, Map.class);
+
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+            if (choices == null){
+                throw new ChatHandler(ErrorCode.CANT_GENERATE_AI_MSG);
+            }
+            else if (choices != null && !choices.isEmpty()) {
+                Map<String, Object> messageMap = (Map<String, Object>) choices.get(0).get("message");
+                aiResponse = (String) messageMap.get("content");
+            }
         }
 
         // 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
@@ -98,7 +122,8 @@ public class MessageServiceImpl implements MessageService {
         redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
 
         if (isPrivacy){
-            redisPublisher.publishMsg("redis.privacy.msg." + chatId, null);
+            Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDD12 개인정보가 보이는 정보가 메세지로 보내졌어요, 개인정보 유출에 주의해주세요!");
+            redisPublisher.publishMsg("redis.privacy.msg." + chatId, privacyMsg);
         }
 
     }
