@@ -16,7 +16,7 @@ import UMC_8th.With_Run.common.exception.handler.ChatHandler;
 import UMC_8th.With_Run.common.exception.handler.CourseHandler;
 import UMC_8th.With_Run.common.exception.handler.UserHandler;
 import UMC_8th.With_Run.common.redis.dto.PayloadDTO;
-//import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
+import UMC_8th.With_Run.common.redis.pub_sub.RedisPublisher;
 import UMC_8th.With_Run.course.entity.Course;
 import UMC_8th.With_Run.course.repository.CourseRepository;
 import UMC_8th.With_Run.user.entity.User;
@@ -42,7 +42,7 @@ public class MessageServiceImpl implements MessageService {
     private final CourseRepository courseRepository;
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
-    //private final RedisPublisher redisPublisher;
+    private final RedisPublisher redisPublisher;
 
     @Value("${chatgpt.api.key}")
     private static String API_KEY;
