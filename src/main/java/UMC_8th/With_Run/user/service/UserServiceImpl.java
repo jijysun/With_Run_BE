@@ -23,6 +23,8 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.util.Collections;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,17 +46,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto.LoginResultDTO login(LoginRequestDTO request) {
 
-        // 이메일로 사용자 찾기
-        User user = userRepository.findByEmailAndLoginId(request.getEmail(), request.getLoginId())
-                .orElseGet(() -> {
-                    // 없으면 회원가입 (가입 처리)
-                    User newUser = User.builder()
-                            .email(request.getEmail())
-                            .loginId(request.getLoginId())
-                            .build();
+        boolean isNewUser = false;
 
-                    return userRepository.save(newUser);
-                });
+        // 이메일로 사용자 찾기
+        Optional<User> userOptional = userRepository.findByEmailAndLoginId(request.getEmail(), request.getLoginId());
+
+        User user;
+        if (userOptional.isPresent()) {
+            // 사용자가 존재하면 해당 정보를 사용합니다.
+            user = userOptional.get();
+        } else {
+            // 사용자가 없으면 새로 생성하고 저장합니다.
+            isNewUser = true; // 새로운 사용자이므로 플래그를 true로 설정
+            User newUser = User.builder()
+                    .email(request.getEmail())
+                    .loginId(request.getLoginId())
+                    .build();
+            user = userRepository.save(newUser);
+        }
 
         // 일단 패스워드 없이 이메일로만 로그인
         /*
@@ -75,6 +84,7 @@ public class UserServiceImpl implements UserService {
         return LoginResultDTO.builder()
                 .userId(user.getId())
                 .accessToken(accessToken)
+                .isNewUser(isNewUser)
                 .build();
     }
 

@@ -16,6 +16,7 @@ public class UserResponseDto {
     public static class LoginResultDTO {
         Long userId;
         String accessToken;
+        boolean isNewUser;
     }
 
     @Builder
