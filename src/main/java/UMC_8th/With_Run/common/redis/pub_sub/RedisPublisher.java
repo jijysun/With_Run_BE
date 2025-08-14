@@ -25,5 +25,3 @@ public class RedisPublisher {
 
     }
 }
-
-//public class RedisPublisher {}

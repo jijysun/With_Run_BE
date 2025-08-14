@@ -40,7 +40,7 @@ public class RecommendedFriendsService {
                 .toList();
 
         // ✅ 이미 팔로우하고 있는 친구 ID 조회
-        List<Long> followingUserIds = friendsRepository.findFollowingUserIds(userId);
+        List<Long> followingUserIds = friendsRepository.findTargetUserIds(userId);
 
         List<User> nearbyUsers = friendsRepository.findUsersByRegion(
                 provinceId, cityId, townId, userId
