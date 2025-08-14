@@ -150,8 +150,33 @@ public class CourseController {
 
     @Operation(summary = "산책 코스 상세", description = "특정 산책 코스의 상세 정보를 조회합니다.")
     @GetMapping("/detail")
-    public ResponseEntity<CourseDetailResponse> getCourseDetail(@RequestParam Long courseId) {
-        CourseDetailResponse response = courseDetailService.getCourseDetail(courseId);
+    public ResponseEntity<CourseDetailResponse> getCourseDetail(
+            @RequestParam Long courseId,
+            HttpServletRequest request) {
+        // 사용자 인증 정보 추출 (로그인하지 않은 경우 null)
+        Authentication authentication = null;
+        try {
+            authentication = jwtTokenProvider.extractAuthentication(request);
+        } catch (Exception e) {
+            // 로그인하지 않은 사용자
+        }
+        
+        // 사용자 ID 추출 (로그인하지 않은 경우 null)
+        Long userId = null;
+        if (authentication != null) {
+            try {
+                String email = authentication.getName();
+                User user = userRepository.findByEmail(email)
+                        .orElse(null);
+                if (user != null) {
+                    userId = user.getId();
+                }
+            } catch (Exception e) {
+                // 사용자 정보 추출 실패
+            }
+        }
+        
+        CourseDetailResponse response = courseDetailService.getCourseDetail(courseId, userId);
         return ResponseEntity.ok(response);
     }
 

@@ -69,6 +69,7 @@ public enum ErrorCode implements BaseErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4007", "사용자를 찾을 수 없습니다."),
     REGION_PROVINCE_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4008", "해당 지역(도)을 찾을 수 없습니다."),
     REGION_CITY_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4009", "해당 지역(시)을 찾을 수 없습니다."),
+    REGION_TOWN_NOT_FOUND(HttpStatus.NOT_FOUND, "MAP4010", "해당 지역(읍/면/동)을 찾을 수 없습니다."),
 
     // Notice
     // 아직은 필요한 에러 코드가 없어 보입니다.

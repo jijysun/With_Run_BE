@@ -28,7 +28,7 @@ public class ChatRequestDTO {
     @Builder @Getter @NoArgsConstructor @AllArgsConstructor
     public static class InviteDTO{
         private Long userId;
-        private String username;
+        private String name;
     }
 
 

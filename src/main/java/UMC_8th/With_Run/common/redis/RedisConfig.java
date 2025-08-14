@@ -50,8 +50,3 @@ public class RedisConfig {
         return new MessageListenerAdapter(subscriber, "onMessage");
     }
 }
-
-/*
-public class RedisConfig{
-
-}*/

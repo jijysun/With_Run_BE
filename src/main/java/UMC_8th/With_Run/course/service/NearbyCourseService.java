@@ -79,7 +79,8 @@ public class NearbyCourseService {
                     if (keyword == null || keyword.isBlank()) return true;
 
                     boolean nameMatch = course.getName().contains(keyword);
-                    boolean keywordMatch = course.getKeyword().stream().anyMatch(k -> k.contains(keyword));
+                    boolean keywordMatch = course.getKeyword() != null &&
+                            course.getKeyword().stream().anyMatch(k -> k.contains(keyword));
                     boolean locationMatch = course.getLocation() != null && course.getLocation().contains(keyword);
 
                     return nameMatch || keywordMatch || locationMatch;
