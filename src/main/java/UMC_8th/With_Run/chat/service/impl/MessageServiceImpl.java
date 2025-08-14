@@ -53,7 +53,6 @@ public class MessageServiceImpl implements MessageService {
     @Value("${chatgpt.api.uri}")
     private static String API_URI;
 
-
     public void chattingWithChatGPT (Long chatId, ChatRequestDTO.ChattingReqDTO dto){
         User user = userRepository.findByIdWithProfile(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
@@ -66,8 +65,8 @@ public class MessageServiceImpl implements MessageService {
         * 4. 펫코노미 고려, isPetConomy -> AI
         * */
 
-        String aiResponse;
-        boolean isPrivacy = false, isUpToMeet = false, isMeetAgain = false, isPetconomy = false;
+        String aiResponse = "";
+        boolean isPrivacy = false;
 
         List<String> privacy = List.of(
                 "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b", // Email
@@ -79,8 +78,7 @@ public class MessageServiceImpl implements MessageService {
                 .anyMatch(pattern -> dto.getMessage().matches(pattern))){
             isPrivacy = true;
         }
-        else{
-            // request to AI!
+        else{ // request to AI!
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(API_KEY);
@@ -88,10 +86,18 @@ public class MessageServiceImpl implements MessageService {
             Map<String, Object> body = new HashMap<>();
             body.put("model", "gpt-5");
             body.put("messages", List.of(
-                    Map.of("role", "system", "content", "테스트 프롬프트 튜닝"),
-                    Map.of("role", "user", "content", "테스트 사용자 응답")
+                    Map.of("role", "system", "content", """
+                            채팅 메세지를 분석하는 AI 로 프롬프트 튜닝 중.
+                            결과는 반드시 JSON 형식, {"answer" : "", "message":"해당 분석에 대한 답변"}
+                            조건
+                            - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
+                            - 위 조건에 해당 되지 않음 -> answer : "nothing"
+                            - 다른 텍스트는 포함하지 말 것.
+                            """),
+                    Map.of("role", "user", "content", dto.getMessage())
             ));
             body.put("max_tokens", 50);
+            body.put("temperature", 0);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
             ResponseEntity<Map> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, Map.class);
@@ -123,7 +129,11 @@ public class MessageServiceImpl implements MessageService {
 
         if (isPrivacy){
             Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDD12 개인정보가 보이는 정보가 메세지로 보내졌어요, 개인정보 유출에 주의해주세요!");
-            redisPublisher.publishMsg("redis.privacy.msg." + chatId, privacyMsg);
+            redisPublisher.publishMsg("redis.chat.msg." + chatId, privacyMsg);
+        }
+        else if (aiResponse.equals("isUpToMeet")){
+            Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDCC5 " + "약속을 잡으셨군요!");
+            redisPublisher.publishMsg("redis.chat.msg." + chatId, privacyMsg);
         }
 
     }
