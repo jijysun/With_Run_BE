@@ -16,7 +16,7 @@ public class GPTDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public class GPTMessage {
+    public static class GPTMessage {
         private String role;
         private String content;
     }
@@ -26,11 +26,10 @@ public class GPTDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public class GPTRequestDTO {
+    public static class GPTRequestDTO {
         private String model;
         private List<GPTMessage> messages;
-        private int max_tokens;
-        private double temperature;
+        private int max_completion_tokens;
     }
 
     @Getter

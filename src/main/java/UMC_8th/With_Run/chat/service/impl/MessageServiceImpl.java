@@ -33,9 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -49,17 +47,20 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final RedisPublisher redisPublisher;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${chatgpt.api.key}")
-    private static String API_KEY;
+    private String API_KEY;
 
     @Value("${chatgpt.api.uri}")
-    private static String API_URI;
+    private String API_URI;
 
     public void chattingWithChatGPT(Long chatId, ChatRequestDTO.ChattingReqDTO dto) {
         User user = userRepository.findByIdWithProfile(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
         Message msg = MessageConverter.toMessage(user, chat, dto);
+        List<Message> messageList = new ArrayList<>();
+        messageList.add(msg);
 
         /* 채팅 메세지 파싱 사항
          * 1. 같이 산책 코스 약속을 잡은 경우, isUpToMeet -> AI
@@ -68,7 +69,8 @@ public class MessageServiceImpl implements MessageService {
          * 4. 펫코노미 고려, isPetConomy -> AI
          * */
 
-        GPTDTO.GPTAnswerDTO gptAnswerDTO =  new GPTDTO.GPTAnswerDTO();
+        GPTDTO.GPTResponseDTO gptResponseDTO = new GPTDTO.GPTResponseDTO();
+        GPTDTO.GPTAnswerDTO gptAnswerDTO = new GPTDTO.GPTAnswerDTO();
         boolean isPrivacy = false;
 
         List<String> privacy = List.of(
@@ -86,12 +88,12 @@ public class MessageServiceImpl implements MessageService {
             headers.setBearerAuth(API_KEY);
 
             GPTDTO.GPTRequestDTO requestDTO = GPTDTO.GPTRequestDTO.builder()
-                    .model("gpt-5")
+                    .model("gpt-4o")
                     .messages(List.of(GPTDTO.GPTMessage.builder()
                                     .role("system")
                                     .content("""
                                             채팅 메세지를 분석하는 AI 로 프롬프트 튜닝 중.
-                                            결과는 반드시 JSON 형식, {"answer" : "", "message":"해당 분석에 대한 답변"}
+                                            결과는 반드시 JSON 형식, {"answer" : "", "message":" 해당 분석 후 '약속을 잡으셨군요!' 과 함께 40 글자 내로 산책할 때 좋은 정보 추천할 것."}
                                             조건
                                             - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
                                             - 위 조건에 해당 되지 않음 -> answer : "nothing"
@@ -102,16 +104,19 @@ public class MessageServiceImpl implements MessageService {
                                     .role("user")
                                     .content(dto.getMessage())
                                     .build()))
-                    .max_tokens(50)
-                    .temperature(0)
+                    .max_completion_tokens(2000)
                     .build();
 
-            HttpEntity<GPTDTO.GPTRequestDTO> request = new HttpEntity<>(requestDTO, headers);
-            ResponseEntity<GPTDTO.GPTResponseDTO> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, GPTDTO.GPTResponseDTO.class);
+            log.info("request start");
 
-            ObjectMapper objectMapper = new ObjectMapper();
+            HttpEntity<GPTDTO.GPTRequestDTO> request = new HttpEntity<>(requestDTO, headers);
+            ResponseEntity<String> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, String.class);
+            log.info("request end");
+
+            log.info("body: {}", response.getBody()); // GPT Log!
             try {
-                gptAnswerDTO = objectMapper.readValue(response.getBody().getChoices().get(0).getMessage().getContent(), GPTDTO.GPTAnswerDTO.class);
+                gptResponseDTO = objectMapper.readValue(response.getBody(), GPTDTO.GPTResponseDTO.class);
+                gptAnswerDTO = objectMapper.readValue(gptResponseDTO.getChoices().get(0).getMessage().getContent(), GPTDTO.GPTAnswerDTO.class);
             } catch (JsonProcessingException e) {
                 throw new ChatHandler(ErrorCode.CANT_PARSING_AI_MAG);
             }
@@ -120,8 +125,14 @@ public class MessageServiceImpl implements MessageService {
         List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId); // 일시 미참여 중인 사용자의 안읽은 메세지 수 증가
         userChatList.forEach(UserChat::updateUnReadMsg);
 
+
+        Message aiMessage = MessageConverter.toInviteMessage(user, chat, gptAnswerDTO.getMessage());
+        if (!gptAnswerDTO.getAnswer().equals("nothing")) {
+            messageList.add(aiMessage);
+        }
+
         // 메세지 저장
-        messageRepository.save(msg);
+        messageRepository.saveAll(messageList);
 
         PayloadDTO<Object> payloadDTO = PayloadDTO.builder() // redis 처리 전용 dto 변환,
                 .type("chat")
@@ -133,9 +144,12 @@ public class MessageServiceImpl implements MessageService {
         if (isPrivacy) {
             Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDD12 개인정보가 보이는 정보가 메세지로 보내졌어요, 개인정보 유출에 주의해주세요!");
             redisPublisher.publishMsg("redis.chat.msg." + chatId, privacyMsg);
-        } else if (gptAnswerDTO.getAnswer().equals("isUpToMeet")) {
-            Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDCC5 " + "약속을 잡으셨군요!");
-            redisPublisher.publishMsg("redis.chat.msg." + chatId, privacyMsg);
+        } else if (!gptAnswerDTO.getAnswer().equals("nothing")) {
+            PayloadDTO<Object> payloadMeetInfoDTO = PayloadDTO.builder() // redis 처리 전용 dto 변환,
+                    .type("chat")
+                    .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), aiMessage))
+                    .build();
+            redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadMeetInfoDTO);
         }
     }
 
