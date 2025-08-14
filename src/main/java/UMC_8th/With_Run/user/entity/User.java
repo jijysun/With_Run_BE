@@ -28,8 +28,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "naver_id", nullable = false, length = 64)
-    private String naverId;
+    @Column(name = "login_id", nullable = false, length = 64)
+    private String loginId;
 
     @Column(nullable = false, length = 50)
     private String email;

@@ -14,7 +14,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LoginResultDTO {
-        Long memberId;
+        Long userId;
         String accessToken;
     }
 

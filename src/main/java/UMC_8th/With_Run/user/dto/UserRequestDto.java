@@ -20,8 +20,8 @@ public class UserRequestDto {
         @Email(message = "올바른 이메일 형식이어야 합니다.")
         private String email;
 
-        @NotBlank(message = "네이버 ID는 필수입니다.")
-        private String naverId;
+        @NotBlank(message = "소셜로그인 ID는 필수입니다.")
+        private String LoginId;
 
     }
 
