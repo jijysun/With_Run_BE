@@ -6,7 +6,7 @@ import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.Chat;
 import UMC_8th.With_Run.chat.service.ChatService;
 import UMC_8th.With_Run.chat.service.MessageService;
-import UMC_8th.With_Run.chat.service.impl.MessageServiceImpl;
+import UMC_8th.With_Run.chat.service.impl.messaging.MessageServiceImpl;
 import UMC_8th.With_Run.common.apiResponse.StndResponse;
 import UMC_8th.With_Run.common.apiResponse.status.SuccessCode;
 import UMC_8th.With_Run.user.entity.User;

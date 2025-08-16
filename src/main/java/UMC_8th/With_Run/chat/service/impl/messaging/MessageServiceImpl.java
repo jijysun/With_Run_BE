@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.service.impl;
+package UMC_8th.With_Run.chat.service.impl.messaging;
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
