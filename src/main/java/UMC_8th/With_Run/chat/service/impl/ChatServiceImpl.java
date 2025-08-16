@@ -77,8 +77,13 @@ public class ChatServiceImpl implements ChatService {
 
         if (!privateChat.isEmpty()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
             UserChat userChat = privateChat.get(0);
-            userChat.setToChatting();
             Long chatId = userChat.getChat().getId();
+
+            userChat.setToChatting();
+
+            redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
+            redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
+
             List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
             return ChatConverter.toCreateChatDTO(chatId, chatHistoryDTO); // join fetch!
         }
@@ -99,9 +104,13 @@ public class ChatServiceImpl implements ChatService {
         Long chatId = saveChat.getId();
         userChatRepository.saveAll(userChats);
 
+        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
+        redisTemplate.opsForHash().put("user:"+targetId+":"+chatId, "isChatting", "false");
+        redisTemplate.opsForHash().put("user:"+targetId+":"+chatId, "unReadMsg", "0");
+
         ///  메세지 보내기!!
         // redis 처리 전용 dto 변환,
-
         messageRepository.save(MessageConverter.toFirstChatMessage(user, chat));
         return ChatConverter.toCreateChatDTO(chatId, MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId));
     }
@@ -239,7 +248,8 @@ public class ChatServiceImpl implements ChatService {
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
         userChat.setToChatting();
 
-        redisTemplate.opsForHash().put("user:"+user.getId(), "isChatting", "true");
+        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
