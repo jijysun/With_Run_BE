@@ -56,10 +56,11 @@ public class MessageServiceImplV2 implements MessageService {
     @Value("${chatgpt.api.uri}")
     private String API_URI;
 
-    public void chattingWithChatGPT(Long chatId, ChatRequestDTO.ChattingReqDTO dto) {
-        User user = userRepository.findByIdWithProfile(dto.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
+    @Override
+    public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
+        User user = userRepository.findByIdWithProfile(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = MessageConverter.toMessage(user, chat, dto);
+        Message msg = MessageConverter.toMessage(user, chat, reqDTO);
         List<Message> messageList = new ArrayList<>();
         messageList.add(msg);
 
@@ -81,7 +82,7 @@ public class MessageServiceImplV2 implements MessageService {
         );
 
         if (privacy.stream()
-                .anyMatch(pattern -> dto.getMessage().matches(pattern))) {
+                .anyMatch(pattern -> reqDTO.getMessage().matches(pattern))) {
             isPrivacy = true;
         } else { // request to AI!
             HttpHeaders headers = new HttpHeaders();
@@ -103,7 +104,7 @@ public class MessageServiceImplV2 implements MessageService {
                                     .build(),
                             GPTDTO.GPTMessage.builder()
                                     .role("user")
-                                    .content(dto.getMessage())
+                                    .content(reqDTO.getMessage())
                                     .build()))
                     .max_completion_tokens(2000)
                     .build();
@@ -151,28 +152,6 @@ public class MessageServiceImplV2 implements MessageService {
                     .build();
             redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadMeetInfoDTO);
         }
-    }
-
-    @Override
-    public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
-        User user = userRepository.findByIdWithProfile(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
-        Message msg = MessageConverter.toMessage(user, chat, reqDTO);
-
-        // 채팅방에 참여하고 있지 않은 사용자의 안읽은 메세지 수 증가
-        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId);
-        userChatList.forEach(UserChat::updateUnReadMsg);
-
-        // 메세지 저장
-        messageRepository.save(msg);
-
-        // redis 처리 전용 dto 변환,
-        PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
-                .type("chat")
-                .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), msg))
-                .build();
-
-        redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadDTO);
     }
 
     @Override
