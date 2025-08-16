@@ -20,6 +20,7 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserChatRepository userChatRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate template;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
