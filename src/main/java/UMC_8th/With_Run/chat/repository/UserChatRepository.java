@@ -44,6 +44,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
+//    @Query("Select uc.user.id From UserChat uc where uc.chat.id = :chatId AND uc.")
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
 
     @Query("SELECT EXISTS (SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList)")
