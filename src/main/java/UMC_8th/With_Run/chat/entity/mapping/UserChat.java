@@ -47,10 +47,10 @@ public class UserChat {
     private String chatName;
 
     @Column(nullable = false)
-    private Integer unReadMsg;
+    private Integer unReadMsg; // Redis!
 
     @Column(nullable = false)
-    private Boolean isChatting;
+    private Boolean isChatting; // Redis!
 
     @CreatedDate
     private LocalDateTime createdAt;

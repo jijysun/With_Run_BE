@@ -237,7 +237,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
         userChat.setToChatting();
-        
+
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
