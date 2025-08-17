@@ -101,8 +101,7 @@ public class MessageServiceImplV2 implements MessageService {
                                             - message는 해당 분석 후 '약속을 잡으셨군요!' 과 함께 50 글자 내로 산책할 때 좋은 정보 추천할 것, 장소 언급은 제외.
                                             - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
                                             - 위 조건에 해당 되지 않음 -> answer : "nothing"
-                                            - 다른 텍스트는 포함하지 말 것.
-                                            
+                                            - 다른 텍스트는 포함하지 말 것. 추가적인 대화로 이어지는 답변도 금지.
                                             """)
                                     .build(),
                             GPTDTO.GPTMessage.builder()
@@ -137,11 +136,11 @@ public class MessageServiceImplV2 implements MessageService {
         }
 
         userChatList.forEach(userChat -> {
-            String key = "user:"+userChat+":"+chatId;
+            String key = "user:" + userChat + ":" + chatId;
             String isChatting = redisTemplate.opsForHash().get(key, "isChatting").toString();
             log.info("key: {}, isChatting? {}", key, isChatting);
-            if(isChatting.equals("false")){
-               redisTemplate.opsForHash().increment(key, "unReadMsg", 1);
+            if (isChatting.equals("false")) {
+                redisTemplate.opsForHash().increment(key, "unReadMsg", 1);
             }
         });
 
@@ -174,8 +173,7 @@ public class MessageServiceImplV2 implements MessageService {
 
     @Override
     @Transactional
-    public void shareCourse(ChatRequestDTO.ShareReqDTO reqDTO) {
-        /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
+    public void shareCourse(ChatRequestDTO.ShareReqDTO reqDTO) { /// 여려 명 공유 시 채팅방 공유 로직, 카카오톡 공유 화면 참고!
 
         User user = userRepository.findById(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Course course = courseRepository.findById(reqDTO.getCourseId()).orElseThrow(() -> new CourseHandler(ErrorCode.WRONG_COURSE)); // 에러 코드 바꾸기
@@ -185,7 +183,9 @@ public class MessageServiceImplV2 implements MessageService {
 
             // join fetch 가능하지 않을까?
             UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-            userChat.setToChatting();
+//            userChat.setToChatting();
+            String key = "user:" + user.getId() + ":" + chat.getId();
+            redisTemplate.opsForHash().put(key, "isChatting", "true");
 
             messageRepository.save(MessageConverter.toShareMessage(user, chat, course));
 
@@ -205,12 +205,15 @@ public class MessageServiceImplV2 implements MessageService {
 
                 List<UserChat> ucList = new ArrayList<>();
                 UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, privateChat);
-                newUserChat.setToChatting();
+//                newUserChat.setToChatting();
 
                 ucList.add(newUserChat);
                 ucList.add(UserChatConverter.toNewUserChat(targetUser, user, null, privateChat));
 
                 Chat savedChat = chatRepository.save(privateChat);
+                String key = "user:" + user.getId() + ":" + savedChat.getId();
+                redisTemplate.opsForHash().put(key, "isChatting", "true");
+
                 userChatRepository.saveAll(ucList);
 
                 // Save And Broadcast
@@ -227,7 +230,9 @@ public class MessageServiceImplV2 implements MessageService {
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
                 UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-                userChat.setToChatting();
+//                userChat.setToChatting();
+                String key = "user:"+user.getId() + ":"+privateChat.getId();
+                redisTemplate.opsForHash().put(key,  "isChatting", "true");
 
                 // Save And Broadcast
                 messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));
