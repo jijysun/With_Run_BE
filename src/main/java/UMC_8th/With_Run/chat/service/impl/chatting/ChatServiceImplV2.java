@@ -164,7 +164,7 @@ public class ChatServiceImplV2 implements ChatService {
 
         invitedUserIdList.forEach(invitedUserId -> {
             redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "isChatting", "false");
-            redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1");
+redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1");
         });
 
         List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
