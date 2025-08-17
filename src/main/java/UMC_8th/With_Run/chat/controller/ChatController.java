@@ -36,7 +36,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final MessageService messageService;
-    private final MessageServiceImpl messageServiceImpl;
+//    private final MessageServiceImpl messageServiceImpl;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!

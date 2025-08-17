@@ -22,12 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class ChatServiceImplV2 implements ChatService {
 
@@ -164,12 +166,13 @@ public class ChatServiceImplV2 implements ChatService {
 
         // 초대된 사용자 조회 - start
         List<Long> invitedUserIdList = inviteUserList.stream()
-                .peek(inviteDTO -> {
-                    redisTemplate.opsForHash().put("user:"+inviteDTO.getUserId()+":"+chatId, "isChatting", "true");
-                    redisTemplate.opsForHash().put("user:"+inviteDTO.getUserId()+":"+chatId, "unReadMsg", "0");
-                })
                 .map(ChatRequestDTO.InviteDTO::getUserId)
                 .toList();
+
+        invitedUserIdList.forEach(invitedUserId -> {
+            redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "isChatting", "false");
+            redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "0");
+        });
 
         List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
         Map<Long, User> invitedUserMap = allInvitedUserList.stream()

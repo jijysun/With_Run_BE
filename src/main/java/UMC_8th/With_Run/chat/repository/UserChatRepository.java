@@ -49,4 +49,7 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     @Query("SELECT EXISTS (SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList)")
     Boolean findAlreadyInvited (@Param("chatId") Long chatId, @Param("idList") List<Long> idList);
+
+    @Query("select uc.user.id from UserChat uc where uc.chat.id = :chatId")
+    List<Long> findAllByChat_Id(Long chatId);
 }

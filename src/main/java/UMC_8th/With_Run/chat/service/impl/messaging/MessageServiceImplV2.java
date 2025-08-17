@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class MessageServiceImplV2 implements MessageService {
 
@@ -90,23 +91,25 @@ public class MessageServiceImplV2 implements MessageService {
             headers.setBearerAuth(API_KEY);
 
             GPTDTO.GPTRequestDTO requestDTO = GPTDTO.GPTRequestDTO.builder()
-                    .model("gpt-4o")
+                    .model("gpt-3.5-turbo")
                     .messages(List.of(GPTDTO.GPTMessage.builder()
                                     .role("system")
                                     .content("""
                                             채팅 메세지를 분석하는 AI 로 프롬프트 튜닝 중.
-                                            결과는 반드시 JSON 형식, {"answer" : "", "message":" 해당 분석 후 '약속을 잡으셨군요!' 과 함께 40 글자 내로 산책할 때 좋은 정보 추천할 것."}
+                                            결과는 반드시 JSON 형식, {"answer" : "", "message":""}
                                             조건
+                                            - message는 해당 분석 후 '약속을 잡으셨군요!' 과 함께 50 글자 내로 산책할 때 좋은 정보 추천할 것, 장소 언급은 제외.
                                             - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
                                             - 위 조건에 해당 되지 않음 -> answer : "nothing"
                                             - 다른 텍스트는 포함하지 말 것.
+                                            
                                             """)
                                     .build(),
                             GPTDTO.GPTMessage.builder()
                                     .role("user")
                                     .content(reqDTO.getMessage())
                                     .build()))
-                    .max_completion_tokens(2000)
+//                    .max_completion_tokens(2000)
                     .build();
 
             log.info("request start");
@@ -124,8 +127,23 @@ public class MessageServiceImplV2 implements MessageService {
             }
         }
 
-        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId); // 일시 미참여 중인 사용자의 안읽은 메세지 수 증가
-        userChatList.forEach(UserChat::updateUnReadMsg);
+//        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId); // 일시 미참여 중인 사용자의 안읽은 메세지 수 증가
+//        userChatList.forEach(UserChat::updateUnReadMsg);
+
+        List<Long> userChatList = userChatRepository.findAllByChat_Id(chatId);
+
+        for (Long l : userChatList) {
+            log.info("id: {}", l);
+        }
+
+        userChatList.forEach(userChat -> {
+            String key = "user:"+userChat+":"+chatId;
+            String isChatting = redisTemplate.opsForHash().get(key, "isChatting").toString();
+            log.info("key: {}, isChatting? {}", key, isChatting);
+            if(isChatting.equals("false")){
+               redisTemplate.opsForHash().increment(key, "unReadMsg", 1);
+            }
+        });
 
         Message aiMessage = MessageConverter.toInviteMessage(user, chat, gptAnswerDTO.getMessage());
         if (!gptAnswerDTO.getAnswer().equals("nothing")) {

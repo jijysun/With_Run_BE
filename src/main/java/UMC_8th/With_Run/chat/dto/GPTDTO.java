@@ -29,7 +29,7 @@ public class GPTDTO {
     public static class GPTRequestDTO {
         private String model;
         private List<GPTMessage> messages;
-        private int max_completion_tokens;
+//        private int max_completion_tokens;
     }
 
     @Getter
