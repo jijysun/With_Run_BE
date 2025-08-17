@@ -67,16 +67,16 @@ public class UserChat {
         this.chatName = newName;
     }
 
-    public void setToChatting() {
+    public void setToChatting() { // Redis!
         this.unReadMsg = 0;
         this.isChatting = true;
     }
 
-    public void setToNotChatting() {
+    public void setToNotChatting() {  // Redis!
         this.isChatting = false;
     }
 
-    public void updateUnReadMsg() {
+    public void updateUnReadMsg() {  // Redis!
         this.unReadMsg ++;
     }
 }

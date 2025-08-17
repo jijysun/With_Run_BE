@@ -25,7 +25,6 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false)
     private Integer participants; // 참여자 수 입니다.
 
@@ -54,7 +53,7 @@ public class Chat {
         this.getUserChatList().add(userChat);
     }
 
-    public void updateLastReceivedMsg(String lastReceivedMsg){ // Not to @Setter!
+    public void updateLastReceivedMsg(String lastReceivedMsg){ // Not to @Setter! & Redis!
         this.lastReceivedMsg = lastReceivedMsg;
     }
 }

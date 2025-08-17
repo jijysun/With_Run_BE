@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     @Query(value = "SELECT " +
-            "c.id AS chatId, uc.chat_name AS chatName, c.last_received_msg AS lastReceivedMsg, c.participants AS participants, " + // uc.un_read_msg AS unReadMsg, // -> Redis!
+            "c.id AS chatId, uc.chat_name AS chatName, c.participants AS participants, " + // uc.un_read_msg AS unReadMsg, // -> Redis!
             " GROUP_CONCAT(p.name ORDER BY other_u.id) AS usernames, " +
             " GROUP_CONCAT(p.profile_image ORDER BY other_u.id) AS profileImages " +
             "FROM user_chat uc " +

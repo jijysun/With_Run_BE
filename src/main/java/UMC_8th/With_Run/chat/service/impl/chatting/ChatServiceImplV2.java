@@ -55,10 +55,11 @@ public class ChatServiceImplV2 implements ChatService {
                     List<String> profileList = Arrays.asList(result.getProfileImages().split(","));
 
                     String key = "user:" + user.getId() + ":" + result.getChatId();
+                    String lastReceivedMsg = redisTemplate.opsForHash().get("chat:" + result.getChatId(), "lastReceivedMsg").toString();
                     String unReadMsgString = redisTemplate.opsForHash().get(key, "unReadMsg").toString();
                     int unReadMsg = Integer.parseInt(unReadMsgString);
 
-                    return ChatConverter.toGetChatListDTOWithRedis(result, usernameList, profileList, unReadMsg);
+                    return ChatConverter.toGetChatListDTOWithRedis(result, usernameList, profileList, unReadMsg, lastReceivedMsg);
                 })
                 .collect(Collectors.toList());
     }
@@ -100,7 +101,8 @@ public class ChatServiceImplV2 implements ChatService {
         redisTemplate.opsForHash().put("user:" + targetId + ":" + chatId, "unReadMsg", "1");
 
         ///  메세지 보내기!!
-        saveChat.updateLastReceivedMsg("상대방과 나누는 첫 대화입니다!");
+        redisTemplate.opsForHash().put("chat:" + chatId, "lastReceivedMsg", "상대방과 나누는 첫 대화입니다!");
+//        saveChat.updateLastReceivedMsg("상대방과 나누는 첫 대화입니다!");
 
         // redis 처리 전용 dto 변환,
         messageRepository.save(MessageConverter.toFirstChatMessage(user, chat));
@@ -233,7 +235,8 @@ public class ChatServiceImplV2 implements ChatService {
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
         messageRepository.save(MessageConverter.toInviteMessage(user, chat, inviteMsg));
-        chat.updateLastReceivedMsg(inviteMsg);
+//        chat.updateLastReceivedMsg(inviteMsg);
+        redisTemplate.opsForHash().put("chat:" + chatId, "lastReceivedMsg", inviteMsg);
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
