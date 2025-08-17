@@ -58,6 +58,7 @@ public class MessageServiceImplV2 implements MessageService {
     private String API_URI;
 
     @Override
+    @Transactional
     public void chatting(Long chatId, ChatRequestDTO.ChattingReqDTO reqDTO) {
         User user = userRepository.findByIdWithProfile(reqDTO.getUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.EMPTY_CHAT_LIST));
@@ -72,7 +73,6 @@ public class MessageServiceImplV2 implements MessageService {
          * 4. 펫코노미 고려, isPetConomy -> AI
          * */
 
-        GPTDTO.GPTResponseDTO gptResponseDTO = new GPTDTO.GPTResponseDTO();
         GPTDTO.GPTAnswerDTO gptAnswerDTO = new GPTDTO.GPTAnswerDTO();
         boolean isPrivacy = false;
 
@@ -85,72 +85,28 @@ public class MessageServiceImplV2 implements MessageService {
         if (privacy.stream()
                 .anyMatch(pattern -> reqDTO.getMessage().matches(pattern))) {
             isPrivacy = true;
-        } else { // request to AI!
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(API_KEY);
-
-            GPTDTO.GPTRequestDTO requestDTO = GPTDTO.GPTRequestDTO.builder()
-                    .model("gpt-3.5-turbo")
-                    .messages(List.of(GPTDTO.GPTMessage.builder()
-                                    .role("system")
-                                    .content("""
-                                            채팅 메세지를 분석하는 AI 로 프롬프트 튜닝 중.
-                                            결과는 반드시 JSON 형식, {"answer" : "", "message":""}
-                                            조건
-                                            - message는 해당 분석 후 '약속을 잡으셨군요!' 과 함께 50 글자 내로 산책할 때 좋은 정보 추천할 것, 장소 언급은 제외.
-                                            - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
-                                            - 위 조건에 해당 되지 않음 -> answer : "nothing"
-                                            - 다른 텍스트는 포함하지 말 것. 추가적인 대화로 이어지는 답변도 금지.
-                                            """)
-                                    .build(),
-                            GPTDTO.GPTMessage.builder()
-                                    .role("user")
-                                    .content(reqDTO.getMessage())
-                                    .build()))
-//                    .max_completion_tokens(2000)
-                    .build();
-
-            log.info("request start");
-
-            HttpEntity<GPTDTO.GPTRequestDTO> request = new HttpEntity<>(requestDTO, headers);
-            ResponseEntity<String> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, String.class);
-            log.info("request end");
-
-            log.info("body: {}", response.getBody()); // GPT Log!
-            try {
-                gptResponseDTO = objectMapper.readValue(response.getBody(), GPTDTO.GPTResponseDTO.class);
-                gptAnswerDTO = objectMapper.readValue(gptResponseDTO.getChoices().get(0).getMessage().getContent(), GPTDTO.GPTAnswerDTO.class);
-            } catch (JsonProcessingException e) {
-                throw new ChatHandler(ErrorCode.CANT_PARSING_AI_MAG);
-            }
+        } else {
+//            gptAnswerDTO = requestToAI(reqDTO);
         }
-
-//        List<UserChat> userChatList = userChatRepository.findAllByChat_IdAndIsChattingFalse(chatId); // 일시 미참여 중인 사용자의 안읽은 메세지 수 증가
-//        userChatList.forEach(UserChat::updateUnReadMsg);
 
         List<Long> userChatList = userChatRepository.findAllByChat_Id(chatId);
-
-        for (Long l : userChatList) {
-            log.info("id: {}", l);
-        }
 
         userChatList.forEach(userChat -> {
             String key = "user:" + userChat + ":" + chatId;
             String isChatting = redisTemplate.opsForHash().get(key, "isChatting").toString();
-            log.info("key: {}, isChatting? {}", key, isChatting);
             if (isChatting.equals("false")) {
                 redisTemplate.opsForHash().increment(key, "unReadMsg", 1);
             }
         });
 
-        Message aiMessage = MessageConverter.toInviteMessage(user, chat, gptAnswerDTO.getMessage());
-        if (!gptAnswerDTO.getAnswer().equals("nothing")) {
+        /*Message aiMessage = MessageConverter.toInviteMessage(user, chat, gptAnswerDTO.getMessage());
+        if (! gptAnswerDTO.getAnswer().isEmpty()|| !gptAnswerDTO.getAnswer().equals("nothing") || !gptAnswerDTO.getMessage().isEmpty()) {
             messageList.add(aiMessage);
-        }
+        }*/
 
         // 메세지 저장
         messageRepository.saveAll(messageList);
+        chat.updateLastReceivedMsg(reqDTO.getMessage());
 
         PayloadDTO<Object> payloadDTO = PayloadDTO.builder() // redis 처리 전용 dto 변환,
                 .type("chat")
@@ -162,13 +118,58 @@ public class MessageServiceImplV2 implements MessageService {
         if (isPrivacy) {
             Message privacyMsg = MessageConverter.toInviteMessage(user, chat, "\uD83D\uDD12 개인정보가 보이는 정보가 메세지로 보내졌어요, 개인정보 유출에 주의해주세요!");
             redisPublisher.publishMsg("redis.chat.msg." + chatId, privacyMsg);
-        } else if (!gptAnswerDTO.getAnswer().equals("nothing")) {
+        } /*else if (!gptAnswerDTO.getAnswer().equals("nothing")) {
             PayloadDTO<Object> payloadMeetInfoDTO = PayloadDTO.builder() // redis 처리 전용 dto 변환,
                     .type("chat")
                     .payload(MessageConverter.toBroadCastMsgDTO(user.getId(), chatId, user.getProfile(), aiMessage))
                     .build();
             redisPublisher.publishMsg("redis.chat.msg." + chatId, payloadMeetInfoDTO);
+        }*/
+    }
+
+    private GPTDTO.GPTAnswerDTO requestToAI(ChatRequestDTO.ChattingReqDTO reqDTO) {
+        GPTDTO.GPTAnswerDTO gptAnswerDTO;
+        GPTDTO.GPTResponseDTO gptResponseDTO;
+        // request to AI!
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(API_KEY);
+
+        GPTDTO.GPTRequestDTO requestDTO = GPTDTO.GPTRequestDTO.builder()
+                .model("gpt-3.5-turbo")
+                .messages(List.of(GPTDTO.GPTMessage.builder()
+                                .role("system")
+                                .content("""
+                                        채팅 메세지를 분석하는 AI 로 프롬프트 튜닝 중.
+                                        결과는 반드시 JSON 형식, {"answer" : "", "message":""}
+                                        조건
+                                        - message는 해당 분석 후 '약속을 잡으셨군요!' 과 함께 50 글자 내로 산책할 때 좋은 정보 추천할 것, 장소 언급은 제외.
+                                        - 약속 잡은 문자인 경우 -> answer : "isUpToMeet"
+                                        - 위 조건에 해당 되지 않음 -> answer : "nothing"
+                                        - 다른 텍스트는 포함하지 말 것. 추가적인 대화로 이어지는 답변도 금지.
+                                        """)
+                                .build(),
+                        GPTDTO.GPTMessage.builder()
+                                .role("user")
+                                .content(reqDTO.getMessage())
+                                .build()))
+//                    .max_completion_tokens(2000)
+                .build();
+
+        log.info("request start");
+
+        HttpEntity<GPTDTO.GPTRequestDTO> request = new HttpEntity<>(requestDTO, headers);
+        ResponseEntity<String> response = restTemplate.exchange(API_URI, HttpMethod.POST, request, String.class);
+        log.info("request end");
+
+        log.info("body: {}", response.getBody()); // GPT Log!
+        try {
+            gptResponseDTO = objectMapper.readValue(response.getBody(), GPTDTO.GPTResponseDTO.class);
+            gptAnswerDTO = objectMapper.readValue(gptResponseDTO.getChoices().get(0).getMessage().getContent(), GPTDTO.GPTAnswerDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new ChatHandler(ErrorCode.CANT_PARSING_AI_MAG);
         }
+        return gptAnswerDTO;
     }
 
     @Override
@@ -181,9 +182,6 @@ public class MessageServiceImplV2 implements MessageService {
         if (reqDTO.getIsChat()) { // 채팅방 공유 시 채팅방 ID 이용
             Chat chat = chatRepository.findById(reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-            // join fetch 가능하지 않을까?
-            UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-//            userChat.setToChatting();
             String key = "user:" + user.getId() + ":" + chat.getId();
             redisTemplate.opsForHash().put(key, "isChatting", "true");
 
@@ -195,6 +193,7 @@ public class MessageServiceImplV2 implements MessageService {
                     .build();
 
             // 메세지 BroadCast
+            chat.updateLastReceivedMsg("산책 코스를 공유하였습니다");
             redisPublisher.publishMsg("redis.chat.share." + reqDTO.getChatId(), payloadDTO);
         } else { // 친구를 통한 공유, 채팅이 없는 경우 추가
             User targetUser = userRepository.findById(reqDTO.getTargetUserId()).orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
@@ -205,7 +204,6 @@ public class MessageServiceImplV2 implements MessageService {
 
                 List<UserChat> ucList = new ArrayList<>();
                 UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, privateChat);
-//                newUserChat.setToChatting();
 
                 ucList.add(newUserChat);
                 ucList.add(UserChatConverter.toNewUserChat(targetUser, user, null, privateChat));
@@ -218,6 +216,7 @@ public class MessageServiceImplV2 implements MessageService {
 
                 // Save And Broadcast
                 messageRepository.save(MessageConverter.toShareMessage(user, savedChat, course));
+                savedChat.updateLastReceivedMsg("산책 코스를 공유하였습니다");
 
                 PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
                         .type("share")
@@ -229,13 +228,12 @@ public class MessageServiceImplV2 implements MessageService {
             } else { // 친구 공유, 채팅이 존재하는 경우
                 log.info("'shareCourse'/toFriend - privateChat is Not Null! id = {}", privateChat.getId());
 
-                UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(reqDTO.getUserId(), reqDTO.getChatId()).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-//                userChat.setToChatting();
                 String key = "user:"+user.getId() + ":"+privateChat.getId();
                 redisTemplate.opsForHash().put(key,  "isChatting", "true");
 
                 // Save And Broadcast
                 messageRepository.save(MessageConverter.toShareMessage(user, privateChat, course));
+                privateChat.updateLastReceivedMsg("산책 코스를 공유하였습니다");
 
                 PayloadDTO<Object> payloadDTO = PayloadDTO.builder()
                         .type("share")

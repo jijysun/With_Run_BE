@@ -25,7 +25,7 @@ public class ChatResponseDTO {
         String getProfileImages();
     }
 
-    @Getter @Builder @NoArgsConstructor @AllArgsConstructor
+    @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor // setter...
     public static class GetChatListDTO {
         private Long chatId;
         private String chatName;

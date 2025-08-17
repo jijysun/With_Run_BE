@@ -53,6 +53,10 @@ public class Chat {
     public void addUserChat (UserChat userChat){
         this.getUserChatList().add(userChat);
     }
+
+    public void updateLastReceivedMsg(String lastReceivedMsg){ // Not to @Setter!
+        this.lastReceivedMsg = lastReceivedMsg;
+    }
 }
 
 
