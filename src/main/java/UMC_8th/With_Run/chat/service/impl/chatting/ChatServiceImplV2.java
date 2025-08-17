@@ -73,8 +73,8 @@ public class ChatServiceImplV2 implements ChatService {
         if (!privateChat.isEmpty()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
             Long chatId = privateChat.get(0).getChat().getId();
 
-            redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
-            redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
+            redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+            redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
 
             List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
             return ChatConverter.toCreateChatDTO(chatId, chatHistoryDTO); // join fetch!
@@ -85,7 +85,7 @@ public class ChatServiceImplV2 implements ChatService {
         List<UserChat> userChats = new ArrayList<>();
         UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, chat);
         userChats.add(newUserChat);
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null,  chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null, chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -94,10 +94,10 @@ public class ChatServiceImplV2 implements ChatService {
         Long chatId = saveChat.getId();
         userChatRepository.saveAll(userChats);
 
-        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
-        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
-        redisTemplate.opsForHash().put("user:"+targetId+":"+chatId, "isChatting", "false");
-        redisTemplate.opsForHash().put("user:"+targetId+":"+chatId, "unReadMsg", "1");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
+        redisTemplate.opsForHash().put("user:" + targetId + ":" + chatId, "isChatting", "false");
+        redisTemplate.opsForHash().put("user:" + targetId + ":" + chatId, "unReadMsg", "1");
 
         ///  메세지 보내기!!
         saveChat.updateLastReceivedMsg("상대방과 나누는 첫 대화입니다!");
@@ -163,8 +163,8 @@ public class ChatServiceImplV2 implements ChatService {
                 .toList();
 
         invitedUserIdList.forEach(invitedUserId -> {
-            redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "isChatting", "false");
-redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1");
+            redisTemplate.opsForHash().put("user:" + invitedUserId + ":" + chatId, "isChatting", "false");
+            redisTemplate.opsForHash().put("user:" + invitedUserId + ":" + chatId, "unReadMsg", "1");
         });
 
         List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
@@ -242,8 +242,8 @@ redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
-        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "true");
-        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "unReadMsg", "0");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
@@ -259,8 +259,7 @@ redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1
         if (cursor == null) {
             List<Message> lastestMessageList = messageRepository.getLastestMessagesByChatId(chatId, uc.getCreatedAt(), page);
             return MessageConverter.toChatHistoryDTO(lastestMessageList, chatId);
-        }
-        else {
+        } else {
             List<Message> previousMessageList = messageRepository.getPreviousMessagesByChatId(chatId, uc.getCreatedAt(), cursor, page);
 
             if (previousMessageList.isEmpty())
@@ -272,8 +271,7 @@ redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1
 
     @Transactional
     public void leaveChat(Long chatId, User user) {
-        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        redisTemplate.opsForHash().put("user:"+user.getId()+":"+chatId, "isChatting", "false");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "false");
     }
 
     @Transactional
@@ -284,8 +282,8 @@ redisTemplate.opsForHash().put("user:"+invitedUserId+":"+chatId, "unReadMsg", "1
         // redis 삭제 로직 추가
         userChatRepository.delete(userChat);
 
-        redisTemplate.opsForHash().delete("user:"+user.getId()+":"+chatId, "isChatting");
-        redisTemplate.opsForHash().delete("user:"+user.getId()+":"+chatId, "unReadMsg");
+        redisTemplate.opsForHash().delete("user:" + user.getId() + ":" + chatId, "isChatting");
+        redisTemplate.opsForHash().delete("user:" + user.getId() + ":" + chatId, "unReadMsg");
 
         Integer participants = chat.getParticipants();
 
