@@ -46,11 +46,11 @@ public class UserChat {
     @Column(length = 255)
     private String chatName;
 
-    @Column(nullable = false)
-    private Integer unReadMsg;
+    @Column(nullable = true)
+    private Integer unReadMsg; // Redis!
 
-    @Column(nullable = false)
-    private Boolean isChatting;
+    @Column(nullable = true)
+    private Boolean isChatting; // Redis!
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -67,16 +67,21 @@ public class UserChat {
         this.chatName = newName;
     }
 
-    public void setToChatting() {
+    public void setToChatting() { // Redis!
         this.unReadMsg = 0;
         this.isChatting = true;
     }
 
-    public void setToNotChatting() {
+    public void setToNotChatting() {  // Redis!
         this.isChatting = false;
     }
 
-    public void updateUnReadMsg() {
+    public void updateUnReadMsg() {  // Redis!
         this.unReadMsg ++;
+    }
+
+    public void updateUserChat(Integer unReadMsg, Boolean isChatting) {
+        this.unReadMsg = unReadMsg;
+        this.isChatting = isChatting;
     }
 }

@@ -30,7 +30,7 @@ public enum SuccessCode implements BaseCode {
     GET_LIST_SUCCESS (HttpStatus.OK, "CHAT2006", "참여 채팅방 목록 조회에 성공했습니다"),
     DELETE_CHAT_SUCCESS (HttpStatus.OK, "CHAT2007", "참여 채팅방 삭제에 성공했습니다"),
     CHATTING_SUCCESS (HttpStatus.OK, "CHAT2008", "메세징에 성공했습니다"),
-    COURSE_SHARE_SUCCESS (HttpStatus.OK, "CHAT2009", "산책 코스 공유 메세징에 성공했습니다"),
+    SHARE_COURSE_SUCCESS(HttpStatus.OK, "CHAT2009", "산책 코스 공유 메세징에 성공했습니다"),
 
 
 

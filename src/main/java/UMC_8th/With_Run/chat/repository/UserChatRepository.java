@@ -2,17 +2,19 @@ package UMC_8th.With_Run.chat.repository;
 
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
+import UMC_8th.With_Run.common.scheduler.RedisSyncScheduler;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     @Query(value = "SELECT " +
-            "c.id AS chatId, uc.chat_name AS chatName, c.last_received_msg AS lastReceivedMsg, c.participants AS participants, uc.un_read_msg AS unReadMsg, " +
+            "c.id AS chatId, uc.chat_name AS chatName, c.participants AS participants, " + // uc.un_read_msg AS unReadMsg, // -> Redis!
             " GROUP_CONCAT(p.name ORDER BY other_u.id) AS usernames, " +
             " GROUP_CONCAT(p.profile_image ORDER BY other_u.id) AS profileImages " +
             "FROM user_chat uc " +
@@ -44,8 +46,25 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     Optional<UserChat> findByUser_IdAndChat_Id(Long userId, Long chatId);
 
+//    @Query("Select uc.user.id From UserChat uc where uc.chat.id = :chatId AND uc.")
     List<UserChat> findAllByChat_IdAndIsChattingFalse(Long chatId);
 
     @Query("SELECT EXISTS (SELECT uc FROM UserChat uc WHERE uc.chat.id = :chatId AND uc.user.id IN :idList)")
     Boolean findAlreadyInvited (@Param("chatId") Long chatId, @Param("idList") List<Long> idList);
+
+    @Query("select uc.user.id from UserChat uc where uc.chat.id = :chatId")
+    List<Long> findAllByChat_Id(Long chatId);
+
+    List<UserChat> findAllByUser_Id(Long userId);
+
+    @Query("Select uc From UserChat uc where concat(uc.user.id , ':',uc.chat.id) IN :redisParsingDTOList ")
+    List<UserChat> findallByToUpdateList(List<RedisSyncScheduler.RedisParsingDTO> redisParsingDTOList);
+
+
+    // UserChatRepository.java
+    @Query("SELECT uc FROM UserChat uc " +
+            "JOIN FETCH uc.user " +
+            "JOIN FETCH uc.chat " +
+            "WHERE uc.user.id IN :userIds AND uc.chat.id IN :chatIds")
+    List<UserChat> findByIdsWithDetails(@Param("userIds") Set<Long> userIds, @Param("chatIds") Set<Long> chatIds);
 }
