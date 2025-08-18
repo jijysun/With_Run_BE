@@ -57,9 +57,6 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
     List<UserChat> findAllByUser_Id(Long userId);
 
-    @Query("Select uc From UserChat uc where concat(uc.user.id , ':',uc.chat.id) IN :redisParsingDTOList ")
-    List<UserChat> findallByToUpdateList(List<RedisSyncScheduler.RedisParsingDTO> redisParsingDTOList);
-
 
     // UserChatRepository.java
     @Query("SELECT uc FROM UserChat uc " +
