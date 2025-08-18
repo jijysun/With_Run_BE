@@ -25,12 +25,11 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false)
     private Integer participants; // 참여자 수 입니다.
 
     @Column(columnDefinition = "TEXT")
-    private String lastReceivedMsg;
+    private String lastReceivedMsg; // Redis!
 
     @CreatedDate
     @Column(nullable = false)
@@ -52,6 +51,10 @@ public class Chat {
 
     public void addUserChat (UserChat userChat){
         this.getUserChatList().add(userChat);
+    }
+
+    public void updateLastReceivedMsg(String lastReceivedMsg){ // Not to @Setter! & Redis!
+        this.lastReceivedMsg = lastReceivedMsg;
     }
 }
 

@@ -25,6 +25,19 @@ public class ChatConverter {
 
     }
 
+    public static ChatResponseDTO.GetChatListDTO toGetChatListDTOWithRedis(ChatResponseDTO.GetChatListSQLDTO getChatListSQLDTO, List<String> usernameList, List<String> profileList, Integer unReadMsg, String lastReceivedMsg) {
+        return ChatResponseDTO.GetChatListDTO.builder()
+                .chatId(getChatListSQLDTO.getChatId())
+                .chatName(getChatListSQLDTO.getChatName())
+                .unReadMsgCount(unReadMsg)
+                .lastReceivedMsg(lastReceivedMsg)
+                .usernameList(usernameList)
+                .userProfileList(profileList)
+                .participants(getChatListSQLDTO.getParticipants())
+                .build();
+
+    }
+
     public static ChatResponseDTO.CreateChatDTO toCreateChatDTO (Long chatId, List<ChatResponseDTO.BroadcastMsgDTO> chatHistory) {
         return ChatResponseDTO.CreateChatDTO.builder()
                 .chatId(chatId)

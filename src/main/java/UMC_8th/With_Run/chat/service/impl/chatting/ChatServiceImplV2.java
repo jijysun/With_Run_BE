@@ -1,4 +1,4 @@
-package UMC_8th.With_Run.chat.service.impl;
+package UMC_8th.With_Run.chat.service.impl.chatting;
 
 import UMC_8th.With_Run.chat.converter.ChatConverter;
 import UMC_8th.With_Run.chat.converter.MessageConverter;
@@ -20,6 +20,7 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,25 +31,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ChatServiceImpl implements ChatService {
+public class ChatServiceImplV2 implements ChatService {
 
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final UserChatRepository userChatRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate template;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
-
-
-    /*
-     * COMMON
-     * - x
-     *
-     * CHAT
-     * 2. Chatting -> 읽지 않은 메세지 수 최적화
-     */
 
     @Transactional(readOnly = true)
     public List<ChatResponseDTO.GetChatListDTO> getChatList(User user) {
@@ -61,7 +54,12 @@ public class ChatServiceImpl implements ChatService {
                     List<String> usernameList = Arrays.asList(result.getUsernames().split(","));
                     List<String> profileList = Arrays.asList(result.getProfileImages().split(","));
 
-                    return ChatConverter.toGetChatListDTO(result, usernameList, profileList);
+                    String key = "user:" + user.getId() + ":" + result.getChatId();
+                    String lastReceivedMsg = redisTemplate.opsForHash().get("chat:" + result.getChatId(), "lastReceivedMsg").toString();
+                    String unReadMsgString = redisTemplate.opsForHash().get(key, "unReadMsg").toString();
+                    int unReadMsg = Integer.parseInt(unReadMsgString);
+
+                    return ChatConverter.toGetChatListDTOWithRedis(result, usernameList, profileList, unReadMsg, lastReceivedMsg);
                 })
                 .collect(Collectors.toList());
     }
@@ -74,21 +72,21 @@ public class ChatServiceImpl implements ChatService {
         List<UserChat> privateChat = userChatRepository.findByTwoUserId(user.getId(), targetUser.getId());
 
         if (!privateChat.isEmpty()) { // 이미 갠톡 존재하는 경우 해당 채팅 입장.
-            UserChat userChat = privateChat.get(0);
-            userChat.setToChatting();
-            Long chatId = userChat.getChat().getId();
+            Long chatId = privateChat.get(0).getChat().getId();
+
+            redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+            redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
+
             List<ChatResponseDTO.BroadcastMsgDTO> chatHistoryDTO = MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId);
             return ChatConverter.toCreateChatDTO(chatId, chatHistoryDTO); // join fetch!
         }
-
 
         Chat chat = ChatConverter.toNewChatConverter();
 
         List<UserChat> userChats = new ArrayList<>();
         UserChat newUserChat = UserChatConverter.toNewUserChat(user, targetUser, null, chat);
-        newUserChat.setToChatting();
         userChats.add(newUserChat);
-        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null,  chat));
+        userChats.add(UserChatConverter.toNewUserChat(targetUser, user, null, chat));
 
         chat.addUserChat(userChats.get(0));
         chat.addUserChat(userChats.get(1));
@@ -97,9 +95,16 @@ public class ChatServiceImpl implements ChatService {
         Long chatId = saveChat.getId();
         userChatRepository.saveAll(userChats);
 
-        ///  메세지 보내기!!
-        // redis 처리 전용 dto 변환,
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
+        redisTemplate.opsForHash().put("user:" + targetId + ":" + chatId, "isChatting", "false");
+        redisTemplate.opsForHash().put("user:" + targetId + ":" + chatId, "unReadMsg", "1");
 
+        ///  메세지 보내기!!
+        redisTemplate.opsForHash().put("chat:" + chatId, "lastReceivedMsg", "상대방과 나누는 첫 대화입니다!");
+//        saveChat.updateLastReceivedMsg("상대방과 나누는 첫 대화입니다!");
+
+        // redis 처리 전용 dto 변환,
         messageRepository.save(MessageConverter.toFirstChatMessage(user, chat));
         return ChatConverter.toCreateChatDTO(chatId, MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId));
     }
@@ -158,6 +163,12 @@ public class ChatServiceImpl implements ChatService {
         List<Long> invitedUserIdList = inviteUserList.stream()
                 .map(ChatRequestDTO.InviteDTO::getUserId)
                 .toList();
+
+        invitedUserIdList.forEach(invitedUserId -> {
+            redisTemplate.opsForHash().put("user:" + invitedUserId + ":" + chatId, "isChatting", "false");
+            redisTemplate.opsForHash().put("user:" + invitedUserId + ":" + chatId, "unReadMsg", "1");
+        });
+
         List<User> allInvitedUserList = userRepository.findAllById(invitedUserIdList);
         Map<Long, User> invitedUserMap = allInvitedUserList.stream()
                 .collect(Collectors.toMap(User::getId, invitedUser -> invitedUser));
@@ -171,13 +182,13 @@ public class ChatServiceImpl implements ChatService {
         List<UserChat> userChatList = userChatRepository.findAllByChat_IdJoinFetchUserAndProfile(chatId);
         List<String> existingUserNames = userChatList.stream()
                 .map(userChat -> userChat.getUser().getProfile().getName())
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> newUserNames = inviteUserList.stream()
                 .map(ChatRequestDTO.InviteDTO::getName)
-                .collect(Collectors.toList());
+                .toList();
 
-        // 전체 참여자 이름 목록
+        // 전체 참여자 이름 목록 병합
         List<String> allParticipantNames = new ArrayList<>();
         allParticipantNames.addAll(existingUserNames);
         allParticipantNames.addAll(newUserNames);
@@ -203,14 +214,11 @@ public class ChatServiceImpl implements ChatService {
 
             String currentUserName = userChat.getUser().getProfile().getName();
 
-
-            Long currentUserId = userChat.getUser().getId();
-
             String otherName = allParticipantNames.stream()
                     .filter(name -> !name.equals(currentUserName))
                     .collect(Collectors.joining(", "));
 
-            log.info("{}'s name = {}", currentUserId, otherName);
+            log.info("{}'s name = {}", userChat.getUser().getId(), otherName);
 
             userChat.renameDefaultChatName(otherName);
         }
@@ -227,6 +235,8 @@ public class ChatServiceImpl implements ChatService {
         // 채팅방에 초대 메세지 뿌리기 + save
         String inviteMsg = reqDTO.getUsername() + "님이 " + name + "을 초대하였습니다.";
         messageRepository.save(MessageConverter.toInviteMessage(user, chat, inviteMsg));
+//        chat.updateLastReceivedMsg(inviteMsg);
+        redisTemplate.opsForHash().put("chat:" + chatId, "lastReceivedMsg", inviteMsg);
         template.convertAndSend("/sub/" + chatId + "/msg", inviteMsg);
     }
 
@@ -235,14 +245,14 @@ public class ChatServiceImpl implements ChatService {
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
         // 사용자의 읽지 않은 메세지 수 0 + isChatting = true -> redis
-        userChat.setToChatting();
-
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "true");
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "unReadMsg", "0");
         return MessageConverter.toChatHistoryDTO(messageRepository.findByChat_Id(chatId), chatId); // join fetch!
     }
 
     @Override
     @Transactional
-    public List<ChatResponseDTO.BroadcastMsgDTO> getChatHistory(Long chatId, Long cursor, User user) {
+    public List<ChatResponseDTO.BroadcastMsgDTO> getChatHistory(Long chatId, Long cursor, User user) { // paging!
 
         UserChat uc = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         uc.setToChatting();
@@ -252,8 +262,7 @@ public class ChatServiceImpl implements ChatService {
         if (cursor == null) {
             List<Message> lastestMessageList = messageRepository.getLastestMessagesByChatId(chatId, uc.getCreatedAt(), page);
             return MessageConverter.toChatHistoryDTO(lastestMessageList, chatId);
-        }
-        else {
+        } else {
             List<Message> previousMessageList = messageRepository.getPreviousMessagesByChatId(chatId, uc.getCreatedAt(), cursor, page);
 
             if (previousMessageList.isEmpty())
@@ -265,8 +274,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Transactional
     public void leaveChat(Long chatId, User user) {
-        UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
-        userChat.setToNotChatting(); // -> redis
+        redisTemplate.opsForHash().put("user:" + user.getId() + ":" + chatId, "isChatting", "false");
     }
 
     @Transactional
@@ -274,9 +282,11 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
         UserChat userChat = userChatRepository.findByUser_IdAndChat_Id(user.getId(), chatId).orElseThrow(() -> new ChatHandler(ErrorCode.WRONG_CHAT));
 
-        
         // redis 삭제 로직 추가
         userChatRepository.delete(userChat);
+
+        redisTemplate.opsForHash().delete("user:" + user.getId() + ":" + chatId, "isChatting");
+        redisTemplate.opsForHash().delete("user:" + user.getId() + ":" + chatId, "unReadMsg");
 
         Integer participants = chat.getParticipants();
 

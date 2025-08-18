@@ -35,6 +35,7 @@ public class ChatController {
 
     private final ChatService chatService;
     private final MessageService messageService;
+//    private final MessageServiceImpl messageServiceImpl;
 
     /// followee = 내가 팔로우
     /// follower = 나를 팔로우!
@@ -128,16 +129,18 @@ public class ChatController {
     @MessageMapping("/{chatId}/msg")
     @Operation(summary = "메세징 API", description = "실질적인 채팅 API 입니다.")
     @ApiResponse(responseCode = "CHAT2008", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastMsgDTO.class)))
-    public void chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
+    public StndResponse<Object> chattingWithRedis(@DestinationVariable ("chatId") Long chatId, @Payload ChatRequestDTO.ChattingReqDTO reqDTO) {
         messageService.chatting(chatId, reqDTO);
-
+//        messageServiceImpl.chattingWithChatGPT(chatId, reqDTO);
+        return StndResponse.onSuccess(null, SuccessCode.CHATTING_SUCCESS);
     }
 
     @PostMapping("/share")
     @Operation(summary = "산책 코스 공유 API", description = "다수 공유가 가능하며, 채팅방 ID, 초대 사용자 ID 리스트, 산책 코스 id가 필요합니다! 응답 코드는 기본 성공 코드 입니다!")
     @ApiResponse(responseCode = "CHAT2009", content = @Content(schema = @Schema(implementation = ChatResponseDTO.BroadcastCourseDTO.class)))
-    public void shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
+    public StndResponse<Object> shareCourse(@RequestBody ChatRequestDTO.ShareReqDTO reqDTO) {
         messageService.shareCourse(reqDTO);
+        return StndResponse.onSuccess(null, SuccessCode.SHARE_COURSE_SUCCESS);
     }
 
     @PatchMapping ("/{chatId}")
