@@ -2,12 +2,14 @@ package UMC_8th.With_Run.chat.repository;
 
 import UMC_8th.With_Run.chat.dto.ChatResponseDTO;
 import UMC_8th.With_Run.chat.entity.mapping.UserChat;
+import UMC_8th.With_Run.common.scheduler.RedisSyncScheduler;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserChatRepository extends JpaRepository<UserChat, Long> {
 
@@ -54,4 +56,15 @@ public interface UserChatRepository extends JpaRepository<UserChat, Long> {
     List<Long> findAllByChat_Id(Long chatId);
 
     List<UserChat> findAllByUser_Id(Long userId);
+
+    @Query("Select uc From UserChat uc where concat(uc.user.id , ':',uc.chat.id) IN :redisParsingDTOList ")
+    List<UserChat> findallByToUpdateList(List<RedisSyncScheduler.RedisParsingDTO> redisParsingDTOList);
+
+
+    // UserChatRepository.java
+    @Query("SELECT uc FROM UserChat uc " +
+            "JOIN FETCH uc.user " +
+            "JOIN FETCH uc.chat " +
+            "WHERE uc.user.id IN :userIds AND uc.chat.id IN :chatIds")
+    List<UserChat> findByIdsWithDetails(@Param("userIds") Set<Long> userIds, @Param("chatIds") Set<Long> chatIds);
 }

@@ -79,4 +79,9 @@ public class UserChat {
     public void updateUnReadMsg() {  // Redis!
         this.unReadMsg ++;
     }
+
+    public void updateUserChat(Integer unReadMsg, Boolean isChatting) {
+        this.unReadMsg = unReadMsg;
+        this.isChatting = isChatting;
+    }
 }
