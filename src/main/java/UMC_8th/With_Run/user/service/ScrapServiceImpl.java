@@ -32,7 +32,7 @@ public class ScrapServiceImpl implements ScrapService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
-        List<Scraps> scraps = scrapsRepository.findAllByUserId(user.getId());
+        List<Scraps> scraps = scrapsRepository.findAllByUserIdWithCourse(user.getId());
 
         List<ScrapItemDTO> scrapItems = scraps.stream()
                 .map(scrap -> {
