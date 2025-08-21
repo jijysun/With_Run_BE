@@ -16,6 +16,9 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     List<Likes> findAllByUserId(Long userId);
 
+    @Query("SELECT l FROM Likes l JOIN FETCH l.course WHERE l.user.id = :userId")
+    List<Likes> findAllByUserIdWithCourse(@Param("userId") Long userId);
+
     @Query("SELECT l.course.id, COUNT(l) FROM Likes l WHERE l.course.id IN :courseIds AND l.deletedAt IS NULL GROUP BY l.course.id")
     List<Object[]> getLikeCountsByCourseIds(@Param("courseIds") List<Long> courseIds);
 

@@ -32,7 +32,7 @@ public class LikesServiceImpl implements LikesService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_USER));
 
-        List<Likes> likes = likesRepository.findAllByUserId(user.getId());
+        List<Likes> likes = likesRepository.findAllByUserIdWithCourse(user.getId());
 
         List<LikeItemDTO> likeItems = likes.stream()
                 .map(like -> {
