@@ -144,29 +144,14 @@ public class CourseServiceImpl implements CourseService {
                     .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
         }
 
-        // 💡 **기존 이미지 삭제 및 새 이미지 업로드 로직**
         String courseImageUrl = null;
         if (courseImageFile != null && !courseImageFile.isEmpty()) {
-
-                // 기존 코스 이미지 삭제 로직 (프로필 이미지 참고) - 코스 수정 시에 적용
-                // 현재는 '생성' API이므로, 기존 이미지를 삭제할 필요는 없습니다.
-                // 만약 이 메서드가 코스 '수정'에도 사용된다면 아래 로직이 필요합니다.
-                /*
-                String oldImageUrl = course.getImageUrl();
-                if (oldImageUrl != null && !oldImageUrl.isBlank()) {
-                    String s3Key = s3Uploader.extractKeyFromUrl(oldImageUrl);
-                    s3Uploader.fileDelete(s3Key);
-                }
-                */
-
-                // 새 이미지를 S3에 업로드하고 URL을 받습니다.
             try {
                 courseImageUrl = s3Uploader.upload(courseImageFile, "courses");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-
         // Course 엔티티 생성
         Course course = Course.builder()
                 .name(requestDto.getName())
@@ -179,13 +164,11 @@ public class CourseServiceImpl implements CourseService {
                 .regionsCity(regionsCity)
                 .regionsTown(regionsTown)
                 .overviewPolyline(requestDto.getOverviewPolyline())
-                .courseImage(courseImageUrl) // 👈 업로드된 이미지 URL 저장
+                .courseImage(courseImageUrl)
                 .build();
 
-        // 1. 코스를 먼저 저장하여 ID를 할당받습니다.
         Course savedCourse = courseRepository.save(course);
 
-        // 2. DTO에 담긴 핀 객체 리스트를 이용하여 실제 Pin 엔티티를 생성합니다.
         List<Pin> pins = new ArrayList<>();
         for (MapRequestDTO.PinRequestDto pinDto : requestDto.getPins()) {
             Pin newPin = Pin.builder()
@@ -202,7 +185,6 @@ public class CourseServiceImpl implements CourseService {
             pins.add(newPin);
         }
 
-        // 3. 생성된 핀 엔티티 리스트를 한 번에 저장합니다.
         pinRepository.saveAll(pins);
 
         return savedCourse.getId();

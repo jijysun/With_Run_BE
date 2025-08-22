@@ -6,6 +6,8 @@ import UMC_8th.With_Run.map.dto.MapRequestDTO;
 import UMC_8th.With_Run.map.dto.MapResponseDTO;
 import UMC_8th.With_Run.map.service.CourseService;
 import UMC_8th.With_Run.map.service.MapService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +19,10 @@ import UMC_8th.With_Run.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "지도 API", description = "Swagger 테스트용 지도 관련 API")
 @RestController
@@ -173,10 +177,11 @@ public class MapController {
             description = "산책 코스를 등록합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "산책 코스 생성 요청 DTO", required = true)
     )
-    @PostMapping("/courses")
+    @PostMapping(value = "/courses", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
-            @ModelAttribute @Valid MapRequestDTO.CourseCreateMultiPartRequestDto requestDto,
-            HttpServletRequest request) {
+            @RequestPart("courseCreateRequest") String courseCreateRequestJson,
+            @RequestPart(value = "courseImg", required = false) MultipartFile courseImg,
+            HttpServletRequest request) throws JsonProcessingException {
 
         // CourseController와 동일한 방식으로 사용자 인증 정보 추출
         Authentication authentication = jwtTokenProvider.extractAuthentication(request);
@@ -185,7 +190,11 @@ public class MapController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
 
-        Long courseId = courseService.createCourseV2(user.getId(), requestDto.getCourseCreateRequest(), requestDto.getCourseImg());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        MapRequestDTO.CourseCreateRequestDto courseDTO = objectMapper.readValue(courseCreateRequestJson, MapRequestDTO.CourseCreateRequestDto.class);
+
+        Long courseId = courseService.createCourseV2(user.getId(), courseDTO, courseImg);
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
                 .build();
