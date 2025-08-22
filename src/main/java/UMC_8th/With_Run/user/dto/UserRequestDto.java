@@ -77,6 +77,7 @@ public class UserRequestDto {
         private Long provinceId;
         private Long cityId;
         private Long townId;
+        private String overviewPolyline;
     }
 
     @Getter

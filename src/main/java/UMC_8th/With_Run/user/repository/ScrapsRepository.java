@@ -15,6 +15,9 @@ import org.springframework.data.repository.query.Param;
 public interface ScrapsRepository extends JpaRepository<Scraps, Long> {
     List<Scraps> findAllByUserId(Long userId);
 
+    @Query("SELECT s FROM Scraps s JOIN FETCH s.course WHERE s.user.id = :userId")
+    List<Scraps> findAllByUserIdWithCourse(@Param("userId") Long userId);
+
     @Query("SELECT s.course.id, COUNT(s) FROM Scraps s WHERE s.course.id IN :courseIds AND s.deletedAt IS NULL GROUP BY s.course.id")
     List<Object[]> getScrapCountsByCourseIds(@Param("courseIds") List<Long> courseIds);
 
