@@ -83,6 +83,7 @@ public class MyCourseServiceImpl implements MyCourseService {
         course.setDescription(dto.getDescription());
         course.setTime(dto.getTime());
         course.setKeyWord(convertToJson(dto.getKeyWords()));
+        course.setOverviewPolyline(dto.getOverviewPolyline());
 
         // 2. 지역 정보 수정
         RegionProvince province = provinceRepository.findById(dto.getProvinceId())
