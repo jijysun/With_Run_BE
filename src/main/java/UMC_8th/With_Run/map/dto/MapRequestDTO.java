@@ -1,6 +1,7 @@
 package UMC_8th.With_Run.map.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,5 +35,12 @@ public class MapRequestDTO {
         private Long regionsCityId;
         private Long regionsTownId;
         private String overviewPolyline;
+    }
+
+    @Getter @Setter
+    public static class CourseCreateMultiPartRequestDto {
+        private MapRequestDTO.CourseCreateRequestDto courseCreateRequest;
+
+        private MultipartFile courseImg;
     }
 }

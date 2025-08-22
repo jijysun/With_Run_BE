@@ -143,7 +143,7 @@ public class MapController {
 
 
     //코스 관련 API
-    @Operation(
+    /*@Operation(
             summary = "산책 코스 생성",
             description = "산책 코스를 등록합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "산책 코스 생성 요청 DTO", required = true)
@@ -161,6 +161,31 @@ public class MapController {
                 .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
         
         Long courseId = courseService.createCourse(user.getId(), requestDto);
+        MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
+                .courseId(courseId)
+                .build();
+        return StndResponse.onSuccess(response, SuccessCode.REQUEST_SUCCESS);
+    }
+*/
+
+    @Operation(
+            summary = "산책 코스 생성",
+            description = "산책 코스를 등록합니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "산책 코스 생성 요청 DTO", required = true)
+    )
+    @PostMapping("/courses")
+    public StndResponse<MapResponseDTO.CourseCreateResponseDto> createCourse(
+            @ModelAttribute @Valid MapRequestDTO.CourseCreateMultiPartRequestDto requestDto,
+            HttpServletRequest request) {
+
+        // CourseController와 동일한 방식으로 사용자 인증 정보 추출
+        Authentication authentication = jwtTokenProvider.extractAuthentication(request);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorCode.WRONG_USER));
+
+        Long courseId = courseService.createCourseV2(user.getId(), requestDto.getCourseCreateRequest(), requestDto.getCourseImg());
         MapResponseDTO.CourseCreateResponseDto response = MapResponseDTO.CourseCreateResponseDto.builder()
                 .courseId(courseId)
                 .build();
