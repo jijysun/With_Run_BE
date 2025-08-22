@@ -52,20 +52,27 @@ public class ProfileServiceImpl implements ProfileService {
 
         RegionProvince province = provinceRepository.findById(profile.getProvinceId())
                 .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
-        RegionsCity city = cityRepository.findById(profile.getCityId())
-                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
-        RegionsTown town = townRepository.findById(profile.getTownId())
-                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+
+        RegionsCity city = null;
+        RegionsTown town = null;
+        if (profile.getCityId() != null) {
+            city = cityRepository.findById(profile.getCityId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
+        if (profile.getTownId() != null) {
+            town = townRepository.findById(profile.getTownId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
 
         return UserResponseDto.ProfileResultDTO.builder()
                 .id(profile.getId())
                 .userId(user.getId())
                 .provinceId(province.getId())
                 .provinceName(province.getName())
-                .cityId(city.getId())
-                .cityName(city.getName())
-                .townId(town.getId())
-                .townName(town.getName())
+                .cityId(city != null ? city.getId() : null)
+                .cityName(city != null ? city.getName() : null)
+                .townId(town != null ? town.getId() : null)
+                .townName(town != null ? town.getName() : null)
                 .name(profile.getName())
                 .gender(profile.getGender())
                 .birth(profile.getBirth())
@@ -91,10 +98,17 @@ public class ProfileServiceImpl implements ProfileService {
 
         RegionProvince province = provinceRepository.findById(requestDTO.getProvinceId())
                 .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
-        RegionsCity city = cityRepository.findById(requestDTO.getCityId())
-                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
-        RegionsTown town = townRepository.findById(requestDTO.getTownId())
-                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+
+        RegionsCity city = null;
+        if (requestDTO.getCityId() != null) {
+            city = cityRepository.findById(requestDTO.getCityId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
+        RegionsTown town = null;
+        if (requestDTO.getTownId() != null) {
+            town = townRepository.findById(requestDTO.getTownId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
 
         String charactersJson = convertToJson(requestDTO.getCharacters());
         String styleJson = convertToJson(requestDTO.getStyle());
@@ -103,8 +117,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .user(user)
                 .name(requestDTO.getName())
                 .provinceId(province.getId())
-                .cityId(city.getId())
-                .townId(town.getId())
+                .cityId(city != null ? city.getId() : null)
+                .townId(town != null ? town.getId() : null)
                 .gender(requestDTO.getGender())
                 .birth(requestDTO.getBirth())
                 .breed(requestDTO.getBreed())
@@ -132,9 +146,22 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new UserHandler(ErrorCode.WRONG_PROFILE));
 
         // 업데이트
-        profile.setTownId(dto.getTownId());
-        profile.setCityId(dto.getCityId());
+        provinceRepository.findById(dto.getProvinceId())
+                .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
         profile.setProvinceId(dto.getProvinceId());
+
+        if (dto.getTownId() != null) {
+            townRepository.findById(dto.getTownId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
+        profile.setTownId(dto.getTownId());
+
+        if (dto.getCityId() != null) {
+            cityRepository.findById(dto.getCityId())
+                    .orElseThrow(() -> new UserHandler(ErrorCode.BAD_REQUEST));
+        }
+        profile.setCityId(dto.getCityId());
+
         profile.setName(dto.getName());
         profile.setGender(dto.getGender());
         profile.setBirth(dto.getBirth());
