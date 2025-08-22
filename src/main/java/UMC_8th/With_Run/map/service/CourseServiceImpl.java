@@ -120,7 +120,6 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public Long createCourseV2(Long userId, MapRequestDTO.CourseCreateRequestDto requestDto, MultipartFile courseImageFile) {
 
-        // 키워드를 JSON 형태로 변환
         String keywordsJson;
         try {
             keywordsJson = objectMapper.writeValueAsString(requestDto.getKeywords());
@@ -134,14 +133,17 @@ public class CourseServiceImpl implements CourseService {
         RegionProvince regionProvince = regionProvinceRepository.findById(requestDto.getRegionProvinceId())
                 .orElseThrow(() -> new MapHandler(ErrorCode.REGION_PROVINCE_NOT_FOUND));
 
-        RegionsCity regionsCity = regionsCityRepository.findById(requestDto.getRegionsCityId())
-                .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
+        RegionsCity regionsCity = null;
+        if (requestDto.getRegionsCityId() != null) {
+            regionsCity = regionsCityRepository.findById(requestDto.getRegionsCityId())
+                    .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
+        }
 
         // RegionsTown 처리 - 선택사항이므로 null 체크
         RegionsTown regionsTown = null;
         if (requestDto.getRegionsTownId() != null) {
             regionsTown = regionsTownRepository.findById(requestDto.getRegionsTownId())
-                    .orElseThrow(() -> new MapHandler(ErrorCode.REGION_CITY_NOT_FOUND));
+                    .orElseThrow(() -> new MapHandler(ErrorCode.REGION_TOWN_NOT_FOUND));
         }
 
         String courseImageUrl = null;
@@ -152,7 +154,6 @@ public class CourseServiceImpl implements CourseService {
                 throw new RuntimeException(e);
             }
         }
-        // Course 엔티티 생성
         Course course = Course.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
